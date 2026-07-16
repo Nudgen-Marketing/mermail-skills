@@ -6,7 +6,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
 const coverage = JSON.parse(await readFile(path.join(root, "tool-coverage.json"), "utf8"));
 const scenarios = JSON.parse(await readFile(path.join(root, "tests", "scenarios.json"), "utf8"));
-const expectedSkills = ["mermail", ...Object.keys(coverage.domains)].sort();
+const expectedSkills = [...coverage.infrastructureSkills, ...Object.keys(coverage.domains)].sort();
 const errors = [];
 
 const skillNames = (await readdir(skillsRoot)).sort();
@@ -65,6 +65,8 @@ for (const content of trackedText) {
 
 if (process.argv.includes("--remote")) await validateRemote();
 
+await validatePluginManifests();
+
 if (errors.length) {
   for (const error of errors) console.error(`ERROR: ${error}`);
   process.exit(1);
@@ -94,21 +96,73 @@ async function validateRemote() {
     errors.push("production MCP tool catalog differs from tool-coverage.json");
   }
 
+  const unauthenticated = await fetch(coverage.mcpEndpoint, {
+    method: "POST",
+    headers: { accept: "application/json, text/event-stream", "content-type": "application/json" },
+    body: JSON.stringify(initializePayload(0))
+  });
+  if (unauthenticated.status !== 401) errors.push(`unauthenticated MCP request returned HTTP ${unauthenticated.status}, expected 401`);
+
   const apiKey = process.env.MERMAIL_MCP_TEST_API_KEY;
   if (!apiKey) return;
-  const mcpResponse = await fetch(coverage.mcpEndpoint, {
+  const initialized = await authenticatedMcpRequest(apiKey, initializePayload(1));
+  if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
+  const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
+  if (listed?.result?.tools?.length !== 63) errors.push(`authenticated tools/list returned ${listed?.result?.tools?.length ?? 0} tools, expected 63`);
+}
+
+function initializePayload(id) {
+  return {
+    jsonrpc: "2.0",
+    id,
+    method: "initialize",
+    params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "mermail-skills-ci", version: "1.1.0" } }
+  };
+}
+
+async function authenticatedMcpRequest(apiKey, body) {
+  const response = await fetch(coverage.mcpEndpoint, {
     method: "POST",
     headers: {
       accept: "application/json, text/event-stream",
       "content-type": "application/json",
       "x-api-key": apiKey
     },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "initialize",
-      params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "mermail-skills-ci", version: "1.0.0" } }
-    })
+    body: JSON.stringify(body)
   });
-  if (!mcpResponse.ok) errors.push(`authenticated MCP initialize returned HTTP ${mcpResponse.status}`);
+  if (!response.ok) {
+    errors.push(`authenticated MCP ${body.method} returned HTTP ${response.status}`);
+    return null;
+  }
+  return response.json();
+}
+
+async function validatePluginManifests() {
+  const version = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).version;
+  const manifests = [
+    ".codex-plugin/plugin.json",
+    ".claude-plugin/plugin.json",
+    ".cursor-plugin/plugin.json",
+    ".plugin/plugin.json"
+  ];
+  for (const relative of manifests) {
+    const manifest = JSON.parse(await readFile(path.join(root, relative), "utf8"));
+    if (manifest.name !== "mermail") errors.push(`${relative}: plugin name must be mermail`);
+    if (manifest.version !== version) errors.push(`${relative}: version must match package.json`);
+  }
+
+  const codex = JSON.parse(await readFile(path.join(root, ".codex-plugin/plugin.json"), "utf8"));
+  if (codex.mcpServers?.mermail?.env_http_headers?.["x-api-key"] !== "MERMAIL_API_KEY") {
+    errors.push("Codex manifest must map MERMAIL_API_KEY through env_http_headers");
+  }
+
+  const claude = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
+  if (claude.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY}") {
+    errors.push("Claude MCP config must expand MERMAIL_API_KEY in x-api-key");
+  }
+
+  const cursor = JSON.parse(await readFile(path.join(root, ".cursor-plugin/mcp.json"), "utf8"));
+  if (cursor.mcpServers?.mermail?.headers?.["x-api-key"] !== "${env:MERMAIL_API_KEY}") {
+    errors.push("Cursor MCP config must expand MERMAIL_API_KEY in x-api-key");
+  }
 }

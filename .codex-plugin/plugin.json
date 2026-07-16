@@ -1,0 +1,40 @@
+{
+  "name": "mermail",
+  "version": "1.1.0",
+  "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
+  "author": {
+    "name": "Mermail",
+    "email": "contact@mermail.app",
+    "url": "https://mermail.app"
+  },
+  "homepage": "https://docs.mermail.app",
+  "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
+  "keywords": ["email", "inbox", "mcp", "ai-agent", "automation"],
+  "skills": "./skills/",
+  "mcpServers": {
+    "mermail": {
+      "type": "http",
+      "url": "https://console.mermail.app/mcp",
+      "env_http_headers": {
+        "x-api-key": "MERMAIL_API_KEY"
+      }
+    }
+  },
+  "interface": {
+    "displayName": "Mermail",
+    "shortDescription": "Privacy-first email for AI agents",
+    "longDescription": "Manage Mermail inboxes, email delivery, workspaces, task triage, and mailbox-agent workflows with scoped API-key authentication.",
+    "developerName": "Mermail",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://mermail.app",
+    "privacyPolicyURL": "https://mermail.app/privacy",
+    "termsOfServiceURL": "https://mermail.app/terms",
+    "defaultPrompt": [
+      "Summarize unread Mermail messages and suggest next actions.",
+      "Draft a reply in Mermail and wait for my approval before sending.",
+      "Review Mermail API credits and mailbox triage status."
+    ],
+    "brandColor": "#158F93"
+  }
+}
