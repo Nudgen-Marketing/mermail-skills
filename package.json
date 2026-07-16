@@ -1,0 +1,9 @@
+{
+  "name": "mermail-skills",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/validate.mjs",
+    "validate:remote": "node tests/validate.mjs --remote"
+  }
+}

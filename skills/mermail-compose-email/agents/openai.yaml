@@ -1,0 +1,11 @@
+interface:
+  display_name: "Compose Mermail Email"
+  short_description: "Draft, send, reply, and schedule email"
+  default_prompt: "Use $mermail-compose-email to prepare and send this email safely through Mermail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

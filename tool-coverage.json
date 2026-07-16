@@ -1,0 +1,28 @@
+{
+  "mcpEndpoint": "https://console.mermail.app/mcp",
+  "discoveryEndpoint": "https://console.mermail.app/.well-known/mcp/server-card.json",
+  "confirmationTool": "prepare_destructive_action",
+  "domains": {
+    "mermail-administer-workspace": [
+      "get_api_credit_usage", "get_email_usage", "list_workspaces", "get_workspace", "update_workspace", "delete_workspace", "get_workspace_storage", "list_workspace_members", "update_member_role", "remove_workspace_member", "invite_workspace_member", "resend_workspace_invite", "list_email_domains", "add_email_domain", "delete_email_domain", "verify_email_domain", "list_workspace_mailboxes", "list_mailboxes", "create_mailbox", "get_mailbox", "update_mailbox_settings", "get_mailbox_storage"
+    ],
+    "mermail-manage-inbox": [
+      "list_emails", "get_email", "update_email", "delete_email", "bulk_delete_emails", "bulk_mark_emails_read", "bulk_move_emails", "move_email", "download_attachment", "empty_trash", "get_thread", "mark_thread_read", "list_folders", "create_folder", "update_folder", "delete_folder", "search_emails", "list_custom_labels", "create_custom_label", "update_custom_label", "delete_custom_label"
+    ],
+    "mermail-compose-email": [
+      "send_email", "reply_to_email", "forward_email", "save_draft", "regenerate_draft", "schedule_email_send"
+    ],
+    "mermail-mail-agent": [
+      "list_agent_conversations", "create_agent_conversation", "rename_agent_conversation", "delete_agent_conversation", "list_agent_messages", "chat_with_mailbox_agent"
+    ],
+    "mermail-automate-triage": [
+      "list_task_triagers", "create_task_triager", "list_recent_triager_runs", "update_task_triager", "delete_task_triager", "set_default_task_triager", "get_or_create_triager_conversation"
+    ]
+  },
+  "destructiveTools": [
+    "delete_workspace", "remove_workspace_member", "delete_email_domain", "delete_email", "bulk_delete_emails", "empty_trash", "delete_folder", "delete_custom_label", "delete_agent_conversation", "delete_task_triager"
+  ],
+  "externalEffectTools": [
+    "invite_workspace_member", "resend_workspace_invite", "send_email", "reply_to_email", "forward_email", "schedule_email_send", "chat_with_mailbox_agent"
+  ]
+}

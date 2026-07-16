@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail"
+  short_description: "Route Mermail email and workspace tasks"
+  default_prompt: "Use $mermail to handle this Mermail request with the appropriate workflow."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

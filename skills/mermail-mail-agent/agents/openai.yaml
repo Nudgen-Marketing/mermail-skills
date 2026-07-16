@@ -1,0 +1,11 @@
+interface:
+  display_name: "Use Mermail Mail Agent"
+  short_description: "Work with Mermail agent conversations"
+  default_prompt: "Use $mermail-mail-agent to complete this mailbox task with the Mermail agent."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Manage Mermail Inbox"
+  short_description: "Read, search, and organize Mermail inboxes"
+  default_prompt: "Use $mermail-manage-inbox to find and organize messages in my Mermail inbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

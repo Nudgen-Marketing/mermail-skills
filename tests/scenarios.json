@@ -1,0 +1,14 @@
+[
+  { "prompt": "Find unread invoices from last week", "skill": "mermail-manage-inbox", "tools": ["search_emails", "get_email"], "approval": "none" },
+  { "prompt": "Move these selected messages to the Finance folder", "skill": "mermail-manage-inbox", "tools": ["list_folders", "bulk_move_emails"], "approval": "write-preview" },
+  { "prompt": "Empty this mailbox trash", "skill": "mermail-manage-inbox", "tools": ["empty_trash"], "approval": "destructive" },
+  { "prompt": "Draft a response but do not send it", "skill": "mermail-compose-email", "tools": ["save_draft"], "approval": "none" },
+  { "prompt": "Send the approved launch email", "skill": "mermail-compose-email", "tools": ["send_email"], "approval": "external-effect" },
+  { "prompt": "Schedule this reply for tomorrow at 9 AM", "skill": "mermail-compose-email", "tools": ["reply_to_email", "schedule_email_send"], "approval": "external-effect" },
+  { "prompt": "Show API credits and email usage", "skill": "mermail-administer-workspace", "tools": ["get_api_credit_usage", "get_email_usage"], "approval": "none" },
+  { "prompt": "Invite a teammate to this workspace", "skill": "mermail-administer-workspace", "tools": ["invite_workspace_member"], "approval": "external-effect" },
+  { "prompt": "Verify the workspace email domain", "skill": "mermail-administer-workspace", "tools": ["list_email_domains", "verify_email_domain"], "approval": "write-preview" },
+  { "prompt": "Investigate why the default triager failed", "skill": "mermail-automate-triage", "tools": ["list_task_triagers", "list_recent_triager_runs"], "approval": "none" },
+  { "prompt": "Delete the obsolete task triager", "skill": "mermail-automate-triage", "tools": ["delete_task_triager"], "approval": "destructive" },
+  { "prompt": "Continue the mailbox agent conversation about support backlog", "skill": "mermail-mail-agent", "tools": ["list_agent_conversations", "list_agent_messages", "chat_with_mailbox_agent"], "approval": "external-effect" }
+]
