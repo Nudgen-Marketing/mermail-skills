@@ -14,7 +14,7 @@ const initialize = await request({
   params: {
     protocolVersion: "2025-03-26",
     capabilities: {},
-    clientInfo: { name: "mermail-skill-check", version: "1.2.0" }
+    clientInfo: { name: "mermail-skill-check", version: "1.2.1" }
   }
 });
 
