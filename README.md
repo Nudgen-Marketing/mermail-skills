@@ -70,6 +70,7 @@ The check initializes MCP and requires exactly 63 discoverable tools. For platfo
 | --- | --- |
 | `mermail` | Route broad or cross-domain requests |
 | `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
+| `mermail-cli` | Install and use the CLI for deterministic shell automation |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
