@@ -1,0 +1,11 @@
+interface:
+  display_name: "Connect Mermail MCP"
+  short_description: "Configure and troubleshoot Mermail MCP"
+  default_prompt: "Use $mermail-mcp to configure and verify my Mermail MCP connection."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

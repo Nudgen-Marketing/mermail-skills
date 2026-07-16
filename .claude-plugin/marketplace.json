@@ -1,0 +1,16 @@
+{
+  "name": "mermail",
+  "owner": {
+    "name": "Mermail",
+    "email": "contact@mermail.app"
+  },
+  "description": "Official Mermail plugin marketplace for privacy-first agent email workflows.",
+  "plugins": [
+    {
+      "name": "mermail",
+      "source": "./",
+      "description": "Manage Mermail inboxes, email delivery, workspaces, and automation through MCP.",
+      "category": "productivity"
+    }
+  ]
+}
