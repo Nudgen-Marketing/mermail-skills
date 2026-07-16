@@ -116,7 +116,7 @@ function initializePayload(id) {
     jsonrpc: "2.0",
     id,
     method: "initialize",
-    params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "mermail-skills-ci", version: "1.1.0" } }
+    params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "mermail-skills-ci", version: "1.2.0" } }
   };
 }
 
