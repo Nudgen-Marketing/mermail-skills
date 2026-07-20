@@ -1,6 +1,14 @@
 ---
 name: mermail-mail-agent
 description: Create, list, continue, rename, and delete Mermail mailbox-agent conversations and inspect their messages. Use when a user wants the Mermail agent to reason about a mailbox, continue prior agent work, review agent history, or manage agent conversations.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "🤖"
 ---
 
 # Use Mermail Mail Agent

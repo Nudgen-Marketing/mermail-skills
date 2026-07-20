@@ -1,6 +1,14 @@
 ---
 name: mermail-automate-triage
 description: Create, inspect, update, select, and delete Mermail task triagers and review recent triager runs. Use when a user wants mailbox automation, task extraction, default triager configuration, triager debugging, or a triager-linked agent conversation.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "⚙️"
 ---
 
 # Automate Mermail Triage

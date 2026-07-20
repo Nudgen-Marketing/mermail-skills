@@ -1,6 +1,14 @@
 ---
 name: mermail-administer-workspace
 description: Inspect Mermail API and email usage and manage workspaces, members, invitations, email domains, mailboxes, and storage. Use for workspace administration, access changes, domain verification, mailbox provisioning or settings, storage checks, plan usage, RPM, or credits.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "🏢"
 ---
 
 # Administer Mermail Workspace

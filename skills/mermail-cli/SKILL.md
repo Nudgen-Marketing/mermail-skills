@@ -1,6 +1,14 @@
 ---
 name: mermail-cli
 description: Install and use the official Mermail CLI for deterministic shell automation across workspaces, mailboxes, email, folders, labels, agents, and task triage. Use when a user asks for terminal commands, scripts, JSON output, CI automation, CLI authentication, or a safe destructive CLI workflow.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "⌨️"
 ---
 
 # Use Mermail CLI

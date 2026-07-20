@@ -9,14 +9,22 @@ const scenarios = JSON.parse(await readFile(path.join(root, "tests", "scenarios.
 const expectedSkills = [...coverage.infrastructureSkills, ...Object.keys(coverage.domains)].sort();
 const errors = [];
 
-const skillNames = (await readdir(skillsRoot)).sort();
+const skillNames = (
+  await Promise.all(
+    (await readdir(skillsRoot)).map(async (name) => {
+      const full = path.join(skillsRoot, name);
+      return (await stat(full)).isDirectory() ? name : null;
+    }),
+  )
+)
+  .filter(Boolean)
+  .sort();
 if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
   errors.push(`skills mismatch: expected ${expectedSkills.join(", ")}; found ${skillNames.join(", ")}`);
 }
 
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
-  if (!(await stat(skillDir)).isDirectory()) continue;
   const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatter) {
@@ -24,8 +32,23 @@ for (const skillName of skillNames) {
     continue;
   }
   const keys = [...frontmatter[1].matchAll(/^([a-zA-Z0-9_-]+):/gm)].map((match) => match[1]);
-  if (keys.join(",") !== "name,description") errors.push(`${skillName}: frontmatter must contain only name and description`);
+  const allowed = new Set(["name", "description", "metadata"]);
+  if (!keys.includes("name") || !keys.includes("description")) {
+    errors.push(`${skillName}: frontmatter must include name and description`);
+  }
+  for (const key of keys) {
+    if (!allowed.has(key)) errors.push(`${skillName}: unexpected frontmatter key ${key}`);
+  }
   if (!frontmatter[1].includes(`name: ${skillName}\n`)) errors.push(`${skillName}: name must match directory`);
+  if (!frontmatter[1].includes("metadata:\n  openclaw:")) {
+    errors.push(`${skillName}: missing metadata.openclaw for ClawHub`);
+  }
+  if (!frontmatter[1].includes("primaryEnv: MERMAIL_API_KEY")) {
+    errors.push(`${skillName}: metadata.openclaw.primaryEnv must be MERMAIL_API_KEY`);
+  }
+  if (!frontmatter[1].includes("- MERMAIL_API_KEY")) {
+    errors.push(`${skillName}: metadata.openclaw.requires.env must include MERMAIL_API_KEY`);
+  }
   if (markdown.includes("TODO")) errors.push(`${skillName}: unresolved TODO`);
   if (markdown.split("\n").length > 500) errors.push(`${skillName}: SKILL.md exceeds 500 lines`);
 

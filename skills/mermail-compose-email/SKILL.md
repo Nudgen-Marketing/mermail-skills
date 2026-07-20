@@ -1,6 +1,14 @@
 ---
 name: mermail-compose-email
 description: Draft, regenerate, send, reply to, forward, and schedule email through Mermail. Use when a user wants help composing email or asks Mermail to communicate externally, including AI-assisted drafts and scheduled delivery.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "✉️"
 ---
 
 # Compose Mermail Email

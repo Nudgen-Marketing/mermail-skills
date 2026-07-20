@@ -1,0 +1,24 @@
+name: Publish skills to ClawHub
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - "skills/**"
+      - ".github/workflows/clawhub-skill-publish.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    uses: openclaw/clawhub/.github/workflows/skill-publish.yml@main
+    with:
+      owner: mermail
+      root: skills
+      dry_run: ${{ github.event_name == 'pull_request' }}
+    secrets:
+      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}

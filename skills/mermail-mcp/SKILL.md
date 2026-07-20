@@ -1,6 +1,14 @@
 ---
 name: mermail-mcp
 description: Configure, verify, and troubleshoot the hosted Mermail MCP server in Codex, Claude Code, Cursor, or another MCP client. Use when installing Mermail, setting MERMAIL_API_KEY, mapping x-api-key authentication, checking connection status, diagnosing 401 or revoked-key errors, or confirming tool discovery.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "🔌"
 ---
 
 # Connect Mermail MCP

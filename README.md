@@ -71,6 +71,16 @@ ln -sfn /path/to/mermail-skills ~/.cursor/plugins/local/mermail
 
 Or import this repo as a **Cursor team marketplace**. Reload Cursor, then inspect Mermail under MCP tools.
 
+## ClawHub (OpenClaw)
+
+Mermail skills are published to [ClawHub](https://clawhub.ai/) under the **`mermail`** owner. See [CLAWHUB.md](./CLAWHUB.md) for publish and install steps (`clawhub install mermail/<skill-slug>`).
+
+Connect the hosted MCP server separately:
+
+```bash
+openclaw mcp set mermail '{"url":"https://console.mermail.app/mcp","transport":"streamable-http","headers":{"x-api-key":"'"$MERMAIL_API_KEY"'"}}'
+```
+
 ## Official MCP Registry
 
 The hosted server is also registered as **`app.mermail/mcp`**. Prefer the skills/plugin install for workflow prompts; use the registry id when your host installs remote MCP servers from the Official Registry feed.

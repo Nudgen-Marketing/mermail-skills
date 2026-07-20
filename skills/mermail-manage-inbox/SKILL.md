@@ -1,6 +1,14 @@
 ---
 name: mermail-manage-inbox
 description: Read, search, inspect, download, organize, label, move, mark, and delete Mermail email and threads. Use for inbox cleanup, finding messages, managing folders or custom labels, handling attachments, marking messages read, moving mail, or emptying trash.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "📥"
 ---
 
 # Manage Mermail Inbox
