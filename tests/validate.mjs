@@ -131,7 +131,27 @@ async function validateRemote() {
   const initialized = await authenticatedMcpRequest(apiKey, initializePayload(1));
   if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
-  if (listed?.result?.tools?.length !== 63) errors.push(`authenticated tools/list returned ${listed?.result?.tools?.length ?? 0} tools, expected 63`);
+  const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
+  if (remoteNames.length !== 63) {
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 63`);
+  }
+  if (!remoteNames.includes(coverage.confirmationTool)) {
+    errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
+  }
+
+  const workspaces = await authenticatedMcpRequest(apiKey, {
+    jsonrpc: "2.0",
+    id: 3,
+    method: "tools/call",
+    params: { name: "list_workspaces", arguments: {} },
+  });
+  if (!workspaces) {
+    errors.push("authenticated list_workspaces tools/call failed");
+  } else if (workspaces.result?.isError) {
+    errors.push("authenticated list_workspaces returned isError");
+  } else if (!workspaces.result?.structuredContent && !workspaces.result?.content) {
+    errors.push("authenticated list_workspaces returned empty content");
+  }
 }
 
 function initializePayload(id) {
