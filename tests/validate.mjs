@@ -161,6 +161,32 @@ async function validatePluginManifests() {
     errors.push("Claude MCP config must expand MERMAIL_API_KEY in x-api-key");
   }
 
+  const cursorManifest = JSON.parse(
+    await readFile(path.join(root, ".cursor-plugin/plugin.json"), "utf8"),
+  );
+  if (cursorManifest.displayName !== "Mermail") {
+    errors.push(".cursor-plugin/plugin.json: displayName must be Mermail");
+  }
+  if (cursorManifest.license !== "MIT") {
+    errors.push(".cursor-plugin/plugin.json: license must be MIT");
+  }
+  if (cursorManifest.logo !== "assets/logo.svg") {
+    errors.push(".cursor-plugin/plugin.json: logo must be assets/logo.svg");
+  }
+  if (cursorManifest.mcpServers !== "./.cursor-plugin/mcp.json") {
+    errors.push(".cursor-plugin/plugin.json: mcpServers path must point at .cursor-plugin/mcp.json");
+  }
+  try {
+    await stat(path.join(root, "assets", "logo.svg"));
+  } catch {
+    errors.push("assets/logo.svg is required for Cursor Marketplace");
+  }
+  try {
+    await stat(path.join(root, "LICENSE"));
+  } catch {
+    errors.push("LICENSE is required for Cursor Marketplace (MIT)");
+  }
+
   const cursor = JSON.parse(await readFile(path.join(root, ".cursor-plugin/mcp.json"), "utf8"));
   if (cursor.mcpServers?.mermail?.headers?.["x-api-key"] !== "${env:MERMAIL_API_KEY}") {
     errors.push("Cursor MCP config must expand MERMAIL_API_KEY in x-api-key");

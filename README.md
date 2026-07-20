@@ -36,7 +36,44 @@ Run `/reload-plugins` after an update and `/mcp` to inspect the connection.
 
 ### Cursor
 
-Install the repository from a Cursor team marketplace, or clone it and link it as a local plugin while developing. Reload Cursor after installation, then inspect Mermail under MCP tools.
+**Option A — Cursor Marketplace (preferred once listed)**
+
+1. Open [cursor.com/marketplace](https://cursor.com/marketplace) and search **Mermail**, or install after this repo is approved.
+2. Export `MERMAIL_API_KEY` in the environment that launches Cursor, then reload.
+3. Publisher checklist: [CURSOR_MARKETPLACE.md](./CURSOR_MARKETPLACE.md).
+
+**Option B — Cursor MCP settings (manual)**
+
+1. Export `MERMAIL_API_KEY` in the environment that launches Cursor (desktop apps do not see shell-only vars from other terminals).
+2. Add a remote HTTP server in Cursor MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "mermail": {
+      "type": "http",
+      "url": "https://console.mermail.app/mcp",
+      "headers": {
+        "x-api-key": "${env:MERMAIL_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+3. Reload Cursor and inspect Mermail under MCP tools.
+
+**Option C — Local / team plugin**
+
+```bash
+ln -sfn /path/to/mermail-skills ~/.cursor/plugins/local/mermail
+```
+
+Or import this repo as a **Cursor team marketplace**. Reload Cursor, then inspect Mermail under MCP tools.
+
+## Official MCP Registry
+
+The hosted server is also registered as **`app.mermail/mcp`**. Prefer the skills/plugin install for workflow prompts; use the registry id when your host installs remote MCP servers from the Official Registry feed.
 
 ## Configure authentication
 
