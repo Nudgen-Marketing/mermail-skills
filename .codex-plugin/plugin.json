@@ -1,6 +1,6 @@
 {
   "name": "mermail",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
   "author": {
     "name": "Mermail",
@@ -35,6 +35,8 @@
       "Draft a reply in Mermail and wait for my approval before sending.",
       "Review Mermail API credits and mailbox triage status."
     ],
-    "brandColor": "#158F93"
+    "brandColor": "#158F93",
+    "logo": "./assets/icon.png",
+    "composerIcon": "./assets/icon.png"
   }
 }

@@ -1,6 +1,6 @@
 {
   "verifiedAt": "2026-07-16",
-  "pluginVersion": "1.2.1",
+  "pluginVersion": "1.2.2",
   "hostedMcp": {
     "url": "https://console.mermail.app/mcp",
     "transport": "streamable-http",

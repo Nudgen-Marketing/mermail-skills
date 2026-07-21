@@ -1,6 +1,6 @@
 {
   "name": "mermail",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
   "author": {
     "name": "Mermail",
@@ -9,7 +9,13 @@
   },
   "homepage": "https://docs.mermail.app",
   "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
-  "keywords": ["email", "inbox", "mcp", "ai-agent", "automation"],
+  "keywords": [
+    "email",
+    "inbox",
+    "mcp",
+    "ai-agent",
+    "automation"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"
 }

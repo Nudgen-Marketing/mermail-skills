@@ -198,6 +198,20 @@ async function validatePluginManifests() {
   if (codex.mcpServers?.mermail?.env_http_headers?.["x-api-key"] !== "MERMAIL_API_KEY") {
     errors.push("Codex manifest must map MERMAIL_API_KEY through env_http_headers");
   }
+  if (codex.interface?.logo !== "./assets/icon.png") {
+    errors.push(".codex-plugin/plugin.json: interface.logo must be ./assets/icon.png");
+  }
+  if (codex.interface?.composerIcon !== "./assets/icon.png") {
+    errors.push(".codex-plugin/plugin.json: interface.composerIcon must be ./assets/icon.png");
+  }
+  if (codex.interface?.shortDescription === "Connect Codex to Mermail.") {
+    errors.push(".codex-plugin/plugin.json: shortDescription must not use the Codex default placeholder");
+  }
+  try {
+    await stat(path.join(root, "assets", "icon.png"));
+  } catch {
+    errors.push("assets/icon.png is required for Codex plugin branding");
+  }
 
   const claude = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
   if (claude.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY}") {
