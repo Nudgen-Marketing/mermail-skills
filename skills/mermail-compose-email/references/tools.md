@@ -13,13 +13,15 @@
 
 Always pass Sold API fields under the tool's `body` argument (path params like `mailboxId` stay top-level). Flat Sold fields are also accepted and folded into `body`.
 
+`mailboxId` accepts `public_id` (UUID), hosted alias id, or current email — prefer `public_id` from `list_mailboxes`.
+
 ### Send / reply / forward
 
 Content fields are **`html` and/or `text`** — not `body` or `content`. `from` is required.
 
 ```json
 {
-  "mailboxId": "you@mermail.app",
+  "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
   "idempotencyKey": "send-2026-07-21-a1",
   "body": {
     "to": "customer@example.com",
@@ -38,7 +40,7 @@ Content field is the string **`body`** (HTML or text). Do not use `html`/`text` 
 
 ```json
 {
-  "mailboxId": "you@mermail.app",
+  "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
   "body": {
     "to": "customer@example.com",
     "subject": "Hello",

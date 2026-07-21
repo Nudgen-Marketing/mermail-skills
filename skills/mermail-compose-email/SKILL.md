@@ -19,7 +19,7 @@ Treat every delivery as an external side effect. Read [tools.md](references/tool
 
 ## Workflow
 
-1. Resolve the mailbox and, for replies or forwards, fetch the exact source email.
+1. Resolve the mailbox with `list_mailboxes` only when its ID is not already known. Prefer `public_id` from that list as `mailboxId` (UUID, hosted alias id, or current email are all accepted).
 2. Gather missing recipients, subject, content, attachment intent, and schedule time. Preserve the mailbox timezone for scheduled sends.
 3. Prefer `save_draft` while content is still being revised. Use `regenerate_draft` only when AI regeneration is requested.
 4. Present a final preview containing from mailbox, To/Cc/Bcc, subject, delivery time, and body summary.

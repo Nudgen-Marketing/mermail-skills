@@ -30,15 +30,17 @@ Commands use `mermail <resource> <action> [flags]`:
 ```bash
 mermail workspaces list
 mermail mailboxes list --format json
-mermail emails list --mailbox-id MAILBOX_ID
+mermail emails list --mailbox-id MAILBOX_PUBLIC_ID
 mermail emails send \
-  --mailbox-id you@mermail.app \
+  --mailbox-id MAILBOX_PUBLIC_ID \
   --to recipient@example.com \
   --from you@mermail.app \
   --subject "Hello" \
   --text "Plain text body"
 mermail mcp check
 ```
+
+`--mailbox-id` accepts `public_id` (UUID), hosted alias id, or current email — prefer `public_id` from `mermail mailboxes list`.
 
 Send/reply/forward use `--text` and/or `--html` plus `--from` (not a free-form `--body` content flag). Drafts use `--body` for the message string. Use typed flags for common fields. For complete or nested request bodies, use `--data`, `--data-file PATH`, or `--data-file -` with stdin. Prefer files or stdin over large inline JSON.
 

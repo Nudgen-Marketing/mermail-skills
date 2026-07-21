@@ -25,6 +25,8 @@ Configure the hosted Streamable HTTP server without storing credentials in proje
 6. Run `node scripts/check-connection.mjs` from this skill directory, or inspect the server with the client's MCP status command.
 7. Confirm that initialization succeeds and exactly 63 tools are discoverable.
 
+For mailbox-scoped tools, pass `mailboxId` as `public_id` (UUID) from `list_mailboxes` when possible; hosted alias id and current email also work.
+
 ## Troubleshoot
 
 - Missing environment variable: set `MERMAIL_API_KEY` in the environment that launches the client, then restart it (API-key mode only).

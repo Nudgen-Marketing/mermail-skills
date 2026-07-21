@@ -17,7 +17,7 @@ Use Mermail MCP read tools to identify exact resources before changing the inbox
 
 ## Workflow
 
-1. Resolve the mailbox with `list_mailboxes` only when its ID is not already known.
+1. Resolve the mailbox with `list_mailboxes` only when its ID is not already known. Prefer `public_id` as `mailboxId` (UUID, hosted alias id, or current email are all accepted).
 2. Use `search_emails`, `list_emails`, `get_email`, or `get_thread` to establish the smallest exact target set.
 3. Show the proposed folder, label, read-state, move, or deletion changes before a write when the user's request is not already explicit.
 4. For bulk operations, report the match count and target IDs before execution. Do not broaden the selection after approval.

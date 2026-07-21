@@ -17,7 +17,7 @@ Inspect existing triagers and recent runs before changing automation. Read [tool
 
 ## Workflow
 
-1. Resolve the mailbox, then call `list_task_triagers` and inspect the current default.
+1. Resolve the mailbox with `list_mailboxes` (prefer `public_id` as `mailboxId`), then call `list_task_triagers` and inspect the current default.
 2. For debugging, call `list_recent_triager_runs` before editing configuration.
 3. Present the trigger instructions, intended outputs, integrations, and default-status change before creating or updating a triager.
 4. Use an idempotency key for creation and other supported writes.

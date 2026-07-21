@@ -20,7 +20,7 @@ Route the request before invoking Mermail tools. Read [routing.md](references/ro
 1. Verify that the `mermail` MCP server is connected at `https://console.mermail.app/mcp` with an API key stored by the client.
 2. Split multi-part requests by domain and order read operations before writes.
 3. Invoke the focused skill for each domain. Do not reproduce its detailed workflow here.
-4. Preserve workspace and mailbox context across steps, but resolve IDs with read tools instead of guessing them.
+4. Preserve workspace and mailbox context across steps, but resolve IDs with read tools instead of guessing them. Prefer mailbox `public_id` as `mailboxId`.
 5. Summarize completed actions, skipped actions, errors, and any remaining approvals.
 
 Never request that the user paste an API key into chat. Never bypass confirmation, plan, RPM, credit, or workspace-scope errors.
