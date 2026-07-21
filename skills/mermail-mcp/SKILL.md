@@ -29,9 +29,11 @@ Configure the hosted Streamable HTTP server without storing credentials in proje
 
 - Missing environment variable: set `MERMAIL_API_KEY` in the environment that launches the client, then restart it (API-key mode only).
 - `401` with `WWW-Authenticate`: complete OAuth, or check that the header is named `x-api-key`, the key starts with `sk-proj-`, and the key is not revoked.
+- OAuth loop / cleared credentials in Cursor: remove the Mermail MCP entry, re-add `https://console.mermail.app/mcp`, and complete Authenticate again (logout of Mermail in the browser session first if consent fails).
 - `403`: use a key/token bound to the requested workspace and verify permissions.
 - `402`: verify Developer-plan access and remaining credits.
 - `429`: wait for the RPM window; do not rotate keys to bypass limits.
+- Write tools (`send_email`, drafts, etc.) return `code: "validation_failed"` with a `details` array — fix the named fields. Send/reply/forward need `body.html` and/or `body.text` plus `body.from`; drafts/schedule use string `body.body`. See the compose-email skill.
 - Tool mismatch: refresh the plugin and compare against the production server card.
 
 Do not print the key, write it into tracked JSON, or use command-line arguments that may persist in shell history.

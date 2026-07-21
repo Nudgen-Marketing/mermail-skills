@@ -15,6 +15,8 @@ metadata:
 
 Treat every delivery as an external side effect. Read [tools.md](references/tools.md) before choosing a composition workflow.
 
+**Payload split:** `send_email` / `reply_to_email` / `forward_email` use `body.html` and/or `body.text` plus required `body.from`. `save_draft` and `schedule_email_send` use a string field `body.body` (not `html`/`text`). Nest Sold fields under the MCP `body` argument.
+
 ## Workflow
 
 1. Resolve the mailbox and, for replies or forwards, fetch the exact source email.

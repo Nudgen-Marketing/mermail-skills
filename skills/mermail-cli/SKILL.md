@@ -18,7 +18,7 @@ Use the CLI when the task benefits from shell composition or stable JSON output.
 ## Setup
 
 1. Require Node.js 22 or newer.
-2. Install with `npm install -g mermail-cli`, or run with `npx mermail-cli`.
+2. Install with `npm install -g github:Nudgen-Marketing/mermail-cli` (or `npx --yes github:Nudgen-Marketing/mermail-cli`). Use `npm install -g mermail-cli` only after the package is published to npm.
 3. Ask the user to configure `MERMAIL_API_KEY` in their environment. Never request or echo the full key.
 4. Run `mermail doctor`, then `mermail auth check` only when the user accepts that it consumes one read credit.
 5. Inspect `mermail --help` and `<resource> --help` instead of guessing flags.
@@ -31,10 +31,16 @@ Commands use `mermail <resource> <action> [flags]`:
 mermail workspaces list
 mermail mailboxes list --format json
 mermail emails list --mailbox-id MAILBOX_ID
+mermail emails send \
+  --mailbox-id you@mermail.app \
+  --to recipient@example.com \
+  --from you@mermail.app \
+  --subject "Hello" \
+  --text "Plain text body"
 mermail mcp check
 ```
 
-Use typed flags for common fields. For complete or nested request bodies, use `--data`, `--data-file PATH`, or `--data-file -` with stdin. Prefer files or stdin over large inline JSON.
+Send/reply/forward use `--text` and/or `--html` plus `--from` (not a free-form `--body` content flag). Drafts use `--body` for the message string. Use typed flags for common fields. For complete or nested request bodies, use `--data`, `--data-file PATH`, or `--data-file -` with stdin. Prefer files or stdin over large inline JSON.
 
 Each command exposes only fields from its OpenAPI operation. Run command-level `--help` after upgrades instead of assuming that unrelated flags exist. Filter JSON deterministically with JMESPath:
 

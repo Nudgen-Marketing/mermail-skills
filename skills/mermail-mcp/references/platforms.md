@@ -1,6 +1,8 @@
 # Platform configuration
 
-Set the secret before launching the client:
+**Preferred:** OAuth against `https://console.mermail.app/mcp` in Cursor, Claude, and ChatGPT connectors — no API key in config.
+
+**API-key mode** (Codex, OpenClaw, headless): set the secret before launching the client:
 
 ```bash
 export MERMAIL_API_KEY="sk-proj-your-key"
@@ -8,7 +10,7 @@ export MERMAIL_API_KEY="sk-proj-your-key"
 
 ## Codex
 
-Codex plugin configuration uses an environment-backed HTTP header:
+Codex uses API-key headers (no OAuth connector):
 
 ```json
 {
@@ -22,9 +24,9 @@ Codex plugin configuration uses an environment-backed HTTP header:
 
 Use `/mcp` to inspect the connection. Restart Codex after changing the environment.
 
-## Claude Code
+## Claude / Claude Code
 
-Claude expands `${MERMAIL_API_KEY}` in HTTP headers:
+Prefer the Claude connectors UI (OAuth). For Claude Code with an API key:
 
 ```json
 {
@@ -40,7 +42,9 @@ Use `/mcp` or `claude mcp get mermail` to inspect the connection. Run `/reload-p
 
 ## Cursor
 
-Cursor uses environment interpolation in its MCP configuration:
+Prefer OAuth: add `https://console.mermail.app/mcp` (or the Cursor deeplink from [mermail.app/agents](https://mermail.app/agents)), then Authenticate — no `x-api-key` header needed.
+
+API-key fallback if OAuth is unavailable:
 
 ```json
 {
