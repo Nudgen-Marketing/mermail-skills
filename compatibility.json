@@ -1,13 +1,13 @@
 {
-  "verifiedAt": "2026-07-22",
-  "pluginVersion": "1.3.0",
+  "verifiedAt": "2026-07-16",
+  "pluginVersion": "1.2.1",
   "hostedMcp": {
     "url": "https://console.mermail.app/mcp",
     "transport": "streamable-http",
-    "authentication": "OAuth (ChatGPT/Cursor/Claude connectors; OpenAI Plugins Directory Apps) or x-api-key via MERMAIL_API_KEY (Codex GitHub plugin, OpenClaw)"
+    "authentication": "x-api-key via MERMAIL_API_KEY"
   },
   "platforms": {
-    "codex": "env_http_headers via .codex-plugin/mcp.json; Directory Apps use OAuth connector id in .app.json after portal publish",
+    "codex": "env_http_headers",
     "claudeCode": "headers with ${MERMAIL_API_KEY}",
     "cursor": "headers with ${env:MERMAIL_API_KEY}"
   },

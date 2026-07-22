@@ -1,7 +1,7 @@
 {
   "name": "mermail",
   "displayName": "Mermail",
-  "version": "1.3.0",
+  "version": "1.2.1",
   "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
   "author": {
     "name": "Mermail",
@@ -20,12 +20,7 @@
   ],
   "logo": "assets/logo.svg",
   "category": "productivity",
-  "tags": [
-    "email",
-    "mcp",
-    "agents",
-    "inbox"
-  ],
+  "tags": ["email", "mcp", "agents", "inbox"],
   "skills": "./skills/",
   "mcpServers": "./.cursor-plugin/mcp.json"
 }
