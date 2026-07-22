@@ -25,6 +25,14 @@ codex plugin add mermail@mermail
 
 Start a new Codex session after installation and use `/mcp` to inspect the connection.
 
+**Auth:** export `MERMAIL_API_KEY` before launching Codex (GitHub marketplace path). For Official ChatGPT/Codex **Plugins Directory** (Apps Connected + OAuth), follow [CODEX_MARKETPLACE.md](./CODEX_MARKETPLACE.md) and the paste-ready pack [PORTAL_SUBMISSION.md](./PORTAL_SUBMISSION.md).
+
+Publisher checklist: [CODEX_MARKETPLACE.md](./CODEX_MARKETPLACE.md) · [PORTAL_SUBMISSION.md](./PORTAL_SUBMISSION.md).
+
+```bash
+npm run build:openai-zip   # → dist/mermail-skills-openai.zip for portal Skills upload
+```
+
 ### Claude Code
 
 ```text

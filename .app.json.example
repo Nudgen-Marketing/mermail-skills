@@ -1,0 +1,7 @@
+{
+  "apps": {
+    "mermail": {
+      "id": "REPLACE_WITH_OPENAI_CONNECTOR_ID"
+    }
+  }
+}
