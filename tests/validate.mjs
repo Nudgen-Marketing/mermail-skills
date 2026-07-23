@@ -59,6 +59,37 @@ for (const skillName of skillNames) {
   }
 }
 
+const agentInboxDir = path.join(skillsRoot, "mermail-agent-inbox");
+const agentInboxSkill = await readFile(path.join(agentInboxDir, "SKILL.md"), "utf8");
+const agentInboxTools = await readFile(path.join(agentInboxDir, "references", "tools.md"), "utf8");
+const agentInboxSecurity = await readFile(path.join(agentInboxDir, "references", "security.md"), "utf8");
+if (agentInboxSkill.indexOf("`list_mailboxes`") > agentInboxSkill.indexOf("`create_mailbox`")) {
+  errors.push("mermail-agent-inbox: mailbox discovery must precede provisioning");
+}
+for (const required of [
+  "one mailbox provision",
+  "host model's policy",
+  "untrusted data",
+  "bounded read calls",
+]) {
+  if (!agentInboxSkill.includes(required)) {
+    errors.push(`mermail-agent-inbox: missing safety/workflow contract ${required}`);
+  }
+}
+for (const required of ["10 provision credits", "mermail emails wait", "search_emails", "get_email"]) {
+  if (!agentInboxTools.includes(required)) {
+    errors.push(`mermail-agent-inbox tools reference missing ${required}`);
+  }
+}
+for (const required of ["Prompt-injection handling", "Approval matrix", "host's safety policy"]) {
+  if (!agentInboxSecurity.includes(required)) {
+    errors.push(`mermail-agent-inbox security reference missing ${required}`);
+  }
+}
+if (!scenarios.some((scenario) => scenario.skill === "mermail-agent-inbox")) {
+  errors.push("mermail-agent-inbox: missing validation scenario");
+}
+
 const allTools = Object.values(coverage.domains).flat();
 const duplicates = allTools.filter((tool, index) => allTools.indexOf(tool) !== index);
 if (allTools.length !== 62) errors.push(`expected 62 business tools, found ${allTools.length}`);

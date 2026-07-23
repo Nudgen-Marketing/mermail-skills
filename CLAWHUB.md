@@ -1,6 +1,6 @@
 # Publish Mermail skills to ClawHub
 
-[ClawHub](https://clawhub.ai/) is the OpenClaw public registry for **skills** (`SKILL.md`) and plugins. Mermail publishes the eight workflow skills from this repo under the publisher handle **`mermail`**.
+[ClawHub](https://clawhub.ai/) is the OpenClaw public registry for **skills** (`SKILL.md`) and plugins. Mermail publishes the nine workflow skills from this repo under the publisher handle **`mermail`**.
 
 Remote MCP stays separate: configure it with `openclaw mcp set` (see below). ClawHub lists the skill packs; it does not replace Official MCP Registry (`app.mermail/mcp`).
 
@@ -23,7 +23,7 @@ Org-owned GitHub repos cannot use the web “import from GitHub” flow for a pe
 From the repo root:
 
 ```bash
-# Preview all eight skills (default)
+# Preview all nine skills (default)
 ./scripts/publish-clawhub.sh
 
 # Upload

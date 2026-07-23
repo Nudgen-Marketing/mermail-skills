@@ -19,7 +19,7 @@ Platform: https://platform.openai.com/ (Apps Management: Write)
 | MCP URL | `https://console.mermail.app/mcp` |
 | Transport | Streamable HTTP |
 | Auth | **OAuth 2.1** (preferred for Apps Connected) |
-| Skills | This repo (`skills/`, 8 workflows) or `npm run build:openai-zip` (ZIP with skill roots at top level) |
+| Skills | This repo (`skills/`, 9 workflows) or `npm run build:openai-zip` (ZIP with skill roots at top level) |
 | Homepage | https://mermail.app |
 | Docs | https://docs.mermail.app/ai/skills |
 | Privacy | https://mermail.app/privacy |

@@ -25,7 +25,7 @@ https://github.com/Nudgen-Marketing/mermail-skills
 - [x] `description` present
 - [x] `license`: `MIT` (+ root [`LICENSE`](./LICENSE))
 - [x] `logo`: [`assets/logo.svg`](./assets/logo.svg)
-- [x] `skills`: `./skills/` (8 workflows)
+- [x] `skills`: `./skills/` (9 workflows)
 - [x] `mcpServers`: [`.cursor-plugin/mcp.json`](./.cursor-plugin/mcp.json) → hosted Streamable HTTP
 - [x] Auth via `${env:MERMAIL_API_KEY}` (no secrets in repo)
 - [x] README documents install + auth
@@ -58,7 +58,7 @@ node skills/mermail-mcp/scripts/check-connection.mjs
 | Plugin name | `mermail` |
 | Display name | Mermail |
 | Short pitch | Give Cursor agents a real Mermail inbox over Streamable HTTP MCP — read, draft, send, triage. |
-| Longer description | Mermail packages Agent Skills plus a remote MCP server (`https://console.mermail.app/mcp`, Official Registry id `app.mermail/mcp`). Users create a workspace API key (`sk-proj-…`), set `MERMAIL_API_KEY`, and install this plugin. Includes 8 skills covering inbox management, compose/send, workspace admin, task triage, and mailbox-agent chat. Destructive tools require MCP confirmation tokens. |
+| Longer description | Mermail packages Agent Skills plus a remote MCP server (`https://console.mermail.app/mcp`, Official Registry id `app.mermail/mcp`). Users create a workspace API key (`sk-proj-…`), set `MERMAIL_API_KEY`, and install this plugin. Includes 9 skills covering agent inbox provisioning and verification mail, inbox management, compose/send, workspace admin, task triage, and mailbox-agent chat. Destructive tools require MCP confirmation tokens. |
 | Categories / tags | productivity, email, mcp, ai-agent, automation |
 | Homepage | https://docs.mermail.app/ai/skills |
 | Support email | contact@mermail.app |

@@ -12,7 +12,8 @@
 - `update_workspace`, `update_member_role`
 - `invite_workspace_member`, `resend_workspace_invite` — require an exact-recipient preview and approval
 - `add_email_domain`, `verify_email_domain` — require Developer-plan access
-- `create_mailbox`, `update_mailbox_settings`
+- `create_mailbox` — list first; make one explicitly authorized provision with no blind write retry
+- `update_mailbox_settings`
 
 ## Destructive
 

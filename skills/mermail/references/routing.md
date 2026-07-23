@@ -2,6 +2,7 @@
 
 | Request intent | Skill |
 | --- | --- |
+| Reuse or provision an agent mailbox for third-party verification, sign-in, onboarding, receipts, or order updates | `mermail-agent-inbox` |
 | Read, search, move, label, organize, download, or delete mail | `mermail-manage-inbox` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |
 | Inspect usage or manage workspaces, members, domains, mailboxes, or storage | `mermail-administer-workspace` |

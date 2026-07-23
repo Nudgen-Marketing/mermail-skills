@@ -154,7 +154,7 @@ Or point reviewers at public repo: `https://github.com/Nudgen-Marketing/mermail-
 ```text
 Initial public submission of Mermail as an MCP + skills plugin.
 MCP: https://console.mermail.app/mcp (Streamable HTTP, OAuth).
-Skills: 8 workflows (inbox, compose, triage, workspace, CLI/MCP helpers).
+Skills: 9 workflows (agent inbox and verification, inbox, compose, triage, workspace, CLI/MCP helpers).
 Reviewers: use OAuth consent on console.mermail.app; demo workspace prepared for <REVIEWER_EMAIL>.
 ```
 

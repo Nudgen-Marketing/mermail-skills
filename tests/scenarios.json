@@ -1,5 +1,6 @@
 [
   { "prompt": "Configure Mermail MCP in Codex using my environment", "skill": "mermail-mcp", "tools": [], "approval": "none" },
+  { "prompt": "Use a Mermail address for this signup and find the verification email", "skill": "mermail-agent-inbox", "tools": ["list_workspaces", "list_mailboxes", "create_mailbox", "search_emails", "get_email"], "approval": "write-preview" },
   { "prompt": "Find unread invoices from last week", "skill": "mermail-manage-inbox", "tools": ["search_emails", "get_email"], "approval": "none" },
   { "prompt": "Move these selected messages to the Finance folder", "skill": "mermail-manage-inbox", "tools": ["list_folders", "bulk_move_emails"], "approval": "write-preview" },
   { "prompt": "Empty this mailbox trash", "skill": "mermail-manage-inbox", "tools": ["empty_trash"], "approval": "destructive" },
