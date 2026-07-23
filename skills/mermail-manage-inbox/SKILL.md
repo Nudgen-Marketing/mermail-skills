@@ -18,7 +18,7 @@ Use Mermail MCP read tools to identify exact resources before changing the inbox
 ## Workflow
 
 1. Resolve the mailbox with `list_mailboxes` only when its ID is not already known. Prefer `public_id` as `mailboxId` (UUID, hosted alias id, or current email are all accepted).
-2. Use `search_emails`, `list_emails`, `get_email`, or `get_thread` to establish the smallest exact target set. For expected verification mail, constrain sender, recipient, subject, and a `date_start` captured before the triggering action; do not select by display name alone.
+2. Use `search_emails`, `list_emails`, `get_email`, or `get_thread` to establish the smallest exact target set. Pass MCP filters as a native JSON object under `query`; never JSON-encode or stringify that object. For newest-first listing, use `sortColumn: "date"` and `sortDirection: "DESC"` rather than an invented combined sort value. For expected verification mail, constrain sender, recipient, subject, and a `date_start` captured before the triggering action; do not select by display name alone.
 3. Show the proposed folder, label, read-state, move, or deletion changes before a write when the user's request is not already explicit.
 4. For bulk operations, report the match count and target IDs before execution. Do not broaden the selection after approval.
 5. For destructive tools, obtain explicit approval, call `prepare_destructive_action` with the exact tool arguments, then call the tool once with its token.

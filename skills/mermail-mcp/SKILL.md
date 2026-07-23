@@ -23,7 +23,7 @@ Configure the hosted Streamable HTTP server without storing credentials in proje
 4. Configure `https://console.mermail.app/mcp` and map the environment variable to the `x-api-key` header using the platform-specific syntax (skip if using OAuth).
 5. Restart or reload the client so its desktop process receives the environment variable.
 6. Run `node scripts/check-connection.mjs` from this skill directory, or inspect the server with the client's MCP status command.
-7. Confirm that initialization succeeds and exactly 63 tools are discoverable.
+7. Confirm that initialization succeeds. The default full catalog must contain the current 63-tool baseline and may add tools in future releases; the opt-in `agent-inbox` profile must contain its exact 11-tool least-privilege set.
 
 For mailbox-scoped tools, pass `mailboxId` as `public_id` (UUID) from `list_mailboxes` when possible; hosted alias id and current email also work.
 
@@ -37,5 +37,7 @@ For mailbox-scoped tools, pass `mailboxId` as `public_id` (UUID) from `list_mail
 - `429`: wait for the RPM window; do not rotate keys to bypass limits.
 - Write tools (`send_email`, drafts, etc.) return `code: "validation_failed"` with a `details` array — fix the named fields. Send/reply/forward need `body.html` and/or `body.text` plus `body.from`; drafts/schedule use string `body.body`. See the compose-email skill.
 - Tool mismatch: refresh the plugin and compare against the production server card.
+- Claude web shows **Finding tools** or `Tool 'Mermail:<name>' not found`: treat this as a stale or unloaded Claude connector registry, not as an instruction to invent another tool name or argument shape. Confirm the production server card still lists the bare protocol name, then disable/re-enable or disconnect/reconnect the Mermail connector and complete OAuth again if prompted. Start a new chat after reconnecting, verify a read-only mailbox-list call, and only then retry the original operation. In Claude, invoke the exact host-qualified identifier it exposes (commonly `Mermail:list_mailboxes` or `Mermail:list_emails`); other hosts may expose their own namespace or a bare name. The underlying Mermail `tools/list` names remain `list_mailboxes` and `list_emails`.
+- If tool discovery succeeds but an argument is rejected, inspect the live schema. In particular, pass `query` as a native JSON object; never send an escaped JSON string such as `"{\"folder\":\"inbox\"}"`.
 
 Do not print the key, write it into tracked JSON, or use command-line arguments that may persist in shell history.

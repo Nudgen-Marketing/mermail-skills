@@ -63,6 +63,9 @@ const agentInboxDir = path.join(skillsRoot, "mermail-agent-inbox");
 const agentInboxSkill = await readFile(path.join(agentInboxDir, "SKILL.md"), "utf8");
 const agentInboxTools = await readFile(path.join(agentInboxDir, "references", "tools.md"), "utf8");
 const agentInboxSecurity = await readFile(path.join(agentInboxDir, "references", "security.md"), "utf8");
+const manageInboxDir = path.join(skillsRoot, "mermail-manage-inbox");
+const manageInboxSkill = await readFile(path.join(manageInboxDir, "SKILL.md"), "utf8");
+const manageInboxTools = await readFile(path.join(manageInboxDir, "references", "tools.md"), "utf8");
 if (agentInboxSkill.indexOf("`list_mailboxes`") > agentInboxSkill.indexOf("`create_mailbox`")) {
   errors.push("mermail-agent-inbox: mailbox discovery must precede provisioning");
 }
@@ -101,6 +104,8 @@ for (const required of [
   "`agent_safe_content`",
   "`sender_authentication`",
   "profile=agent-inbox",
+  "`Mermail:list_emails`",
+  "host-qualified",
   "`--from-exact`",
   "`--to-exact`",
   "`--require-single-match`",
@@ -126,6 +131,73 @@ for (const required of [
 }
 if (!scenarios.some((scenario) => scenario.skill === "mermail-agent-inbox")) {
   errors.push("mermail-agent-inbox: missing validation scenario");
+}
+
+for (const [label, content] of [
+  ["mermail-agent-inbox tools reference", agentInboxTools],
+  ["mermail-manage-inbox skill", manageInboxSkill],
+  ["mermail-manage-inbox tools reference", manageInboxTools],
+]) {
+  if (!content.includes("native JSON object")) {
+    errors.push(`${label}: must require query as a native JSON object`);
+  }
+  if (!content.match(/never[\s\S]{0,100}stringify/i)) {
+    errors.push(`${label}: must forbid stringified MCP query objects`);
+  }
+  if (/"query"\s*:\s*"\s*\{/.test(content)) {
+    errors.push(`${label}: contains a stringified JSON object in query`);
+  }
+}
+for (const required of [
+  '"query": {',
+  '"sortColumn": "date"',
+  '"sortDirection": "DESC"',
+  "There is no `sort: \"date_desc\"` shortcut",
+  "`Mermail:list_emails`",
+  "exact tool identifier exposed by the current host",
+  "Do not manually add, strip, or invent",
+]) {
+  if (!manageInboxTools.includes(required)) {
+    errors.push(`mermail-manage-inbox tools reference missing ${required}`);
+  }
+}
+
+const mcpSkill = await readFile(path.join(skillsRoot, "mermail-mcp", "SKILL.md"), "utf8");
+const mcpPlatforms = await readFile(
+  path.join(skillsRoot, "mermail-mcp", "references", "platforms.md"),
+  "utf8",
+);
+const mcpConnectionCheck = await readFile(
+  path.join(skillsRoot, "mermail-mcp", "scripts", "check-connection.mjs"),
+  "utf8",
+);
+for (const [label, content] of [
+  ["mermail-mcp skill", mcpSkill],
+  ["mermail-mcp platforms reference", mcpPlatforms],
+]) {
+  for (const required of [
+    "Finding tools",
+    "Mermail:list_emails",
+    "list_mailboxes",
+    "native JSON object",
+    "host-qualified",
+  ]) {
+    if (!content.includes(required)) {
+      errors.push(`${label}: missing Claude tool-discovery recovery contract ${required}`);
+    }
+  }
+}
+for (const required of [
+  "at least the 63-tool full-catalog baseline",
+  "exact 11-tool agent-inbox profile",
+  "MCP is missing required tools",
+]) {
+  if (!mcpConnectionCheck.includes(required)) {
+    errors.push(`mermail-mcp connection check missing additive catalog contract ${required}`);
+  }
+}
+if (mcpConnectionCheck.includes("tools.length !== 63")) {
+  errors.push("mermail-mcp connection check must allow additive full-catalog tools");
 }
 
 for (const skillName of ["mermail-mail-agent", "mermail-automate-triage"]) {
@@ -309,6 +381,12 @@ async function validatePluginManifests() {
     errors.push(".codex-plugin/plugin.json: license must be MIT");
   }
   const codexMcp = JSON.parse(await readFile(path.join(root, ".codex-plugin/mcp.json"), "utf8"));
+  if (codexMcp.mermail?.type !== "http") {
+    errors.push("Codex MCP config must use the http transport");
+  }
+  if (codexMcp.mermail?.url !== coverage.mcpEndpoint) {
+    errors.push(`Codex MCP config URL must be ${coverage.mcpEndpoint}`);
+  }
   if (codexMcp.mermail?.env_http_headers?.["x-api-key"] !== "MERMAIL_API_KEY") {
     errors.push("Codex MCP config must map MERMAIL_API_KEY through env_http_headers");
   }
@@ -369,9 +447,35 @@ async function validatePluginManifests() {
     errors.push("scripts/build-openai-skills-zip.sh is required to build the OpenAI skills ZIP");
   }
 
-  const claude = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
-  if (claude.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY}") {
+  const genericManifest = JSON.parse(
+    await readFile(path.join(root, ".plugin/plugin.json"), "utf8"),
+  );
+  if (genericManifest.skills !== "./skills/") {
+    errors.push(".plugin/plugin.json: skills must point at ./skills/");
+  }
+  if (genericManifest.mcpServers !== "./.mcp.json") {
+    errors.push(".plugin/plugin.json: mcpServers must point at ./.mcp.json");
+  }
+
+  const genericMcp = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
+  if (genericMcp.mcpServers?.mermail?.type !== "http") {
+    errors.push("Generic/Claude MCP config must use the http transport");
+  }
+  if (genericMcp.mcpServers?.mermail?.url !== coverage.mcpEndpoint) {
+    errors.push(`Generic/Claude MCP config URL must be ${coverage.mcpEndpoint}`);
+  }
+  if (genericMcp.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY}") {
     errors.push("Claude MCP config must expand MERMAIL_API_KEY in x-api-key");
+  }
+
+  const claudeMarketplace = JSON.parse(
+    await readFile(path.join(root, ".claude-plugin/marketplace.json"), "utf8"),
+  );
+  const claudeListing = claudeMarketplace.plugins?.find(
+    (plugin) => plugin.name === "mermail",
+  );
+  if (claudeMarketplace.name !== "mermail" || claudeListing?.source !== "./") {
+    errors.push("Claude marketplace must expose the local mermail plugin from ./");
   }
 
   const cursorManifest = JSON.parse(
@@ -401,6 +505,12 @@ async function validatePluginManifests() {
   }
 
   const cursor = JSON.parse(await readFile(path.join(root, ".cursor-plugin/mcp.json"), "utf8"));
+  if (cursor.mcpServers?.mermail?.type !== "http") {
+    errors.push("Cursor MCP config must use the http transport");
+  }
+  if (cursor.mcpServers?.mermail?.url !== coverage.mcpEndpoint) {
+    errors.push(`Cursor MCP config URL must be ${coverage.mcpEndpoint}`);
+  }
   if (cursor.mcpServers?.mermail?.headers?.["x-api-key"] !== "${env:MERMAIL_API_KEY}") {
     errors.push("Cursor MCP config must expand MERMAIL_API_KEY in x-api-key");
   }

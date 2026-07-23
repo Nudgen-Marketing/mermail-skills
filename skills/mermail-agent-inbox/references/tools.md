@@ -18,6 +18,12 @@ keeps the full catalog for backward compatibility. Do not silently reconfigure
 a shared connection; self-restrict to the same 11 tools when a dedicated
 profile connection is unavailable.
 
+The names in this reference are Mermail's bare MCP `tools/list` names. When a
+host exposes qualified identifiers, invoke the exact identifier it discovered:
+Claude commonly uses `Mermail:list_emails`, while another host may use a
+different namespace or the bare name. Never invent or manually rewrite a
+host-qualified alias.
+
 ## Resolve and reuse
 
 - `list_workspaces` — resolve the credential-bound workspace. API-key and MCP OAuth credentials cannot cross their workspace boundary.
@@ -88,7 +94,9 @@ Use `search_emails` with the smallest useful filter set:
 }
 ```
 
-Pass filters under the MCP `query` argument. Search returns `{ "emails": [...], "totalCount": N }`.
+Pass filters under the MCP `query` argument as a native JSON object. Never
+JSON-encode, escape, or stringify that object, including in Claude, Codex,
+Cursor, or another MCP host. Search returns `{ "emails": [...], "totalCount": N }`.
 
 `include_held`, `metadata_only`, `agent_safe_content`, and
 `require_scan_status` are additive safety options. Use them when the live schema

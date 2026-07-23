@@ -24,6 +24,14 @@ for skill_dir in "${ROOT}/skills"/*/; do
     --exclude '.git' \
     --exclude '.DS_Store' \
     "${skill_dir}" "${STAGE}/${name}/"
+
+  # Verify this skill was staged byte-for-byte from the current source before
+  # it can enter the portal archive.
+  diff -qr \
+    --exclude '.DS_Store' \
+    --exclude 'node_modules' \
+    --exclude '.git' \
+    "${skill_dir}" "${STAGE}/${name}/"
 done
 
 count="$(find "${STAGE}" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
@@ -36,5 +44,7 @@ fi
   cd "${STAGE}"
   zip -qr "${ZIP}" .
 )
+
+unzip -tqq "${ZIP}"
 
 echo "Wrote ${ZIP} (${count} skill roots, $(wc -c < "${ZIP}" | tr -d ' ') bytes)"
