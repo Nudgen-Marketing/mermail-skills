@@ -17,9 +17,9 @@ Resolve and preserve the API key's workspace boundary. Read [tools.md](reference
 
 ## Workflow
 
-1. Use list/get tools to resolve the workspace, member, domain, or mailbox and show current state.
+1. Use list/get tools to resolve the workspace, member, domain, or mailbox and show current state. Always call `list_mailboxes` or `list_workspace_mailboxes` before `create_mailbox`; reuse a suitable exact mailbox instead of provisioning a duplicate.
 2. Check `get_api_credit_usage` or `get_email_usage` before a large or costly workflow when usage is relevant.
-3. Validate requested roles, invite recipients, domain names, and mailbox settings against the current MCP schema.
+3. Validate requested roles, invite recipients, domain names, mailbox addresses, and settings against the current MCP schema. `create_mailbox` requires `email`, `name`, and `workspaceId` and costs 10 provision credits.
 4. Preview access, routing, or ownership impact before writes. Require explicit approval for invitations and destructive changes.
 5. For deletion or member removal, call `prepare_destructive_action` with exact arguments after approval, then execute once with the returned token.
 6. Re-read the affected resource to verify state when a read endpoint is available.

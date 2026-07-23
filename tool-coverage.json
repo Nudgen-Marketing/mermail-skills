@@ -2,7 +2,7 @@
   "mcpEndpoint": "https://console.mermail.app/mcp",
   "discoveryEndpoint": "https://console.mermail.app/.well-known/mcp/server-card.json",
   "confirmationTool": "prepare_destructive_action",
-  "infrastructureSkills": ["mermail", "mermail-cli", "mermail-mcp"],
+  "infrastructureSkills": ["mermail", "mermail-agent-inbox", "mermail-cli", "mermail-mcp"],
   "domains": {
     "mermail-administer-workspace": [
       "get_api_credit_usage", "get_email_usage", "list_workspaces", "get_workspace", "update_workspace", "delete_workspace", "get_workspace_storage", "list_workspace_members", "update_member_role", "remove_workspace_member", "invite_workspace_member", "resend_workspace_invite", "list_email_domains", "add_email_domain", "delete_email_domain", "verify_email_domain", "list_workspace_mailboxes", "list_mailboxes", "create_mailbox", "get_mailbox", "update_mailbox_settings", "get_mailbox_storage"

@@ -21,6 +21,7 @@ display_name() {
     mermail) echo "Mermail" ;;
     mermail-mcp) echo "Mermail MCP" ;;
     mermail-cli) echo "Mermail CLI" ;;
+    mermail-agent-inbox) echo "Mermail Agent Inbox" ;;
     mermail-manage-inbox) echo "Mermail Manage Inbox" ;;
     mermail-compose-email) echo "Mermail Compose Email" ;;
     mermail-administer-workspace) echo "Mermail Administer Workspace" ;;

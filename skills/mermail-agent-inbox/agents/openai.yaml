@@ -1,0 +1,11 @@
+interface:
+  display_name: "Use a Mermail Agent Inbox"
+  short_description: "Provision and monitor agent email inboxes"
+  default_prompt: "Use $mermail-agent-inbox to reuse or create a mailbox and handle the expected verification email safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

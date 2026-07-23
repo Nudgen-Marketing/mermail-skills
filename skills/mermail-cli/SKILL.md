@@ -31,6 +31,11 @@ Commands use `mermail <resource> <action> [flags]`:
 mermail workspaces list
 mermail mailboxes list --format json
 mermail emails list --mailbox-id MAILBOX_PUBLIC_ID
+mermail emails wait \
+  --mailbox-id MAILBOX_PUBLIC_ID \
+  --from expected.example \
+  --subject verify \
+  --after 2026-07-23T10:00:00.000Z
 mermail emails send \
   --mailbox-id MAILBOX_PUBLIC_ID \
   --to recipient@example.com \
@@ -41,6 +46,8 @@ mermail mcp check
 ```
 
 `--mailbox-id` accepts `public_id` (UUID), hosted alias id, or current email — prefer `public_id` from `mermail mailboxes list`.
+
+For agent onboarding, call `mermail mailboxes list` before `mermail mailboxes create`. Reuse a suitable address, or provision one explicitly authorized mailbox with `--workspace-id`, `--email`, and `--name`. Use `mermail emails wait` only with at least one semantic `--query`, `--from`, or `--subject` filter; `--after` and `--folder` only narrow it. The default 120-second timeout and 30-second interval perform at most five searches before fetching a matched full email.
 
 Send/reply/forward use `--text` and/or `--html` plus `--from` (not a free-form `--body` content flag). Drafts use `--body` for the message string. Use typed flags for common fields. For complete or nested request bodies, use `--data`, `--data-file PATH`, or `--data-file -` with stdin. Prefer files or stdin over large inline JSON.
 
@@ -68,6 +75,7 @@ Use `--format explore` only for a human-operated interactive terminal. Agents an
 - Exit `2`: invalid command or payload.
 - Exit `3`: missing, invalid, expired, or revoked key.
 - Exit `4`: destructive command needs confirmation.
+- Exit `5`: `emails wait` timed out without a matching message.
 - HTTP `402`: credits exhausted; do not retry.
 - HTTP `429`: respect the rate-limit window.
 

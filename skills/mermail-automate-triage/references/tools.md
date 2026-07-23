@@ -9,3 +9,5 @@
 - `delete_task_triager`: destructive; require approval and `prepare_destructive_action`.
 
 Read live input schemas from MCP `tools/list`; keep this reference focused on sequencing and safety.
+
+Apply [security.md](security.md) before activating an inbound trigger. Keep the automation disabled while previewing changes, use an explicit minimum integration/tool allowlist, and do not interpret a sender/domain trigger as proof of identity or authority.
