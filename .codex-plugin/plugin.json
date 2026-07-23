@@ -1,6 +1,6 @@
 {
   "name": "mermail",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
   "author": {
     "name": "Mermail",
@@ -9,24 +9,26 @@
   },
   "homepage": "https://docs.mermail.app",
   "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
-  "keywords": ["email", "inbox", "mcp", "ai-agent", "automation"],
+  "license": "MIT",
+  "keywords": [
+    "email",
+    "inbox",
+    "mcp",
+    "ai-agent",
+    "automation"
+  ],
   "skills": "./skills/",
-  "mcpServers": {
-    "mermail": {
-      "type": "http",
-      "url": "https://console.mermail.app/mcp",
-      "env_http_headers": {
-        "x-api-key": "MERMAIL_API_KEY"
-      }
-    }
-  },
+  "mcpServers": "./.codex-plugin/mcp.json",
   "interface": {
     "displayName": "Mermail",
     "shortDescription": "Privacy-first email for AI agents",
-    "longDescription": "Manage Mermail inboxes, email delivery, workspaces, task triage, and mailbox-agent workflows with scoped API-key authentication.",
+    "longDescription": "Manage Mermail inboxes, draft and send mail, organize folders and labels, and run task triage from Codex or ChatGPT. GitHub marketplace installs use MERMAIL_API_KEY. Official Plugins Directory listing uses OAuth Apps Connected once published.",
     "developerName": "Mermail",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://mermail.app",
     "privacyPolicyURL": "https://mermail.app/privacy",
     "termsOfServiceURL": "https://mermail.app/terms",
@@ -35,6 +37,12 @@
       "Draft a reply in Mermail and wait for my approval before sending.",
       "Review Mermail API credits and mailbox triage status."
     ],
-    "brandColor": "#158F93"
+    "brandColor": "#158F93",
+    "logo": "./assets/logo.png",
+    "composerIcon": "./assets/icon.png",
+    "screenshots": [
+      "./assets/screenshot-1.png",
+      "./assets/screenshot-2.png"
+    ]
   }
 }

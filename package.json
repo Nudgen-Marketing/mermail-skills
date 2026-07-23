@@ -1,9 +1,10 @@
 {
   "name": "mermail-skills",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "private": true,
   "scripts": {
     "test": "node tests/validate.mjs",
-    "validate:remote": "node tests/validate.mjs --remote"
+    "validate:remote": "node tests/validate.mjs --remote",
+    "build:openai-zip": "bash scripts/build-openai-skills-zip.sh"
   }
 }

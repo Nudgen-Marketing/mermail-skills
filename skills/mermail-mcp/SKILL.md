@@ -17,10 +17,10 @@ Configure the hosted Streamable HTTP server without storing credentials in proje
 
 ## Setup
 
-1. Prefer **MCP OAuth** when the client supports it: connect to `https://console.mermail.app/mcp`, complete the browser login (same Enoki account as the Mermail console), and pick a workspace. No API key is required in that mode.
-2. Otherwise create an API key in Mermail workspace settings and copy it once.
+1. Prefer **MCP OAuth** when the client supports it: connect to `https://console.mermail.app/mcp`, complete the browser login (same Enoki account as the Mermail console), and pick a workspace. No API key is required in that mode. ChatGPT/Codex **Plugins Directory** Apps Connected also use OAuth once Mermail is published there.
+2. Otherwise create an API key in Mermail workspace settings and copy it once (required for Codex GitHub plugin install and OpenClaw).
 3. Store the key as `MERMAIL_API_KEY` in the platform's secret environment. Never ask the user to paste it into chat.
-4. Configure `https://console.mermail.app/mcp` and map the environment variable to the `x-api-key` header using the platform-specific syntax.
+4. Configure `https://console.mermail.app/mcp` and map the environment variable to the `x-api-key` header using the platform-specific syntax (skip if using OAuth).
 5. Restart or reload the client so its desktop process receives the environment variable.
 6. Run `node scripts/check-connection.mjs` from this skill directory, or inspect the server with the client's MCP status command.
 7. Confirm that initialization succeeds and exactly 63 tools are discoverable.

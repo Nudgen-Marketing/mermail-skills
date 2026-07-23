@@ -10,7 +10,7 @@ export MERMAIL_API_KEY="sk-proj-your-key"
 
 ## Codex
 
-Codex uses API-key headers (no OAuth connector):
+**GitHub plugin path** uses API-key headers (`MERMAIL_API_KEY`):
 
 ```json
 {
@@ -23,6 +23,8 @@ Codex uses API-key headers (no OAuth connector):
 ```
 
 Use `/mcp` to inspect the connection. Restart Codex after changing the environment.
+
+**Official Plugins Directory** (Linear-style Apps Connected) uses **OAuth** after OpenAI approves the Mermail plugin — see [CODEX_MARKETPLACE.md](../../../CODEX_MARKETPLACE.md). Do not put an API key in Directory App config.
 
 ## Claude / Claude Code
 

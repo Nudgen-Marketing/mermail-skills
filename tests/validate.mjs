@@ -195,8 +195,71 @@ async function validatePluginManifests() {
   }
 
   const codex = JSON.parse(await readFile(path.join(root, ".codex-plugin/plugin.json"), "utf8"));
-  if (codex.mcpServers?.mermail?.env_http_headers?.["x-api-key"] !== "MERMAIL_API_KEY") {
-    errors.push("Codex manifest must map MERMAIL_API_KEY through env_http_headers");
+  if (codex.mcpServers !== "./.codex-plugin/mcp.json") {
+    errors.push(".codex-plugin/plugin.json: mcpServers must point at ./.codex-plugin/mcp.json");
+  }
+  if (codex.license !== "MIT") {
+    errors.push(".codex-plugin/plugin.json: license must be MIT");
+  }
+  const codexMcp = JSON.parse(await readFile(path.join(root, ".codex-plugin/mcp.json"), "utf8"));
+  if (codexMcp.mermail?.env_http_headers?.["x-api-key"] !== "MERMAIL_API_KEY") {
+    errors.push("Codex MCP config must map MERMAIL_API_KEY through env_http_headers");
+  }
+  if (codex.interface?.logo !== "./assets/logo.png") {
+    errors.push(".codex-plugin/plugin.json: interface.logo must be ./assets/logo.png");
+  }
+  if (codex.interface?.composerIcon !== "./assets/icon.png") {
+    errors.push(".codex-plugin/plugin.json: interface.composerIcon must be ./assets/icon.png");
+  }
+  if (codex.interface?.shortDescription === "Connect Codex to Mermail.") {
+    errors.push(".codex-plugin/plugin.json: shortDescription must not use the Codex default placeholder");
+  }
+  const screenshots = codex.interface?.screenshots ?? [];
+  if (!Array.isArray(screenshots) || screenshots.length < 1) {
+    errors.push(".codex-plugin/plugin.json: interface.screenshots must list at least one PNG under ./assets/");
+  }
+  for (const shot of screenshots) {
+    if (typeof shot !== "string" || !shot.startsWith("./assets/") || !shot.endsWith(".png")) {
+      errors.push(`.codex-plugin/plugin.json: invalid screenshot path ${shot}`);
+      continue;
+    }
+    try {
+      await stat(path.join(root, shot.slice(2)));
+    } catch {
+      errors.push(`missing screenshot asset: ${shot}`);
+    }
+  }
+  if (codex.apps) {
+    try {
+      await stat(path.join(root, ".app.json"));
+    } catch {
+      errors.push(".codex-plugin/plugin.json declares apps but .app.json is missing (fill from .app.json.example after OpenAI connector id)");
+    }
+  }
+  try {
+    await stat(path.join(root, "assets", "icon.png"));
+  } catch {
+    errors.push("assets/icon.png is required for Codex plugin branding");
+  }
+  try {
+    await stat(path.join(root, "assets", "logo.png"));
+  } catch {
+    errors.push("assets/logo.png is required for Codex plugin branding");
+  }
+  try {
+    await stat(path.join(root, "CODEX_MARKETPLACE.md"));
+  } catch {
+    errors.push("CODEX_MARKETPLACE.md is required for OpenAI Plugins Directory submission");
+  }
+  try {
+    await stat(path.join(root, "PORTAL_SUBMISSION.md"));
+  } catch {
+    errors.push("PORTAL_SUBMISSION.md is required for Phase 3 portal paste pack");
+  }
+  try {
+    await stat(path.join(root, "scripts", "build-openai-skills-zip.sh"));
+  } catch {
+    errors.push("scripts/build-openai-skills-zip.sh is required to build the OpenAI skills ZIP");
   }
 
   const claude = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
