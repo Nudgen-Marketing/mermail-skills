@@ -17,7 +17,17 @@ API-key mode uses a workspace-scoped Mermail API key mapped from `MERMAIL_API_KE
 
 ## Codex
 
-Use OAuth through the official Plugins Directory after Mermail is published there. The GitHub plugin path uses an API-key environment header:
+Prefer native MCP OAuth with a current Codex CLI:
+
+```bash
+codex mcp add mermail --url https://console.mermail.app/mcp
+codex mcp login mermail
+codex mcp list
+```
+
+Start a new Codex session and inspect `/mcp`. Installable skills do not replace
+this OAuth connection. API-key config is a limited fallback for core mail and
+workspace automation only; it cannot use PayBox or x402:
 
 ```json
 {
@@ -29,11 +39,23 @@ Use OAuth through the official Plugins Directory after Mermail is published ther
 }
 ```
 
-Set `MERMAIL_API_KEY` in the environment that launches Codex, restart the client, then inspect `/mcp`. Do not place an API key in an official Directory App configuration.
+Set `MERMAIL_API_KEY` in the environment that launches Codex, restart the client, then inspect `/mcp`. Do not place a key in chat or an official Directory App configuration.
 
 ## Claude and Claude Code
 
-Prefer the Claude connectors UI with OAuth. For Claude Code API-key fallback:
+When Claude exposes custom connectors in the workspace, add the hosted URL in
+**Settings → Connectors**, complete OAuth, enable Mermail in the conversation,
+then verify `list_mailboxes`. If connector creation is unavailable, ask the
+workspace owner to enable it.
+
+For Claude Code, prefer OAuth at user scope:
+
+```bash
+claude mcp add --transport http --scope user mermail https://console.mermail.app/mcp
+```
+
+Open `/mcp`, choose **Authenticate**, and verify the catalog. For a limited
+Claude Code API-key fallback:
 
 ```json
 {
@@ -45,7 +67,8 @@ Prefer the Claude connectors UI with OAuth. For Claude Code API-key fallback:
 }
 ```
 
-Use `/mcp` or `claude mcp get mermail` to inspect connection state. Run `/reload-plugins` after plugin updates.
+Use `/mcp` or `claude mcp get mermail` to inspect connection state. Start a new
+session after skill or connector updates.
 
 Claude commonly exposes host-qualified identifiers such as `Mermail:list_mailboxes` and `Mermail:list_emails`; another host may expose a different namespace or bare names. Never manually add, strip, or invent the qualifier. The protocol `tools/list` names remain bare `list_mailboxes` and `list_emails`.
 
@@ -67,7 +90,48 @@ If OAuth is unavailable, use:
 
 Open MCP settings to inspect the server after restarting Cursor. An already-running desktop process does not receive an environment variable exported later in an unrelated shell.
 
-## OpenClaw and headless clients
+## ChatGPT
+
+When ChatGPT exposes custom apps in the workspace, enable developer controls,
+open **Settings → Apps → Create**, paste the hosted Mermail URL, choose OAuth,
+scan tools, finish workspace consent, then enable Mermail in a new chat. If
+**Create** is unavailable, ask the workspace owner to enable custom apps. Do
+not add `x-api-key` headers to this path.
+
+## OpenClaw
+
+Prefer native OAuth:
+
+```bash
+openclaw mcp add mermail --url https://console.mermail.app/mcp --transport streamable-http --auth oauth
+openclaw mcp login mermail
+openclaw mcp doctor mermail --probe
+```
+
+Do not classify proof creation or an unauthenticated catalog response as a
+healthy connection; the doctor probe must connect and list capabilities.
+
+## Hermes Agent
+
+Merge this entry under the existing `mcp_servers` key in
+`~/.hermes/config.yaml`, then authenticate from a fresh terminal:
+
+```yaml
+mcp_servers:
+  mermail:
+    url: "https://console.mermail.app/mcp"
+    auth: oauth
+```
+
+```bash
+hermes mcp login mermail
+```
+
+For a remote/headless Hermes host, keep OAuth: open the printed authorization
+URL locally and paste the final redirect URL back into the login prompt. Do not
+downgrade a PayBox or x402 workflow to API-key auth.
+
+## Generic headless clients
 
 Use the client's secret store, process supervisor, CI secret injection, or another non-recording credential input to provide `MERMAIL_API_KEY` to the launching process. Do not type a real key in an interactive `export` command that may remain in shell history. For generic MCP configuration, preserve the same Streamable HTTP URL and `x-api-key` mapping; do not place the actual key in examples, logs, command arguments, or tracked files.
 

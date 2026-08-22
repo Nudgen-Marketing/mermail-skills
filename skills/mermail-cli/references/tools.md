@@ -5,7 +5,7 @@ Read this reference when installing the CLI, choosing authentication, constructi
 ## Setup and discovery
 
 1. Require Node.js 22 or newer.
-2. Install with `npm install -g github:Nudgen-Marketing/mermail-cli`, or run once with `npx --yes github:Nudgen-Marketing/mermail-cli`. Use the npm package name only after it is published.
+2. Install the official public package with `npm install -g mermail-cli`, or run once with `npx --yes mermail-cli`. Do not use a GitHub-source install in user-facing setup instructions.
 3. Configure `MERMAIL_API_KEY` in the environment for Sold API commands. Never request or echo the full key. Prefer the environment over `--api-key` because shell history and process listings may expose arguments.
 4. Run `mermail doctor`. Run `mermail auth check` only when the user accepts that it consumes one read credit.
 5. Inspect `mermail --help` and `mermail <resource> --help` after upgrades. The live CLI help is authoritative for flags.

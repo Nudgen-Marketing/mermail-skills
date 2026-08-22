@@ -1105,6 +1105,8 @@ for (const forbidden of [
 }
 for (const required of [
   "Node.js 22",
+  "`npm install -g mermail-cli`",
+  "`npx --yes mermail-cli`",
   "70 supported Sold API commands",
   "`mermail wallet sign-url` is retired",
   "`mermail emails context`",
@@ -1113,6 +1115,9 @@ for (const required of [
   if (!cliTools.includes(required)) {
     errors.push(`mermail-cli tools reference missing ${required}`);
   }
+}
+if (cliCorpus.includes("github:Nudgen-Marketing/mermail-cli")) {
+  errors.push("mermail-cli: stale GitHub-source install command remains");
 }
 for (const required of [
   "Mailbox-first onboarding",
