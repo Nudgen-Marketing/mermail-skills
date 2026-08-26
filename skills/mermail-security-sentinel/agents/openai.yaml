@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Security Sentinel"
+  short_description: "Watch an agent inbox for account-security email and alert the owner"
+  default_prompt: "Use $mermail-security-sentinel when the job is monitoring account-security email - password resets, sign-in or MFA alerts, breach notices - for services an agent mailbox signed up to, judging whether the sender is legitimate, or alerting the owner about a security event."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
