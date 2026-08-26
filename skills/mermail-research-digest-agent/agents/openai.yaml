@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Research Digest Agent"
+  short_description: "Digest newsletters, alerts, and lists into cited scheduled briefings"
+  default_prompt: "Use $mermail-research-digest-agent to produce this week\u2019s cited digest from my subscriptions mailbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

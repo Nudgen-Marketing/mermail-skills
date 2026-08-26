@@ -1498,6 +1498,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-research-digest-agent",
   "mermail-x402-agent",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
