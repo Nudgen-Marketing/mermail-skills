@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Ops Governance"
+  short_description: "Fleet quota health, storage audits, and confirmation-gated destructive operations"
+  default_prompt: "Use $mermail-ops-governance to run a fleet health check across my Mermail mailboxes and report quota headroom."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
