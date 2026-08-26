@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Procurement Agent"
+  short_description: "Sign up, verify, pay once inside a frozen cap, then reconcile and file the receipt."
+  default_prompt: "Use $mermail-procurement-agent to acquire this third-party service with an agent inbox and my Agent Wallet, then reconcile the receipt against what I authorized."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
