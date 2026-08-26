@@ -29,7 +29,9 @@ Follow the owning skill's argument, approval, and retry contracts exactly. Where
 - **The charge tool is selected by the vendor's payment shape, not by preference.** An x402 challenge uses `paybox_pay_x402`; a direct on-chain payee uses `paybox_request_transfer`. Both are wallet-destructive and require the owning skill's approval contract. Do **not** call `prepare_destructive_action` for PayBox tools — it does not gate them.
 - **Proof creation is not settlement.** A `success` status from the pay tool or `paybox_get_request` means the proof exists. Treat it as `paid_unreconciled` until receipt reconciliation or independent settlement evidence says otherwise.
 - **Filing never deletes.** This skill uses label and folder reads plus classifier-definition creation. No tool in the inbox domain manually attaches a label to a message, so file by folder move or by a triager definition — do not claim a manual label assignment that the API does not expose.
-- **Never invent a tool.** There is no `procurement`, `subscribe`, `checkout`, or `reconcile` tool on the hosted server. If a leg cannot be executed with the tools above plus an allowlisted host tool, stop and report the gap.
+- **Amount arguments are not free-form.** Send human `amount_decimal`, never base units; pass `chain` as a CAIP-2 id and `token` as the contract address or `native`, read from the portfolio. Full contract and every failure code in [errors.md](errors.md).
+- **Discovery tools exist but are not registry-tracked.** `paybox_discover_services`, `paybox_use_service` (unpaid `mode: "probe"` only), and `paybox_get_contract` are documented live PayBox tools that do not appear in `tool-coverage.json`, because that file tracks a fixed set of 15 wallet-scoped canaries. Read their live schema before use and do not assume registry absence means the tool is gone.
+- **Never invent a tool.** There is no `procurement`, `subscribe`, `checkout`, or `reconcile` tool on the hosted server. If a leg cannot be executed with the tools above plus the browser driver in [browser.md](browser.md), stop and report the gap.
 
 ## Examples
 
