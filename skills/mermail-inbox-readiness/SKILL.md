@@ -75,6 +75,8 @@ Boundaries. Correlating an expected third-party verification, OTP, or magic-link
 
 ## Example Requests
 
+Paired with their expected report shapes in [workflows.md](references/workflows.md#example-prompts-and-expected-results).
+
 - "Stand up a Mermail mailbox for my new agent and prove it can receive mail before I wire anything to it."
 - "Is this Mermail mailbox ready for production agent work? Give me a go/no-go with evidence."
 - "Run a round-trip delivery self-test on my Mermail mailbox, but show me the test email before you send it."

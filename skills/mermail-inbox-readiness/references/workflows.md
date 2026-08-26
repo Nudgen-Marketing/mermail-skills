@@ -42,3 +42,62 @@ Four sequences. Stop at the first one that cannot complete and report why.
 | `ready` | Mailbox resolved, domain state read, probe received, `sender_authentication.status` `pass`, `scan_status` `clean` |
 | `degraded` | Delivered but a check returned `unknown`, or the probe was skipped or not authorized |
 | `blocked` | Connection, headroom, authorization, or delivery failed; name the failed check |
+
+## Example prompts and expected results
+
+Each example gives the triggering prompt and the shape of the report the skill is
+expected to end on. The values in a real run come from the tools; never fill one in
+from memory.
+
+### "Stand up a Mermail mailbox for my new agent and prove it can receive mail."
+
+Expected: headroom read first, then a mailbox resolved by reuse or one previewed
+provision, then one previewed probe, ending on a verdict block.
+
+```
+mailbox  agent-ops@<verified-domain>  (public_id <id>)  provisioned
+headroom credits <n> remaining · provision cost 10 · email usage <n>/<n> · storage <n>/<n>
+domain   <domain> — <status as list_email_domains returned it>
+probe    probe_received  subject "Mermail readiness probe <date>-<suffix>"
+         sender_authentication.status "pass"   scan_status "clean"
+folders  <names as list_folders returned them>
+monitor  monitoring_skipped
+VERDICT  ready
+next     mermail-agent-inbox
+```
+
+### "Is this mailbox ready for production work? Go/no-go with evidence."
+
+Expected: reuse, no provisioning, and an honest downgrade when a check answers
+`unknown`. `unknown` is not `pass` and never rounds up.
+
+```
+mailbox  support@<domain>  (public_id <id>)  reused
+probe    probe_received
+         sender_authentication.status "unknown"   scan_status "clean"
+VERDICT  degraded — sender authentication returned unknown, not pass
+next     mermail-manage-inbox
+```
+
+### "Run the round-trip self-test, but show me the test email before you send it."
+
+Expected: the exact `from`, `to`, subject and body previewed, a stop for approval,
+and — if approval does not arrive or the probe never lands inside the stated retry
+cap — a `degraded` verdict with no second send.
+
+```
+preview  from <mailbox email>  to <same-workspace mailbox>
+         subject "Mermail readiness probe <date>-<suffix>"
+         body    "<self-test text>"
+         waiting for approval — nothing sent
+...
+probe    probe_missing after <n> polls over <n>s (cap stated before starting)
+VERDICT  degraded — delivery not observed inside the stated cap
+```
+
+### What the skill will not do
+
+- Send a second probe, or extend a stated retry cap, without a new approval.
+- Send to a recipient outside the workspace.
+- Report a number, a domain status, or an authentication result the tools did not return.
+- Continue into the next skill's work after handing off.
