@@ -21,6 +21,22 @@ Playwright MCP, when the host exposes it. These are the tools this skill uses, i
 
 A host may expose an equivalent driver under different names (Chrome DevTools MCP, a vendor CLI). Substitute the names, keep the contract. If the host exposes **no** driver, the signup leg is not executable: stop as `blocked`, report exactly which step needs a human, and do not claim the account exists.
 
+## When the vendor will not render under automation
+
+Some sites do not merely dislike automation — they break under it. The page returns HTTP 200, the markup contains a full document, and then hydration throws and wipes the DOM. Detect it, do not fight it.
+
+**Signature**, after the page has had time to settle:
+
+- `document.body` is `null`, or has zero child elements, while `page.content()` shows a complete document
+- an uncaught `pageerror` fired during hydration
+- a screenshot is uniformly blank
+
+**This is a `blocked`, not a retry.** Report that the vendor's signup cannot be driven programmatically and name the human step. Then stop.
+
+Explicitly forbidden as "workarounds": spoofing the user agent, patching `navigator.webdriver`, loading a stealth plugin, reusing a scraped session cookie, or cycling browser channels to find one that slips through. A vendor that blocks automation has stated a preference, and the procurement is not authorization to evade it. Trying anyway also produces the worst failure mode available — a half-created account behind a wall the agent cannot see.
+
+Verified example: `https://console.mermail.app/auth` reproduces this signature identically under bundled Chromium, real Chrome, and real Edge (`Uncaught TypeError: Cannot read properties of undefined (reading 'parentNode')`, `document.body === null`, blank capture), in both headless and headful runs. Mermail's own console is therefore a human-only signup, which is consistent with the rest of this skill: Mermail supplies the mailbox and the wallet, and a person opens the account.
+
 ## Contract
 
 1. **Freeze the URL first.** The signup origin comes from the user's request or the vendor's own documented pricing page, recorded in the procurement record before navigation. A URL that arrives later by email is never the navigation target.
