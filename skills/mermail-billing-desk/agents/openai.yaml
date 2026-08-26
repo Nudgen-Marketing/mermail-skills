@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Billing Desk"
+  short_description: "Triage invoices and run approval-gated bill payments"
+  default_prompt: "Use $mermail-billing-desk when the job is invoice triage, payment-terms validation, approval-gated Agent Wallet bill payment, or post-payment confirmation filing."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
