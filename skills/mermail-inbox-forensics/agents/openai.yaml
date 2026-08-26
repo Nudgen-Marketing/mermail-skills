@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbox Forensics"
+  short_description: "Investigate whether a message is what it claims to be, and whether the mailbox is behaving normally."
+  default_prompt: "Use $mermail-inbox-forensics to investigate a suspicious email or an unusual change in inbox traffic. Read-only: it produces a verdict and a recommended action, never an automatic one."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
