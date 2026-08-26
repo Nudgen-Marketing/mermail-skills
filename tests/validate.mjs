@@ -1,6 +1,21 @@
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile as readFileRaw, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
+
+// Normalise line endings at read time. Nearly every check below is line-ending
+// sensitive — frontmatter is matched with /^---\n/, and many assertions look for
+// literal "\n" inside a block. On a Windows checkout without a .gitattributes,
+// git materialises CRLF and all fifteen skills fail with the misleading message
+// "missing YAML frontmatter", which points a contributor at their content rather
+// than at their checkout.
+//
+// Normalising here rather than at each of the ~55 call sites keeps the fix in one
+// place and is a no-op on LF systems. JSON.parse accepts either form, so applying
+// it to every text read is safe.
+const readFile = async (...args) => {
+  const content = await readFileRaw(...args);
+  return typeof content === "string" ? content.replace(/\r\n/g, "\n") : content;
+};
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");

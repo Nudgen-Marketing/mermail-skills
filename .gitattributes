@@ -1,0 +1,12 @@
+# Skill and reference files are validated with line-ending sensitive checks
+# (frontmatter is matched with /^---\n/). Without this, a Windows checkout
+# materialises CRLF and `npm test` fails every skill before a contributor has
+# written a line.
+* text=auto eol=lf
+
+# Binary assets must not be touched.
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.zip binary
