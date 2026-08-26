@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Approval Gate"
+  short_description: "Human-in-the-loop email approval before send, invite, or PayBox spend"
+  default_prompt: "Use $mermail-approval-gate to freeze an exact external-effect preview, email a one-time approval code to a designated human, and execute only after a matching reply unlocks that frozen preview."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
