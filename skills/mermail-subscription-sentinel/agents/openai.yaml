@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Subscription Sentinel"
+  short_description: "Audit recurring subscriptions and draft cancellations"
+  default_prompt: "Use $mermail-subscription-sentinel when the job is finding recurring subscriptions in a Mermail inbox, auditing renewal costs, or drafting cancellation and unsubscribe requests."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
