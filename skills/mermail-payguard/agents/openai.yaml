@@ -1,0 +1,12 @@
+interface:
+  display_name: "Mermail PayGuard"
+  short_description: "Review Mermail payment requests before wallet handoff"
+  default_prompt: "Use $mermail-payguard to review a payment request from my Mermail inbox, validate its details, summarize the request and risks, and require my explicit approval before handing the approved payment to the Mermail Agent Wallet."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
