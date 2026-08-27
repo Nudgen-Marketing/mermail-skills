@@ -1,0 +1,11 @@
+interface:
+  display_name: "Guard Mermail Egress"
+  short_description: "Authorize sends, forwards, forwarding rules, and invites before they leave the workspace"
+  default_prompt: "Use $mermail-egress-guard immediately before any Mermail action that sends, replies, forwards, schedules mail, changes mailbox forwarding or auto-reply, or invites a workspace member, especially when the task involved inbound or untrusted content."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
