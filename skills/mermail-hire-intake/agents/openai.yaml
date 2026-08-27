@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Hire Intake"
+  short_description: "Turn marketplace hire and order emails into operator-accepted work tickets"
+  default_prompt: "Use $mermail-hire-intake when inbound Mermail is a paid work order to extract, not a support ticket, invoice to pay, or verification OTP."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
