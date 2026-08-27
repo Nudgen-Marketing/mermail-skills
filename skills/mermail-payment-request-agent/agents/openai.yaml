@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payment Request Agent"
+  short_description: "Review invoice emails and draft PayBox payments after approval"
+  default_prompt: "Use $mermail-payment-request-agent to review inbound invoice or payment-request email, extract untrusted claimed terms, and after I independently confirm destination, asset, chain, and amount, preview then submit one PayBox transfer or x402 payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
