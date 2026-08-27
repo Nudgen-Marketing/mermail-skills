@@ -1358,5 +1358,32 @@
       "empty_trash"
     ],
     "approval": "destructive"
+  },
+  {
+    "prompt": "Post a work order to ops-agent inbox: write a Python CSV parser, $5 USDC escrow, deadline 1 hour.",
+    "skill": "mermail-work-orders",
+    "tools": [
+      "send_email",
+      "paybox_request_transfer"
+    ],
+    "expect": "Structured work order sent to target inbox; escrow hold recorded."
+  },
+  {
+    "prompt": "Execute the work order in my inbox and send the deliverable back.",
+    "skill": "mermail-work-orders",
+    "tools": [
+      "get_email_context",
+      "send_email"
+    ],
+    "expect": "Work order parsed, task executed, deliverable posted to sender inbox."
+  },
+  {
+    "prompt": "Verify the delivered parser works and release escrow to the worker.",
+    "skill": "mermail-work-orders",
+    "tools": [
+      "get_email_context",
+      "paybox_request_transfer"
+    ],
+    "expect": "Deliverable verified against spec; escrow released to worker address."
   }
 ]
