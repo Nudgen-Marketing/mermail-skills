@@ -132,6 +132,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
+| `mermail-relay-agent` | Delegate a bounded task to another AI agent over Mermail email and integrate its verified result |
 | `mermail-composio` | Connect and execute third-party apps through Composio |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
