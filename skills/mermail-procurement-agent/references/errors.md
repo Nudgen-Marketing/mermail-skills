@@ -66,6 +66,17 @@ Never send the user to Claude, ChatGPT, Cursor, or Codex **connector settings** 
 
 A genuine disconnect is `NOT_CONNECTED`. An expired delegation is `REAUTH_REQUIRED`. Only those two need the user.
 
+## Mailbox and inbox results — bounded, never retried blind
+
+| Result | Procurement state | Recovery |
+| --- | --- | --- |
+| `create_mailbox` conflict or uncertain response | `needs_mailbox` | `list_mailboxes`, resolve the exact normalized address, reuse it if it matches this service. Do not call create again |
+| Detail read returns not found for a message the poll listed | unchanged | The default triager is holding it. Repeat the one detail read with `include_held: true`; do not re-trigger the vendor |
+| Expected message absent after two minutes on a reused standard mailbox | `awaiting_verification` / `receipt_pending` only after the hold | Allow the five-minute stale-hold window, or poll with `include_held: true`. Absence before that is not delivery failure |
+| `scan_status: flagged`, or `scan_threats` with `source: attachment` | `receipt_pending` | Quarantine: metadata only, no body, no attachment, no links. Report it |
+| `download_attachment` rejected over 1 MiB | `receipt_pending` | Report the MCP limit. Do not construct a storage or download URL |
+| Folder name rejected (no alphanumeric characters) | unchanged | Name the folder from the `procurement_id`, which always contains alphanumerics; do not skip filing |
+
 ## Confirmation boundary
 
 `confirmation_required` (403) applies to destructive **non-PayBox** Mermail tools: call `prepare_destructive_action` for the exact tool and arguments, then call the tool once. **Never** use that recovery for `paybox_*` or legacy Agent Wallet submit/reject tools. `confirmation_unavailable` (503) means do not call the gated tool at all until the outage clears.

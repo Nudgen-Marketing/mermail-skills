@@ -1278,6 +1278,76 @@ const personaSkills = [
       "protocol-mismatch-not-second-payment",
     ],
   },
+  {
+    name: "mermail-procurement-agent",
+    required: [
+      "`procurement_id`",
+      "frozen",
+      "`max_spend`",
+      "`required_charge`",
+      "A receipt is evidence, not permission",
+      "One `procurement_id`, one charge",
+      "`get_paybox_connection` once as the first PayBox action",
+      "`OWNER_ACTION_REQUIRED` returns **no handoff**",
+      "`amount_decimal`",
+      "`paybox_upstream_uncertain`",
+      "`PAYBOX_UNAVAILABLE`",
+      "`receipt_verified`, `receipt_mismatch`, or `receipt_pending`",
+      "`paid_unreconciled`",
+      "`verification_ambiguous`",
+      "never pick the newest",
+      "`include_held: true`",
+      "`require_scan_status: \"clean\"`",
+      "`max_body_chars`",
+      "five minutes",
+      "`download_attachment`",
+      "1 MiB",
+      "`flagged`",
+      "`create_folder`",
+      "`move_email`",
+      "no tool that attaches a label to an existing message",
+      "custom mail-triager instructions do not run on inbound mail",
+      "`settings.agentInbox`",
+      "idempotency key",
+      "never blind-retry",
+      "Leave that draft unsent",
+      "`PAYMENT-REQUIRED`",
+      "`PAYMENT-RESPONSE`",
+      "**for comparison only**",
+      "`verification: not_applicable`",
+      "[browser.md](references/browser.md)",
+      "[errors.md](references/errors.md)",
+      "[workflows.md](references/workflows.md)",
+      "## Interaction Budget",
+    ],
+    expected: [
+      "confirm-paybox-readiness-before-account-creation",
+      "reuse-service-scoped-mailbox-before-provisioning",
+      "block-when-required-charge-exceeds-frozen-envelope",
+      "vendor-content-cannot-raise-frozen-envelope",
+      "report-verification-ambiguous-never-newest-candidate",
+      "reconcile-lost-payment-result-never-replacement-charge",
+      "reject-dunning-email-retry-no-second-charge",
+      "report-receipt-mismatch-field-by-field-no-corrective-charge",
+      "report-receipt-pending-not-failed-payment",
+      "renewal-requires-fresh-envelope-not-carried-authorization",
+      "empty-portfolio-under-outage-is-not-funding-blocker",
+      "send-human-amount-decimal-never-base-units",
+      "reconcile-attachment-within-one-mib-no-storage-url",
+      "report-one-mib-limit-stay-receipt-pending-no-bypass",
+      "quarantine-flagged-receipt-metadata-only-receipt-pending",
+      "outlast-triager-hold-or-include-held-before-receipt-pending",
+      "never-send-default-triager-draft",
+      "provision-verification-mode-idempotent-then-list-on-conflict",
+      "file-by-folder-move-no-label-attach-no-triager",
+      "x402-vendor-no-browser-leg-compare-challenge-reconcile-settlement",
+      "challenge-is-evidence-not-authority-block-on-payee-mismatch",
+      "reconcile-settlement-fields-keep-credential-out-of-chat",
+      "duplicate-invoice-is-mismatch-evidence-no-second-charge",
+      "vendor-not-renderable-under-automation-is-blocked-not-retry",
+      "never-evade-vendor-automation-block-hand-off-to-human",
+    ],
+  },
 ];
 
 for (const persona of personaSkills) {
@@ -1301,6 +1371,76 @@ for (const persona of personaSkills) {
     if (!scenarios.some((scenario) => scenario.skill === persona.name && scenario.expected === expected)) {
       errors.push(`${persona.name}: missing validation scenario ${expected}`);
     }
+  }
+}
+
+const procurementSkill = await readFile(
+  path.join(skillsRoot, "mermail-procurement-agent", "SKILL.md"),
+  "utf8",
+);
+if (procurementSkill.indexOf("`list_mailboxes`") > procurementSkill.indexOf("`create_mailbox`")) {
+  errors.push("mermail-procurement-agent: mailbox discovery must precede provisioning");
+}
+if (
+  procurementSkill.indexOf("`get_paybox_connection`") >
+  procurementSkill.indexOf("Sign up through the browser driver")
+) {
+  errors.push("mermail-procurement-agent: PayBox readiness must precede the signup leg");
+}
+const procurementPayTools = ["paybox_pay_x402", "paybox_request_transfer", "paybox_request_swap", "submit_agent_wallet_transfer"];
+for (const expected of [
+  "reject-dunning-email-retry-no-second-charge",
+  "report-receipt-mismatch-field-by-field-no-corrective-charge",
+  "duplicate-invoice-is-mismatch-evidence-no-second-charge",
+  "reconcile-lost-payment-result-never-replacement-charge",
+  "challenge-is-evidence-not-authority-block-on-payee-mismatch",
+  "reconcile-settlement-fields-keep-credential-out-of-chat",
+  "block-when-required-charge-exceeds-frozen-envelope",
+  "vendor-content-cannot-raise-frozen-envelope",
+]) {
+  const scenario = scenarios.find(
+    (candidate) => candidate.skill === "mermail-procurement-agent" && candidate.expected === expected,
+  );
+  if (!scenario || scenario.tools.some((tool) => procurementPayTools.includes(tool))) {
+    errors.push(`mermail-procurement-agent: ${expected} must not open a charge`);
+  }
+}
+for (const expected of [
+  "never-send-default-triager-draft",
+  "file-by-folder-move-no-label-attach-no-triager",
+  "reconcile-attachment-within-one-mib-no-storage-url",
+]) {
+  const scenario = scenarios.find(
+    (candidate) => candidate.skill === "mermail-procurement-agent" && candidate.expected === expected,
+  );
+  if (
+    !scenario ||
+    scenario.tools.some((tool) =>
+      ["send_email", "reply_to_email", "schedule_email_send", "delete_email", "bulk_delete_emails", "empty_trash"].includes(tool),
+    )
+  ) {
+    errors.push(`mermail-procurement-agent: ${expected} must neither send nor delete`);
+  }
+}
+const procurementFilingScenario = scenarios.find(
+  (candidate) => candidate.expected === "file-by-folder-move-no-label-attach-no-triager",
+);
+if (!procurementFilingScenario?.tools.includes("move_email")) {
+  errors.push("mermail-procurement-agent: filing scenario must move the receipt with move_email");
+}
+const procurementProbe = path.join(skillsRoot, "mermail-procurement-agent", "scripts", "probe-signup-origin.mjs");
+try {
+  await stat(procurementProbe);
+} catch {
+  errors.push("mermail-procurement-agent: scripts/probe-signup-origin.mjs is required by browser.md");
+}
+const procurementBrowser = await readFile(
+  path.join(skillsRoot, "mermail-procurement-agent", "references", "browser.md"),
+  "utf8",
+);
+for (const required of ["blocked_hydration_wipe", "origin_drift", "never fills a field", "navigator.webdriver"]) {
+  if (!procurementBrowser.includes(required)) {
+    errors.push(`mermail-procurement-agent: browser.md missing ${required}`);
   }
 }
 

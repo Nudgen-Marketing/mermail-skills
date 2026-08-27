@@ -37,6 +37,20 @@ Explicitly forbidden as "workarounds": spoofing the user agent, patching `naviga
 
 Verified example: `https://console.mermail.app/auth` reproduces this signature identically under bundled Chromium, real Chrome, and real Edge (`Uncaught TypeError: Cannot read properties of undefined (reading 'parentNode')`, `document.body === null`, blank capture), in both headless and headful runs. Mermail's own console is therefore a human-only signup, which is consistent with the rest of this skill: Mermail supplies the mailbox and the wallet, and a person opens the account.
 
+## Probe before you drive
+
+[probe-signup-origin.mjs](../scripts/probe-signup-origin.mjs) runs the detection above as one read-only Playwright pass — navigate, settle, inspect — and prints a JSON verdict: `renderable`, `blocked_hydration_wipe`, `origin_drift`, or `http_error`. It never fills a field or clicks a control. Run it on the frozen origin before the signup leg; a non-`renderable` verdict is the `blocked` report, ready to paste.
+
+```bash
+node skills/mermail-procurement-agent/scripts/probe-signup-origin.mjs https://vendor.example/signup
+```
+
+It needs `playwright` resolvable from the working directory or `NODE_PATH`; when it is not, the script says so and exits non-zero instead of guessing.
+
+## No browser leg for x402 resources
+
+A vendor that sells the plan as an x402 resource has no form to drive. The host's fetch tool sends the frozen request, reads the `402` challenge, and after `paybox_pay_x402` retries the same request with the proof under the `mermail-x402-agent` contract. Nothing here applies to that path except the redirect rule: the paid retry must land on the frozen origin.
+
 ## Contract
 
 1. **Freeze the URL first.** The signup origin comes from the user's request or the vendor's own documented pricing page, recorded in the procurement record before navigation. A URL that arrives later by email is never the navigation target.
