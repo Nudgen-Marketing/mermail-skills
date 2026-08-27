@@ -7,7 +7,7 @@ Four sequences. Every sequence starts from a resolved mailbox (`list_mailboxes`,
 1. `search_emails` in bounded passes for enrollment evidence: subjects and senders shaped like "verify", "confirm your", "welcome to", "your account". Metadata first, `limit` <= 25 per pass, narrow date windows walking backward. On refresh, search only since the registry's last-updated date.
 2. For each candidate, `get_email` (after `scan_status: clean`) only when metadata is insufficient to name the service and sender domain.
 3. Reduce to one registry row per service: service name, expected registered domain(s), first-seen date, evidence message ids. Two services claiming one domain, or one service seen on two unrelated domains, is recorded as ambiguity for the user - not merged.
-4. `save_draft` the registry as `Sentinel Registry` (plain-text table). Pass the prior draft id on refresh to update in place. No codes, links, or secrets in the registry body.
+4. `save_draft` the registry as `Sentinel Registry <YYYY-MM-DD>` (plain-text table). On refresh pass `body.draft_id` of the previous registry draft: it supersedes that draft and returns a new id, which becomes the id to carry into the next refresh. Record the returned id in the report. No codes, links, or secrets in the registry body.
 5. Report: services found, domains recorded, ambiguities, evidence counts.
 
 ## 2. Watch setup
