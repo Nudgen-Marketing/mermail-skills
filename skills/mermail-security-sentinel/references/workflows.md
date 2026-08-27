@@ -13,9 +13,10 @@ Four sequences. Every sequence starts from a resolved mailbox (`list_mailboxes`,
 ## 2. Watch setup
 
 1. `list_custom_labels`; create only what is missing.
-2. `create_custom_label` `Security event`: description matching password resets, new sign-in or device alerts, MFA/two-factor changes, lockouts, and breach or incident notifications.
-3. `create_custom_label` `Suspicious sender`: description matching security-shaped mail whose sender does not belong to an enrolled service's expected domains.
-4. Optional, on explicit automation intent: `list_task_triagers`, then `create_task_triager` with classify-and-draft instructions - label the event, draft (never send) an owner alert. Verify with `list_recent_triager_runs` after the first arrivals. Never `set_default_task_triager`.
+2. `create_custom_label` `Security event`, with `rules` matching password resets, new sign-in or device alerts, MFA/two-factor changes, lockouts, and breach or incident notifications.
+3. `create_custom_label` `Suspicious sender`, with `rules` matching security-shaped mail whose sender does not belong to an enrolled service's expected domains.
+4. `list_task_triagers` and read the mailbox's `settings.agentAutoResponse.requireApproval`. The default triager auto-drafts replies to inbound senders; report it, and report loudly if approval is not required. Never `set_default_task_triager`.
+5. Optional, on explicit automation intent: `create_task_triager` with classify-and-draft instructions - label the event, draft (never send) an owner alert. Verify with `list_recent_triager_runs` after the first arrivals.
 
 ## 3. Event handling (per security email)
 
@@ -35,6 +36,14 @@ Four sequences. Every sequence starts from a resolved mailbox (`list_mailboxes`,
 2. Summarize per service: event counts by type, verdicts, open suspicious items, registry changes.
 3. `save_draft`, preview, and one approved `send_email` to the owner.
 
-## Demo path (reproducible)
+## Demo path (reproducible, verified 2026-08-27)
 
-A working end-to-end check needs only an API key: build the registry from a mailbox holding two or three real signup verifications, set up the two labels, then send the mailbox (from any outside account) one genuine-looking security notice from an enrolled service's real domain and one lookalike (for example `service-security-alerts.com` claiming that service). Run sequence 3 on each: the first must come out `expected`, the second `suspicious`, and the approved owner alert must cite the domain comparison. Total runtime is a few minutes.
+A working end-to-end check needs only an API key and a few minutes.
+
+1. Enroll the mailbox in two or three real services so the registry has genuine evidence. A public mailing list works well: subscribing to `arch-announce` at lists.archlinux.org delivers a real confirmation request from `lists.archlinux.org` within a minute.
+2. Run sequence 1 and confirm the registry draft names each service with its expected domain.
+3. Run sequence 2 to create both labels.
+4. From an outside account, send the mailbox one plausible security notice from an enrolled service's own domain, and one lookalike claiming a *different* enrolled service from a domain that is not its own, carrying a lookalike link host such as `archlinux-security-alerts.com`.
+5. Run sequence 3 on each.
+
+Observed on a live mailbox: both messages were auto-classified on arrival, the first as `Security event` and the second as `Suspicious sender`, with no manual label assignment. The first resolved to `expected` on an exact registrable-domain match; the second to `suspicious` on two independent mismatches, sender domain and link host. `sender_authentication.status` was `unknown` on every message, so the domain comparison carried both verdicts. The default triager wrote reply drafts for the benign messages and recorded `Skipped: prompt injection suspected` for the lookalike.
