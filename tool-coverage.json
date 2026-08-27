@@ -6,6 +6,7 @@
     "mermail",
     "mermail-agent-inbox",
     "mermail-cli",
+    "mermail-egress-guard",
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-scheduling-agent",
