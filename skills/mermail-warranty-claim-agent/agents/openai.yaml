@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Warranty Claim Agent"
+  short_description: "Build evidence-backed warranty claims from inbox records"
+  default_prompt: "Use $mermail-warranty-claim-agent to assemble an evidence-backed product warranty claim and save the vendor message as a draft for review."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

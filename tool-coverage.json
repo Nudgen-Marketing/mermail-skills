@@ -10,6 +10,7 @@
     "mermail-mcp",
     "mermail-scheduling-agent",
     "mermail-support-agent",
+    "mermail-warranty-claim-agent",
     "mermail-x402-agent"
   ],
   "domains": {
