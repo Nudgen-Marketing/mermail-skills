@@ -33,7 +33,7 @@ Once frozen, the envelope is immutable for this `procurement_id`. A mid-checkout
 3. `get_paybox_connection` once. Not ready → paste one `console_url`, stop as `needs_paybox_connect`. **This happens before signup.**
 4. Record the expected verification tuple, then trigger signup through an allowlisted host tool. State `awaiting_verification`.
 5. Bounded poll (`metadata_only`, `agent_safe_content`, `require_scan_status: "clean"`, `include_held: true`) → exactly one validating candidate → one `get_email` with `max_body_chars` → extract only the code or HTTPS link this flow needs. Use it only after fresh confirmation. Skip this step as `verification: not_applicable` when the vendor is an x402 resource that issues the account inside the paid response.
-6. Resolve `required_charge` from live checkout. Compare to `max_spend`.
+6. Resolve `required_charge` from live checkout. Compare to `max_spend`. For an x402 vendor, `node skills/mermail-procurement-agent/scripts/reconcile-x402.mjs <url> --max <cap> --asset <contract> --network <caip2> [--pay-to <documented payee>]` is the comparison, read-only; anything but `within_envelope` is the blocker report.
 7. Compare holdings to `required_charge`. Short → `paybox_get_buy_link` handoff, state `needs_funding`, re-read after funding.
 8. One preview, one approval, state `awaiting_approval` → one charge, stamped with `procurement_id`. Record marked charged *before* awaiting the result. State `paid_unreconciled`.
 9. `pending_signature` → paste one returned `signing_handoff.console_url`, stop, resume on "continue".

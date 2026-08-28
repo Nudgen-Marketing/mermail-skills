@@ -1445,6 +1445,21 @@ try {
 } catch {
   errors.push("mermail-procurement-agent: scripts/probe-signup-origin.mjs is required by browser.md");
 }
+const procurementReconcile = path.join(skillsRoot, "mermail-procurement-agent", "scripts", "reconcile-x402.mjs");
+try {
+  await stat(procurementReconcile);
+} catch {
+  errors.push("mermail-procurement-agent: scripts/reconcile-x402.mjs is required by tools.md");
+}
+const procurementTools = await readFile(
+  path.join(skillsRoot, "mermail-procurement-agent", "references", "tools.md"),
+  "utf8",
+);
+for (const required of ["reconcile-x402.mjs", "within_envelope", "payee_mismatch", "It never pays", "carries no amount"]) {
+  if (!procurementTools.includes(required)) {
+    errors.push(`mermail-procurement-agent: tools.md missing ${required}`);
+  }
+}
 const procurementBrowser = await readFile(
   path.join(skillsRoot, "mermail-procurement-agent", "references", "browser.md"),
   "utf8",
