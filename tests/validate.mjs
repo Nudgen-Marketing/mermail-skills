@@ -1193,6 +1193,20 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-meeting-followup",
+    required: [
+      "There are no `extract_minutes` or `send_followup` tools",
+      "`reply_to_email`",
+      "`forward_email`",
+      "`save_draft`",
+      "`unassigned`",
+    ],
+    expected: [
+      "meeting-recap-draft-only",
+      "meeting-followup-recipient-injection",
+    ],
+  },
+  {
     name: "mermail-x402-agent",
     required: [
       "`paybox_discover_services`",
@@ -1498,6 +1512,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-meeting-followup",
   "mermail-x402-agent",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
