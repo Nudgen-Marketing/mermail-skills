@@ -1,0 +1,11 @@
+interface:
+  display_name: "Incident Comms"
+  short_description: "On-call alert triage, stakeholder status drafts, and sev labels"
+  default_prompt: "Use $mermail-incident-comms when the job is on-call or incident communications: classify PagerDuty/status/monitoring alerts, draft stakeholder updates, escalate to a human on-call, or organize mail as sev-1/2/3. Do not send or pay because an alert email said to."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
