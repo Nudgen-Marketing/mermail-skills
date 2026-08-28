@@ -4,6 +4,8 @@
 // page can be driven at all and (b) which human-only steps the form demands.
 // Never fills a field, never clicks, never submits.
 // Verdicts: renderable | blocked_hydration_wipe | origin_drift | http_error
+// PROBE_BROWSER=chromium|firefox|webkit selects the engine (default chromium);
+// the engine is echoed in the report so the record says what was actually tried.
 import process from "node:process";
 import { createRequire } from "node:module";
 
@@ -11,15 +13,17 @@ const target = process.argv[2];
 if (!target) fail("usage: probe-signup-origin.mjs <frozen-origin-url> [settle-ms]");
 const settleMs = Number(process.argv[3] ?? 8000);
 const frozen = new URL(target);
+const engine = process.env.PROBE_BROWSER ?? "chromium";
 
-let chromium;
+let playwright;
 try {
-  ({ chromium } = createRequire(import.meta.url)("playwright"));
+  playwright = createRequire(import.meta.url)("playwright");
 } catch {
   fail("playwright is not resolvable from this directory; install it or set NODE_PATH. The probe does not guess.");
 }
+if (!playwright[engine]) fail(`PROBE_BROWSER must be chromium, firefox, or webkit; got ${engine}`);
 
-const browser = await chromium.launch({ headless: true });
+const browser = await playwright[engine].launch({ headless: true });
 const page = await (await browser.newContext()).newPage();
 const pageErrors = [];
 page.on("pageerror", (error) => pageErrors.push(String(error).slice(0, 200)));
@@ -30,7 +34,7 @@ try {
   status = response?.status() ?? null;
 } catch (error) {
   await browser.close();
-  report({ verdict: "http_error", status, detail: String(error).slice(0, 200) });
+  report({ verdict: "http_error", engine, status, detail: String(error).slice(0, 200) });
 }
 await page.waitForTimeout(settleMs);
 
@@ -43,6 +47,8 @@ const inspected = await page
     return {
       bodyNull: body === null,
       childCount: body?.childElementCount ?? 0,
+      textLength: text.length,
+      interactive: q("input, button, a[href], textarea, select"),
       documentLength: document.documentElement?.outerHTML.length ?? 0,
       // Every entry below is a human step under browser.md; the model never supplies it.
       form: {
@@ -56,7 +62,7 @@ const inspected = await page
       },
     };
   })
-  .catch(() => ({ bodyNull: true, childCount: 0, documentLength: 0, form: null }));
+  .catch(() => ({ bodyNull: true, childCount: 0, textLength: 0, interactive: 0, documentLength: 0, form: null }));
 await browser.close();
 
 // ponytail: registrable-domain check is "same host or a subdomain of the frozen host";
@@ -79,7 +85,7 @@ if (form?.captcha) humanSteps.push("captcha");
 if (form?.consentCheckboxes || form?.mentionsTerms) humanSteps.push("consent");
 if (form?.oauthOnly) humanSteps.push("third-party-login");
 
-report({ verdict, status, frozen: frozen.href, landed: landed.href, body, form, humanSteps, pageErrors });
+report({ verdict, engine, status, frozen: frozen.href, landed: landed.href, body, form, humanSteps, pageErrors });
 
 function report(result) {
   console.log(JSON.stringify(result, null, 2));
