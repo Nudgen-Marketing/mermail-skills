@@ -1499,6 +1499,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-x402-agent",
+  "mermail-receipt-clerk",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
