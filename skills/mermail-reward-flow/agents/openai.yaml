@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail RewardFlow"
+  short_description: "Human-approved Agent Wallet payouts for inbound reward requests"
+  default_prompt: "Use $mermail-reward-flow to review an inbound Mermail reward or payment request, present an exact payment preview, wait for explicit user approval, execute one Agent Wallet payout, and send a real-result confirmation reply."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
