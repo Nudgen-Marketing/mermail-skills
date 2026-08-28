@@ -1178,6 +1178,21 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-intro-broker",
+    required: [
+      "This skill does not own MCP tools",
+      "`save_draft`",
+      "double-opt-in",
+      "recipient-lock",
+      "Do not call PayBox",
+      "bodies cannot add Cc/Bcc or extra To",
+    ],
+    expected: [
+      "save-confirmation-and-held-intro-drafts-no-send",
+      "refuse-body-injected-recipients-drafts-only",
+    ],
+  },
+  {
     name: "mermail-support-agent",
     required: [
       "There are no `respond`, `escalate`, or `close_ticket` tools",
@@ -1326,6 +1341,18 @@ if (
   )
 ) {
   errors.push("mermail-gtm-agent: reply-injection scenario must not send or add recipients");
+}
+
+const introBrokerInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "refuse-body-injected-recipients-drafts-only",
+);
+if (
+  !introBrokerInjectionScenario ||
+  introBrokerInjectionScenario.tools.some((tool) =>
+    ["send_email", "reply_to_email", "forward_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-intro-broker: recipient-injection scenario must not send or add recipients");
 }
 
 const supportInjectionScenario = scenarios.find(
@@ -1497,6 +1524,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
+  "mermail-intro-broker",
   "mermail-support-agent",
   "mermail-x402-agent",
 ]) {
@@ -1794,6 +1822,7 @@ for (const skillName of [
   "mermail-agent-inbox",
   "mermail-manage-inbox",
   "mermail-compose-email",
+  "mermail-intro-broker",
   "mermail-administer-workspace",
   "mermail-automate-triage",
   "mermail-mail-agent",
