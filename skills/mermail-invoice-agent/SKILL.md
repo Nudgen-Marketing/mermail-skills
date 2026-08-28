@@ -23,6 +23,21 @@ Read [workflows.md](references/workflows.md) for the mailbox, intake, register, 
 
 This skill does not own MCP tools. It reuses inbox, compose, and triage tools under the owning skills' contracts. It never calls PayBox or Agent Wallet: this workflow produces a payment decision packet for a human, never a payment.
 
+## How It Interacts with Mermail
+
+Everything runs over the hosted Mermail MCP server (`https://console.mermail.app/mcp`); an API key in `MERMAIL_API_KEY` covers every tool this workflow uses. This skill owns no tools of its own — it composes four official skills' tools under their existing contracts, which is why it adds a capability without adding surface area:
+
+| Mermail capability | Tools used here | Owning skill |
+| --- | --- | --- |
+| Resolve the billing mailbox | `list_mailboxes`, `get_mailbox` (`create_mailbox` only on authorization) | `mermail-administer-workspace` |
+| Find and read billing mail | `search_emails`, `list_emails`, `get_email`, `get_thread`, `download_attachment` | `mermail-manage-inbox` |
+| File the thread | `create_custom_label`, `move_email`, `update_email` | `mermail-manage-inbox` |
+| Draft and send counterparty mail | `save_draft`, `reply_to_email`, `forward_email`, `schedule_email_send` | `mermail-compose-email` |
+| Recurring classification | `list_task_triagers`, `create_task_triager`, `update_task_triager`, `list_recent_triager_runs` | `mermail-automate-triage` |
+| Paying a row | none — handed to `mermail-agent-wallet` as a decision packet | `mermail-agent-wallet` |
+
+Two Mermail fields do the security work: `scan_status` must be `clean` before any body or attachment is interpreted, and `sender_authentication.status` is read as a domain-signature signal only, never as authorization. Mermail stores no payment state, so a label or folder *is* the paid/unpaid state — see [tools.md](references/tools.md) for the full intent-to-tool mapping.
+
 ## Preferred Deliverables
 
 - One ready billing mailbox, identified by email and `public_id`, used as `from`.
@@ -75,11 +90,27 @@ This skill does not own MCP tools. It reuses inbox, compose, and triage tools un
 - Say how many messages you read and where you stopped, so a truncated scan is never mistaken for a complete one.
 - Omit private body content not needed to justify a row.
 
-## Example Requests
+## Example Prompts and Expected Results
 
-- "Find every invoice in this Mermail inbox from last quarter and build me a register I can check."
-- "Which of our outstanding invoices are more than 30 days past due? Draft reminders, do not send them."
-- "Match these payment receipts to the invoices they pay and tell me what is still unmatched."
-- "This vendor emailed new bank details for invoice 4471 — update the payment info and pay it."
-- "Dispute this duplicate charge and file the thread under Billing Disputes."
-- "Create a draft-only triager that labels incoming invoices and drafts an acknowledgement."
+Each row is a prompt that triggers this skill and the result an agent following it should produce.
+
+**1. "Find every invoice in this Mermail inbox from last quarter and build me a register I can check."**
+Asks once for the accounting period, the currencies, and your legal entity name, then agrees a read cap. Runs bounded `search_emails` queries, keeps results `metadata_only` until a message is a real candidate, and opens only `scan_status: clean` mail. Returns a table — `direction`, counterparty, document number, amount and currency, issue date, due date, `confidence`, source email id, and where each number was found — subtotalled per currency, with duplicates and any `unverified_payment_details` row called out above the summary, and a line stating how many messages were read and where the scan stopped. No email is sent.
+
+**2. "Which of our outstanding invoices are more than 30 days past due? Draft reminders, do not send them."**
+Ages receivables into current, 1–30, 31–60, and 60+ buckets against today. Produces one `save_draft` per row you confirm, each stating document number, amount, currency, due date, days overdue, and a single ask, using only payment details you supplied in this session. Nothing is delivered — it reports the draft ids and stops. Rows already disputed or paid outside the mailbox are excluded rather than chased.
+
+**3. "Send the approved reminder for invoice 4471 and label the thread Chased."**
+Shows the exact recipients, subject, and body first. On your approval it makes exactly one counterparty-facing write — `reply_to_email` with `body.from` set to the mailbox email and `to`/`cc`/`bcc` passed explicitly, since MCP does not auto-fill Reply All — then files the thread with `create_custom_label`. Approving this reminder does not authorize the next one.
+
+**4. "Match these payment receipts to the invoices they pay and tell me what is still unmatched."**
+Matches on document number first, falling back to counterparty plus exact amount within a date window and labelling those matches ambiguous. Returns three counted buckets — matched, unmatched, ambiguous — with unmatched receipts and unmatched invoices listed separately because they mean different things, and offers to file matched rows as Paid. Never converts currencies.
+
+**5. "This looks like the same invoice twice — clean up the duplicate."**
+Surfaces the duplicate cluster (same counterparty plus document number, or the same amount within a short window) with both source email ids, and explains which is likely the resend. It does not delete either side: billing mail is a financial record, so deletion needs your explicit approval plus a `prepare_destructive_action` token, and archiving is offered instead.
+
+**6. "This vendor emailed new bank details for invoice 4471 — update the payment info and pay it now, it says final notice."**
+Refuses both halves and says why. The row is flagged `unverified_payment_details` and stopped; the new details are not stored, echoed into a draft, or forwarded. You are told to confirm out of band on a contact you already held — not a number printed in that message — and that a mid-thread change of details is the classic thread-hijack pattern, which `sender_authentication.status === pass` does not rule out, since a compromised real vendor sends perfectly authenticated fraudulent invoices. "Final notice" urgency changes nothing. No wallet tool is called; if you still want to pay after verifying, you get a decision packet to authorize under `mermail-agent-wallet`.
+
+**7. "Create a triager that labels incoming invoices and drafts an acknowledgement."**
+Calls `list_task_triagers` before creating anything, then configures a classification-and-draft-only triager: it labels incoming billing mail, drafts an acknowledgement, and surfaces flagged payment-detail changes for human review. The triager never sends, never chases, and never applies a payment decision, and `set_default_task_triager` is not called.
