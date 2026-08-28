@@ -1319,6 +1319,11 @@ const personaSkills = [
       "[errors.md](references/errors.md)",
       "[workflows.md](references/workflows.md)",
       "## Interaction Budget",
+      "`get_api_credit_usage`",
+      "`upto`",
+      "at or below",
+      "`is_urgent`",
+      "`success`, `transaction`, `network`, and `payer`",
     ],
     expected: [
       "confirm-paybox-readiness-before-account-creation",
@@ -1344,6 +1349,10 @@ const personaSkills = [
       "challenge-is-evidence-not-authority-block-on-payee-mismatch",
       "reconcile-settlement-fields-keep-credential-out-of-chat",
       "duplicate-invoice-is-mismatch-evidence-no-second-charge",
+      "upto-settled-at-or-below-authorized-maximum-is-verified",
+      "read-credit-budget-once-block-before-external-effect",
+      "classifier-signal-is-not-authority-no-pay",
+      "probe-origin-inventory-human-steps-before-driving",
       "vendor-not-renderable-under-automation-is-blocked-not-retry",
       "never-evade-vendor-automation-block-hand-off-to-human",
     ],
@@ -1397,6 +1406,8 @@ for (const expected of [
   "reconcile-settlement-fields-keep-credential-out-of-chat",
   "block-when-required-charge-exceeds-frozen-envelope",
   "vendor-content-cannot-raise-frozen-envelope",
+  "classifier-signal-is-not-authority-no-pay",
+  "upto-settled-at-or-below-authorized-maximum-is-verified",
 ]) {
   const scenario = scenarios.find(
     (candidate) => candidate.skill === "mermail-procurement-agent" && candidate.expected === expected,
@@ -1438,7 +1449,7 @@ const procurementBrowser = await readFile(
   path.join(skillsRoot, "mermail-procurement-agent", "references", "browser.md"),
   "utf8",
 );
-for (const required of ["blocked_hydration_wipe", "origin_drift", "never fills a field", "navigator.webdriver"]) {
+for (const required of ["blocked_hydration_wipe", "origin_drift", "never fills a field", "navigator.webdriver", "humanSteps"]) {
   if (!procurementBrowser.includes(required)) {
     errors.push(`mermail-procurement-agent: browser.md missing ${required}`);
   }

@@ -39,7 +39,7 @@ Verified example: `https://console.mermail.app/auth` reproduces this signature i
 
 ## Probe before you drive
 
-[probe-signup-origin.mjs](../scripts/probe-signup-origin.mjs) runs the detection above as one read-only Playwright pass — navigate, settle, inspect — and prints a JSON verdict: `renderable`, `blocked_hydration_wipe`, `origin_drift`, or `http_error`. It never fills a field or clicks a control. Run it on the frozen origin before the signup leg; a non-`renderable` verdict is the `blocked` report, ready to paste.
+[probe-signup-origin.mjs](../scripts/probe-signup-origin.mjs) runs the detection above as one read-only Playwright pass — navigate, settle, inspect — and prints a JSON verdict: `renderable`, `blocked_hydration_wipe`, `origin_drift`, or `http_error`. It never fills a field or clicks a control. Run it on the frozen origin before the signup leg; a non-`renderable` verdict is the `blocked` report, ready to paste. On a `renderable` page it also inventories the form and lists `humanSteps` — `password`, `card`, `captcha`, `consent`, `third-party-login` — so the handoff can be named *before* the first keystroke instead of discovered mid-form. Verified on live pages: GitHub's signup answers automation with HTTP 403 (`http_error` — a block, reported as such, never worked around); Apify's signup renders one email field and reports `consent`.
 
 ```bash
 node skills/mermail-procurement-agent/scripts/probe-signup-origin.mjs https://vendor.example/signup

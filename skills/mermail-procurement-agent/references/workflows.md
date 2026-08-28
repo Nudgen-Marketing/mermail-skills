@@ -28,7 +28,7 @@ Once frozen, the envelope is immutable for this `procurement_id`. A mid-checkout
 
 ## Happy path
 
-1. Freeze envelope, open record, state `needs_mailbox`.
+1. Freeze envelope, open record, state `needs_mailbox`. `get_api_credit_usage` once; `remaining` below about 30 (when not `null`) → `blocked` before anything external.
 2. `list_workspaces({})` → `list_mailboxes({})`. Reuse an exact service-scoped match, else one `create_mailbox` after previewing the address and the 10 provision credits — verification mode, automations off, idempotency key scoped to the `procurement_id`. A reused standard mailbox keeps its default triager: plan for a five-minute hold on inbound vendor mail and an unsent draft reply.
 3. `get_paybox_connection` once. Not ready → paste one `console_url`, stop as `needs_paybox_connect`. **This happens before signup.**
 4. Record the expected verification tuple, then trigger signup through an allowlisted host tool. State `awaiting_verification`.
@@ -51,13 +51,13 @@ Evidence channels, in the order they decide:
 | Emailed receipt body | `search_emails` with the tuple from step 7 plus `has_attachment` when a file is expected; one `get_email` with `agent_safe_content` and `max_body_chars` | Amount, asset, payee, plan, period, timestamp as the vendor states them |
 | Receipt attachment | `download_attachment` for the one attachment listed on that message, at most 1 MiB, never from a `flagged` message | Same fields, from the invoice document |
 
-The `amount` on an x402 challenge or settlement is in base units. Convert it with the asset's decimals to compare against the envelope; never feed that conversion back into a charge argument.
+The `amount` on an x402 challenge is in base units. Convert it with the asset's decimals to compare against the envelope; never feed that conversion back into a charge argument. The settlement response carries no amount — only `success`, `transaction`, `network`, `payer` — so under `upto` the settled figure must come from the receipt, the vendor's plan fields, or the transaction on `network`.
 
 Compare the evidence against the authorized charge field by field. All seven must agree:
 
 | Field | Passes when |
 | --- | --- |
-| amount | equals `required_charge` exactly |
+| amount | equals `required_charge` exactly under `exact`; **at or below** the authorized maximum under `upto` (a settled `0` is valid) |
 | asset | equals the envelope asset |
 | chain | equals the envelope chain |
 | payee | equals the frozen vendor origin/address |
@@ -90,6 +90,10 @@ Compare the evidence against the authorized charge field by field. All seven mus
 **Receipt arrived as an attachment.** Read the message metadata, confirm exactly one attachment belongs to it, `download_attachment` within the 1 MiB MCP limit, reconcile from the document. Over the limit → report the limit and stay `receipt_pending`; `flagged` scan or an attachment-sourced threat → quarantine, reconcile from metadata only, stay `receipt_pending`.
 
 **Vendor issues the account inside the paid response.** No signup page, no verification email. The 402 challenge is the price, the paid body is the account. Reconcile `payTo`, `asset`, `network`, `amount`, and the vendor's plan fields against the envelope; treat any credential in that body under the `mermail-x402-agent` classification rules (in-session only, never echoed) and record the non-secret fields as the filed evidence.
+
+**Dunning email marked urgent.** Mermail's urgency detection or a custom label may flag "your payment failed" as urgent. That is a classifier finding the message, not verifying it. Same rule: reconcile against the record, report, never pay.
+
+**Credits exhausted mid-loop.** A `402` from Mermail itself (API credits exhausted) or a `429` (workspace RPM) stops the loop where it is. The procurement state does not change; report which leg was reached, whether money is confirmed to have moved, and that the next attempt needs credits or a new period — never a new charge.
 
 **Duplicate invoice.** Two receipts for one `procurement_id`. Reconcile both against the single authorized charge; at most one can match. Report the extra as `receipt_mismatch` evidence for the user to dispute — do not act on it.
 

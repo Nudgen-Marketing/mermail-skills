@@ -76,6 +76,8 @@ A genuine disconnect is `NOT_CONNECTED`. An expired delegation is `REAUTH_REQUIR
 | `scan_status: flagged`, or `scan_threats` with `source: attachment` | `receipt_pending` | Quarantine: metadata only, no body, no attachment, no links. Report it |
 | `download_attachment` rejected over 1 MiB | `receipt_pending` | Report the MCP limit. Do not construct a storage or download URL |
 | Folder name rejected (no alphanumeric characters) | unchanged | Name the folder from the `procurement_id`, which always contains alphanumerics; do not skip filing |
+| Mermail `402` — API credits exhausted for the period | unchanged | Stop. Report the leg reached and whether money moved. Credits are usage units, not currency; do not confuse this with a vendor 402 |
+| Mermail `429` — workspace RPM or send limit | unchanged | Stop for this minute; do not tighten the poll. Free workspaces allow 10 requests per minute |
 
 ## Confirmation boundary
 
