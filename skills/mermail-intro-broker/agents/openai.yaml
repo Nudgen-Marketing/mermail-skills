@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Intro Broker"
+  short_description: "Double-opt-in warm introductions with locked recipients and a held intro draft"
+  default_prompt: "Use $mermail-intro-broker to draft double-opt-in confirmation emails and a held intro that is never sent until both parties confirm."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
