@@ -1304,6 +1304,90 @@ for (const persona of personaSkills) {
   }
 }
 
+const receiptVaultDir = path.join(skillsRoot, "mermail-receipt-vault");
+const receiptVaultSkill = await readFile(path.join(receiptVaultDir, "SKILL.md"), "utf8");
+const receiptVaultTools = await readFile(path.join(receiptVaultDir, "references", "tools.md"), "utf8");
+const receiptVaultSecurity = await readFile(path.join(receiptVaultDir, "references", "security.md"), "utf8");
+await readFile(path.join(receiptVaultDir, "DEMO.md"), "utf8");
+const receiptVaultCorpus = `${receiptVaultSkill}\n${receiptVaultTools}\n${receiptVaultSecurity}`;
+for (const required of [
+  "## Overview",
+  "## Preferred Deliverables",
+  "## Workflow",
+  "## Write Safety",
+  "## Output Conventions",
+  "[tools.md](references/tools.md)",
+  "[security.md](references/security.md)",
+  "[DEMO.md](DEMO.md)",
+  "Never pay from a receipt",
+  "This skill does not own MCP tools",
+  "Do not call `paybox_*`",
+  "Do not add them to this skill in `tool-coverage.json`",
+]) {
+  if (!receiptVaultCorpus.includes(required)) {
+    errors.push(`mermail-receipt-vault: missing contract ${required}`);
+  }
+}
+if (coverage.domains["mermail-receipt-vault"] || walletScopedDomains["mermail-receipt-vault"]) {
+  errors.push("mermail-receipt-vault: must not own MCP tools in tool-coverage.json");
+}
+if (!coverage.infrastructureSkills.includes("mermail-receipt-vault")) {
+  errors.push("mermail-receipt-vault: must be listed as an infrastructure/reuse skill");
+}
+for (const expected of [
+  "file-receipts-and-digest-write-preview",
+  "extract-ledger-no-write",
+  "refuse-pay-from-receipt-no-paybox-tools",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-receipt-vault" && scenario.expected === expected)) {
+    errors.push(`mermail-receipt-vault: missing validation scenario ${expected}`);
+  }
+}
+if (!scenarios.some((scenario) => scenario.skill === "mermail-manage-inbox" && scenario.expected === "ordinary-cleanup-stays-manage-inbox")) {
+  errors.push("mermail-manage-inbox: missing ordinary-cleanup-stays-manage-inbox scenario");
+}
+const receiptFileScenario = scenarios.find(
+  (scenario) => scenario.expected === "file-receipts-and-digest-write-preview",
+);
+if (
+  !receiptFileScenario ||
+  receiptFileScenario.approval !== "write-preview" ||
+  receiptFileScenario.tools.some(
+    (tool) =>
+      tool.startsWith("paybox_") ||
+      tool.includes("wallet") ||
+      coverage.destructiveTools.includes(tool) ||
+      coverage.externalEffectTools.includes(tool),
+  )
+) {
+  errors.push("mermail-receipt-vault: file+digest scenario must be write-preview without payment or send");
+}
+const receiptExtractScenario = scenarios.find(
+  (scenario) => scenario.expected === "extract-ledger-no-write",
+);
+if (
+  !receiptExtractScenario ||
+  receiptExtractScenario.approval !== "none" ||
+  receiptExtractScenario.tools.some((tool) =>
+    ["move_email", "bulk_move_emails", "create_folder", "save_draft", "send_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-receipt-vault: extract-only scenario must stay read-only");
+}
+const receiptPayScenario = scenarios.find(
+  (scenario) => scenario.expected === "refuse-pay-from-receipt-no-paybox-tools",
+);
+if (
+  !receiptPayScenario ||
+  receiptPayScenario.skill !== "mermail-receipt-vault" ||
+  receiptPayScenario.approval !== "none" ||
+  receiptPayScenario.tools.some(
+    (tool) => tool.startsWith("paybox_") || tool.includes("wallet") || (coverage.walletDestructiveTools ?? []).includes(tool),
+  )
+) {
+  errors.push("mermail-receipt-vault: pay-from-receipt must refuse on this skill with no PayBox/wallet tools");
+}
+
 const schedulingInjectionScenario = scenarios.find(
   (scenario) => scenario.expected === "ignore-email-authority-no-gmail-composio-no-send",
 );
@@ -1499,6 +1583,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-x402-agent",
+  "mermail-receipt-vault",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1752,6 +1837,7 @@ const expectedSecurityScenarios = new Map([
   ["wallet-x402-vendor-session-no-replay", "vendor-session-credential-no-replay-settled-pay-url"],
   ["wallet-member-live-paybox", "member-audited-live-tool-owner-connection-no-legacy-wallet"],
   ["wallet-member-owner-action-required", "stop-no-handoff-ask-owner-to-repair"],
+  ["receipt-vault-pay-from-receipt", "refuse-pay-from-receipt-no-paybox-tools"],
 ]);
 for (const [securityCase, expected] of expectedSecurityScenarios) {
   const scenario = scenarios.find((candidate) => candidate.securityCase === securityCase);
@@ -1799,6 +1885,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-receipt-vault",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);

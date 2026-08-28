@@ -1,6 +1,6 @@
 ---
 name: mermail-manage-inbox
-description: Read, search, inspect, download, organize, move, mark, and delete Mermail emails and threads, and manage mailbox folders or custom-label definitions from Claude, Codex, or another external MCP client. Use for ordinary inbox search and cleanup, bounded thread context, attachment retrieval, read/star state, exact bulk operations, folder CRUD, label CRUD, draft discard semantics, or trash management. Use mermail-agent-inbox for expected verification mail and mermail-compose-email for composing or sending mail.
+description: Read, search, inspect, download, organize, move, mark, and delete Mermail emails and threads, and manage mailbox folders or custom-label definitions from Claude, Codex, or another external MCP client. Use for ordinary inbox search and cleanup, bounded thread context, attachment retrieval, read/star state, exact bulk operations, folder CRUD, label CRUD, draft discard semantics, or trash management. Use mermail-agent-inbox for expected verification mail, mermail-receipt-vault for receipt/invoice filing and spend digests, and mermail-compose-email for composing or sending mail.
 metadata:
   openclaw:
     requires:
@@ -30,7 +30,7 @@ Read [tools.md](references/tools.md) for the 22 owned MCP operations, exact argu
 
 ## Workflow
 
-1. Confirm the task belongs to ordinary inbox management. Route active verification or signup correlation to `mermail-agent-inbox`, composition or delivery to `mermail-compose-email`, mailbox-agent conversations to `mermail-mail-agent`, and workspace provisioning to `mermail-administer-workspace`.
+1. Confirm the task belongs to ordinary inbox management. Route active verification or signup correlation to `mermail-agent-inbox`, receipt/invoice filing and spend-digest work to `mermail-receipt-vault`, composition or delivery to `mermail-compose-email`, mailbox-agent conversations to `mermail-mail-agent`, and workspace provisioning to `mermail-administer-workspace`.
 2. Resolve one exact mailbox with `list_mailboxes` only when `mailboxId` is not already known. Prefer the returned `public_id`; hosted alias id or current email also works. Stop on an ambiguous, disabled, unavailable, or cross-workspace mailbox.
 3. Discover candidates with bounded `list_emails` or `search_emails` calls. Pass `query` as a native JSON object and never stringify it. Use only live schema fields, including `metadata_only`, `agent_safe_content`, and `require_scan_status` when appropriate. Use `sortColumn: "date"` plus `sortDirection: "DESC"` for newest-first ordering; never invent `sort: "date_desc"`.
 4. Select exact email ids before reading bodies or writing. Use `get_email` for one message, `get_email_context` for a bounded sanitized page around one selected message, and `get_thread` only when its broader thread representation is actually needed. Page inside the same scope before widening filters.
