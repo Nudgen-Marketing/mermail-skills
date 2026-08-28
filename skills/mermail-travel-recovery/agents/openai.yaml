@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Travel Recovery"
+  short_description: "Build evidence-backed travel disruption claims"
+  default_prompt: "Use $mermail-travel-recovery to assemble a source-cited travel disruption packet and draft a review-ready claim or refund email without sending it."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

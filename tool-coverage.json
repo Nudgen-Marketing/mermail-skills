@@ -10,6 +10,7 @@
     "mermail-mcp",
     "mermail-scheduling-agent",
     "mermail-support-agent",
+    "mermail-travel-recovery",
     "mermail-x402-agent"
   ],
   "domains": {

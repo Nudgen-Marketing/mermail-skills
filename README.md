@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / Travel Recovery / x402 agent personas.
 
 ## Install portable skills
 
@@ -15,6 +15,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-travel-recovery
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 ```
 
@@ -141,6 +142,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
+| `mermail-travel-recovery` | Assemble source-cited travel disruption evidence and draft claim or refund email |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer via `paybox_request_transfer`, swap via `paybox_request_swap`, or pay a user-selected x402 service via live `paybox_pay_x402` (same MCP paths as in-app Assistant; full-profile OAuth) |
 
