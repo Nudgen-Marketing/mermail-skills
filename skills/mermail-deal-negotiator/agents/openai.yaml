@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deal Negotiator"
+  short_description: "Negotiate email deals within user-set limits"
+  default_prompt: "Use $mermail-deal-negotiator to evaluate this commercial email thread, maintain the negotiation state, and draft the next reply without sending until I approve the exact payload."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
