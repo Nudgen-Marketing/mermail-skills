@@ -6,6 +6,7 @@
     "mermail",
     "mermail-agent-inbox",
     "mermail-cli",
+    "mermail-finance-reconciliation",
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-scheduling-agent",
