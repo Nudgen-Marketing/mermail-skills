@@ -1,0 +1,12 @@
+interface:
+  display_name: "Mermail Scope-Change Guard"
+  short_description: "Detect scope creep and prepare an unsent change-order draft"
+  default_prompt: "Use $mermail-scope-change-guard to compare an agreed scope with later Mermail messages, cite every change, and prepare an unsent draft."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+

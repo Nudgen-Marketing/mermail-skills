@@ -31,7 +31,7 @@
   },
   "scripts": {
     "prepublishOnly": "node -e \"throw new Error('mermail-skills is published through ClawHub, not the npm registry')\"",
-    "test": "node tests/validate.mjs",
+    "test": "node tests/validate.mjs && node tests/scope-change-guard.mjs",
     "validate:remote": "node tests/validate.mjs --remote",
     "build:openai-zip": "bash scripts/build-openai-skills-zip.sh"
   }

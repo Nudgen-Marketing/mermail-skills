@@ -9,6 +9,7 @@
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-scheduling-agent",
+    "mermail-scope-change-guard",
     "mermail-support-agent",
     "mermail-x402-agent"
   ],

@@ -13,6 +13,7 @@ Install one focused skill:
 ```bash
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scope-change-guard
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
@@ -139,6 +140,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party apps through Composio |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
+| `mermail-scope-change-guard` | Compare an agreed scope with later messages and prepare an evidence-linked, unsent change-order draft |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
