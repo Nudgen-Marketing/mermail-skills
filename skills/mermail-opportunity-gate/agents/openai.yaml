@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Opportunity Gate"
+  short_description: "Apply your frozen policy to an emailed opportunity"
+  default_prompt: "Use $mermail-opportunity-gate to classify one emailed opportunity against my four-dimension policy, cite message-ID evidence, and stop before any external action."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
