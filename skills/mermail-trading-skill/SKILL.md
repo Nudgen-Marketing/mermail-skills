@@ -2,10 +2,11 @@
 name: mermail-trading-skill
 description: |
   Connect Mermail AI agent inbox to tarstrade's onchain trading pipeline.
-  Receives trade commands via Mermail email inbox, validates through
-  tarstrade's non-overridable risk gate, logs decisions to X Layer
-  TradeAuditTrail, and executes orders via OKX CLI. Designed for
-  reproducible, auditable agent-mediated cryptocurrency trading.
+  Receives trade commands via Mermail email inbox, funds the onchain
+  signing wallet through Mermail's user-controlled Agent Wallet (PayBox),
+  validates through tarstrade's non-overridable risk gate, logs decisions
+  to X Layer TradeAuditTrail, and executes orders via OKX CLI. Designed
+  for reproducible, auditable agent-mediated cryptocurrency trading.
 allowed-tools: read, write, edit, bash
 ---
 # Mermail-Trading Skill
@@ -21,10 +22,11 @@ This skill gives AI agents the ability to:
 - **Validate trades** through tarstrade's non-overridable RiskGate (position limits, daily loss limits, confidence thresholds)
 - **Log decisions immutably** to X Layer `TradeAuditTrail.sol` via EIP-191 signed payloads
 - **Execute orders** via OKX CLI (market orders, multi-leg funding arbitrage packages)
+- **Fund the onchain signing wallet** via Mermail's user-controlled Agent Wallet (PayBox) before any onchain log
 - **Reply to the sender** with the full execution result, including onchain tx hashes
 
 The skill combines:
-- **Mermail**: Agent inbox + user-controlled Agent Wallet through MCP
+- **Mermail**: Agent inbox (MCP `agent-inbox` profile) + user-controlled Agent Wallet / PayBox (MCP OAuth full-profile) for funding the signing key
 - **Tarstrade**: Risk gate, onchain audit logger, signal generation, multi-leg execution
 
 ## How It Interacts with Mermail
@@ -32,7 +34,8 @@ The skill combines:
 | Interaction | Direction | Details |
 |---|---|---|
 | **Inbox subscription** | Mermail → Skill | Agent subscribes to its Mermail inbox via MCP `agent-inbox` profile. Receives `new_email` events when sender writes to the agent's Mermail-addressed inbox. |
-| **Agent wallet** | User → Skill | User provides a private key (or MCP OAuth) that controls the onchain signing key used by tarstrade's `OnchainLogger` to submit `logDecision()` txs. |
+| **Agent Wallet funding** | Mermail → Skill | Before any onchain log, skill uses Mermail's Agent Wallet (PayBox) via MCP OAuth full-profile to `paybox_request_transfer` OKB (for X Layer gas) and/or USDC (trading capital) to the tarstrade agent wallet address. User approves the signing handoff in the Mermail console. |
+| **Onchain signing key** | User → Skill | tarstrade's `OnchainLogger` signs `DecisionPayload` with EIP-191 using `AGENT_WALLET_PRIVATE_KEY` — a key the agent controls, NOT the Mermail wallet. Mermail's PayBox cannot arbitrarily sign custom payloads; it only transfers/swaps/pays. The audit signer therefore stays tarstrade's own key, funded via PayBox. |
 | **Reply to email** | Skill → Mermail | After trade completes, skill sends a reply email through Mermail with: decision ID, onchain tx hash, fill price, PnL, and risk gate status. |
 | **Skill activation** | User → Skill | User triggers the skill by sending an email to `agent-name@inbox.mermail.app` (or via MCP tool: `search_emails`, `get_email`, `send_email`). |
 
@@ -57,7 +60,24 @@ mcpServers:
 
 The `agent-inbox` profile exposes only: `list_mailboxes`, `search_emails`, `get_email`, `create_mailbox`. The full `/mcp` catalog exposes additional tools (send_email, paybox, agent_wallet) for separate authorized tasks.
 
+> **PayBox / Agent Wallet note:** `paybox_*` tools appear **only** on an MCP **OAuth full-profile** session — not on API-key connections and not on the `agent-inbox` profile. Call `get_paybox_connection` once before claiming PayBox tools are unavailable; if it returns `connect_handoff.console_url` / `reauth_handoff.console_url`, hand that URL to the user and stop. Always call `paybox_request_transfer` once; never retry to resume signing. Do **not** call `prepare_destructive_action` for `paybox_*` tools — PayBox owns transaction policy, signing, and approval.
+
 ## Clear Workflow (Start to Completion)
+
+### Phase 0: Fund Onchain Signing Wallet (Mermail Agent Wallet / PayBox)
+
+0. Skill connects to Mermail via MCP **OAuth full-profile** (required for `paybox_*`).
+1. Skill calls `get_paybox_connection` for the agent mailbox.
+   - If `status != ACTIVE` (returns `connect_handoff` / `reauth_handoff` console URL): present the URL, stop, and wait for the user to connect/reauth PayBox.
+2. Skill reads `paybox_get_portfolio` to confirm the funding asset's token address (e.g., OKB on X Layer, or USDC for trading capital).
+3. Skill calls `paybox_request_transfer` to send OKB (for X Layer gas) to tarstrade's `AGENT_WALLET_PRIVATE_KEY` address:
+   - Pass live-schema args (`mailboxId`, `chain`, `token`, `amount`, `destination`).
+   - If the response is `pending_signature` / `pending_approval`: present the returned `signing_handoff.console_url` and stop the model turn. Never construct a signing URL.
+4. Skill confirms the transfer settled (poll `paybox_get_request` once after the user finishes signing).
+5. **If funding fails or is declined**: Skill replies to email with "wallet funding failed" — trade blocked. No onchain tx is attempted.
+6. **If funded**: Proceed to Phase 1.
+
+> The Mermail Agent Wallet funds the signing key; it does **not** replace it. The EIP-191 audit signature in Phase 3 is still produced by tarstrade's own `AGENT_WALLET_PRIVATE_KEY`.
 
 ### Phase 1: Receive Command (Mermail Inbox)
 
@@ -174,12 +194,13 @@ Set `DRY_RUN=false` + provide valid credentials for live trading (not recommende
 
 ### Video Demonstration Script (2-5 minutes)
 
-1. **0:00-0:30** – Show Mermail console, send email to agent inbox: "Execute BTC-USDT-SWAP long with 85% confidence, size $500"
-2. **0:30-1:30** – Show the skill processing: risk gate approval, onchain decision log tx sent to X Layer, order execution (dry-run)
-3. **1:30-2:30** – Show the reply email received in Mermail app: status "success", decision ID, tx hash link, fill price, PnL
-4. **2:30-3:00** – Repeat with a rejection case: "Execute ETH-USDT-SHORT with 60% confidence" → show risk gate rejection email
-5. **3:00-3:30** – Show the funding arbitrage 2-leg package workflow
-6. **3:30-5:00** – Summary: "This skill gives AI agents their own inbox + onchain-audited trading. Try it: send trade commands to your Mermail inbox."
+1. **0:00-0:30** – Show Mermail console + PayBox connection (`get_paybox_connection` → `ACTIVE`), then send email to agent inbox: "Execute BTC-USDT-SWAP long with 85% confidence, size $500"
+2. **0:30-1:00** – Show Phase 0: `paybox_request_transfer` OKB to the tarstrade agent wallet, user approves the signing handoff in console, transfer settles
+3. **1:00-2:00** – Show the skill processing: risk gate approval, onchain decision log tx sent to X Layer, order execution (dry-run)
+4. **2:00-2:45** – Show the reply email received in Mermail app: status "success", decision ID, tx hash link, fill price, PnL
+5. **2:45-3:15** – Repeat with a rejection case: "Execute ETH-USDT-SHORT with 60% confidence" → show risk gate rejection email
+6. **3:15-3:45** – Show the funding arbitrage 2-leg package workflow
+7. **3:45-5:00** – Summary: "This skill gives AI agents their own inbox + Agent Wallet (PayBox) + onchain-audited trading. Try it: send trade commands to your Mermail inbox."
 
 ## Reusability for Other Builders
 
@@ -203,6 +224,6 @@ This skill was built and tested with:
 - [x] SKILL.md documents what the skill enables, how it interacts with Mermail, workflow, and example prompts
 - [ ] 2–5 minute video demo posted on X tagging @Mermailapp
 - [ ] PR targeting the Mermail Skills repository
-- [ ] Skill uses Mermail inbox ✓, Agent Wallet ✓ (both demonstrated)
+- [ ] Skill uses Mermail inbox ✓, Agent Wallet (PayBox funding) ✓ (both demonstrated)
 - [ ] All code is offline/testable without real API keys (dry-run mode)
 - [ ] No secrets embedded in SKILL.md or source

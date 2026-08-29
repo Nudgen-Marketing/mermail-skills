@@ -143,6 +143,53 @@ From the validated email body, parse these required fields:
 | `strategy` | `mean_reversion`, `funding_arbitrage`, `momentum` | No (default: mean_reversion) |
 | `package_id` | For multi-leg funding arb | No |
 
+## Fund Agent Wallet (PayBox)
+
+`paybox_*` tools appear only on an MCP **OAuth full-profile** session — not on
+API-key catalogs and not on the `agent-inbox` profile. Call `get_paybox_connection`
+once before claiming them unavailable.
+
+```json
+{
+  "tool": "get_paybox_connection",
+  "args": { "mailboxId": "MAILBOX_PUBLIC_ID" }
+}
+```
+
+If `status` is not `ACTIVE`, return the `connect_handoff.console_url` /
+`reauth_handoff.console_url` to the user and stop. When `ACTIVE`, read the
+funding asset address from `paybox_get_portfolio`, then fund the tarstrade agent
+wallet:
+
+```json
+{
+  "tool": "paybox_request_transfer",
+  "args": {
+    "mailboxId": "MAILBOX_PUBLIC_ID",
+    "chain": "X Layer",
+    "token": "OKB",
+    "amount": "0.5",
+    "destination": "AGENT_WALLET_ADDRESS"
+  }
+}
+```
+
+Do **not** call `prepare_destructive_action` for `paybox_*` — PayBox owns
+signing and approval. If the response is `pending_signature` /
+`pending_approval`, present the returned `signing_handoff.console_url` and stop
+the model turn; poll `paybox_get_request` once after the user finishes signing.
+CLI equivalent:
+
+```bash
+mermail paybox transfer \
+  --mailbox-id MAILBOX_PUBLIC_ID \
+  --chain "X Layer" \
+  --token OKB \
+  --amount 0.5 \
+  --destination AGENT_WALLET_ADDRESS \
+  --format json
+```
+
 ## Reply with Trade Result
 
 Use `send_email` (requires full `/mcp` catalog, not `agent-inbox` profile) to send the execution result back to the original sender:
