@@ -404,6 +404,667 @@ if (!manageSystemFolderScenario || manageSystemFolderScenario.tools.includes("de
   errors.push("mermail-manage-inbox: system folder deletion must stop after discovery");
 }
 
+const opportunityGateDir = path.join(skillsRoot, "mermail-opportunity-gate");
+const opportunityGateTextExtensions = new Set([".md", ".yaml", ".yml", ".json"]);
+const opportunityGateInstructionSources = new Map(
+  await Promise.all(
+    (await walk(opportunityGateDir))
+      .filter((file) => opportunityGateTextExtensions.has(path.extname(file).toLowerCase()))
+      .sort()
+      .map(async (file) => [
+        path.relative(opportunityGateDir, file).split(path.sep).join("/"),
+        await readFile(file, "utf8"),
+      ]),
+  ),
+);
+const opportunityGateSkill = opportunityGateInstructionSources.get("SKILL.md") ?? "";
+const opportunityGateOpenAi = opportunityGateInstructionSources.get("agents/openai.yaml") ?? "";
+const opportunityGateTools = opportunityGateInstructionSources.get("references/tools.md") ?? "";
+const opportunityGateWorkflows =
+  opportunityGateInstructionSources.get("references/workflows.md") ?? "";
+const opportunityGateSecurity =
+  opportunityGateInstructionSources.get("references/security.md") ?? "";
+const opportunityGateRouting = await readFile(
+  path.join(skillsRoot, "mermail", "references", "routing.md"),
+  "utf8",
+);
+const opportunityGateRoutingLines = opportunityGateRouting.split(/\r?\n/);
+const opportunityGateRoutingTableIndexes = opportunityGateRoutingLines
+  .map((line, index) => (line.includes("| `mermail-opportunity-gate` |") ? index : -1))
+  .filter((index) => index !== -1);
+const opportunityGatePriorityStarts = opportunityGateRoutingLines
+  .map((line, index) => (/^\d+\. Use `mermail-opportunity-gate`/.test(line) ? index : -1))
+  .filter((index) => index !== -1);
+if (opportunityGateRoutingTableIndexes.length !== 1) {
+  errors.push("mermail root routing must contain exactly one opportunity-gate domain row");
+}
+if (opportunityGatePriorityStarts.length !== 1) {
+  errors.push("mermail root routing must contain exactly one opportunity-gate precedence rule");
+}
+const opportunityGateRoutingTableIndex = opportunityGateRoutingTableIndexes[0] ?? -1;
+const opportunityGateRoutingTableRow =
+  opportunityGateRoutingTableIndex === -1
+    ? ""
+    : opportunityGateRoutingLines[opportunityGateRoutingTableIndex];
+const opportunityGatePriorityStart = opportunityGatePriorityStarts[0] ?? -1;
+const opportunityGatePriorityEnd =
+  opportunityGatePriorityStart === -1
+    ? -1
+    : opportunityGateRoutingLines.findIndex(
+        (line, index) => index > opportunityGatePriorityStart && /^\d+\. /.test(line),
+      );
+const opportunityGateRoutingScope = [
+  opportunityGateRoutingTableRow,
+  ...(opportunityGatePriorityStart === -1
+    ? []
+    : opportunityGateRoutingLines.slice(
+        opportunityGatePriorityStart,
+        opportunityGatePriorityEnd === -1 ? undefined : opportunityGatePriorityEnd,
+      )),
+].join("\n");
+const opportunityGateAllowedRoutingLines = new Set([
+  ...(opportunityGateRoutingTableIndex === -1 ? [] : [opportunityGateRoutingTableIndex]),
+  ...(opportunityGatePriorityStart === -1
+    ? []
+    : Array.from(
+        {
+          length:
+            (opportunityGatePriorityEnd === -1
+              ? opportunityGateRoutingLines.length
+              : opportunityGatePriorityEnd) - opportunityGatePriorityStart,
+        },
+        (_, offset) => opportunityGatePriorityStart + offset,
+      )),
+]);
+const opportunityGateRoutingOccurrences = opportunityGateRoutingLines.flatMap((line, index) =>
+  [...line.matchAll(/mermail-opportunity-gate/g)].map(() => index),
+);
+if (
+  opportunityGateRoutingOccurrences.length !== 2 ||
+  opportunityGateRoutingOccurrences.some((index) => !opportunityGateAllowedRoutingLines.has(index)) ||
+  opportunityGateRoutingOccurrences.filter((index) => index === opportunityGateRoutingTableIndex)
+    .length !== 1 ||
+  opportunityGateRoutingOccurrences.filter(
+    (index) => index >= opportunityGatePriorityStart &&
+      (opportunityGatePriorityEnd === -1 || index < opportunityGatePriorityEnd),
+  ).length !== 1
+) {
+  errors.push(
+    "mermail root routing must name opportunity-gate exactly once in its domain row and once in its precedence rule",
+  );
+}
+const opportunityGateCorpus = [...opportunityGateInstructionSources.values()].join("\n");
+for (const required of [
+  "user-supplied frozen policy",
+  "`email-stated`",
+  "native JSON object",
+  "clean scan",
+  "Conflict preservation",
+  "`fail > unknown > pass`",
+  "read-only allowlist",
+  "receiver-side `date_end`",
+  "sender-side completion",
+  "one-shot bounded settle",
+  "new independent delivery batch",
+  "new independent selector or time window",
+  "`external_fixture_delivery`",
+  "user-authorized-outside-this-workflow",
+  "actions_not_taken_by_this_workflow",
+]) {
+  if (!opportunityGateCorpus.includes(required)) {
+    errors.push(`mermail-opportunity-gate: missing core contract ${required}`);
+  }
+}
+const opportunitySettleAudit = auditOpportunitySettleLimits(opportunityGateInstructionSources);
+for (const issue of opportunitySettleAudit.issues) {
+  errors.push(`mermail-opportunity-gate: ${issue}`);
+}
+const opportunitySettleLimitValues = [
+  ...new Set(opportunitySettleAudit.limits.map((limit) => limit.seconds)),
+].sort((left, right) => left - right);
+if (JSON.stringify(opportunitySettleLimitValues) !== JSON.stringify([60])) {
+  errors.push(
+    `mermail-opportunity-gate: settle upper-limit corpus must use exactly one value of 60 seconds; found ${opportunitySettleLimitValues.join(", ") || "none"}`,
+  );
+}
+for (const [routingPart, requiredValues] of [
+  [
+    opportunityGateRoutingTableRow,
+    ["user-supplied frozen policy", "later external effect", "stop before that effect"],
+  ],
+  [
+    opportunityGateRoutingScope,
+    [
+      "`mermail-opportunity-gate`",
+      "including when the same prompt also asks",
+      "Require the user-supplied policy values before reading email",
+      "stop before every later effect",
+      "Generic research digests",
+      "approval-by-reply tracking",
+      "sender forensics",
+      "support work",
+    ],
+  ],
+]) {
+  for (const required of requiredValues) {
+    if (!routingPart.includes(required)) {
+      errors.push(`mermail root routing missing opportunity-gate contract ${required}`);
+    }
+  }
+}
+for (const required of [
+  "eligibility-decision phase",
+  "stop after the read-only decision",
+  "even when the prompt also asks",
+]) {
+  if (!opportunityGateSkill.includes(required)) {
+    errors.push(`mermail-opportunity-gate: frontmatter/routing boundary missing ${required}`);
+  }
+}
+for (const required of [
+  "sender-side timestamp cannot serve as the receiver-side `date_end`",
+  "settle budget must be no more than 60 seconds",
+  "wait the frozen duration exactly once",
+  "Do not poll the inbox",
+  "Do not move `date_start`, extend `date_end`, redeliver within the same batch, or search again",
+  "new independent delivery batch",
+  "freeze a new `date_start` before separately authorized fixture delivery",
+  "historical-mail attempt is allowed only when the user supplies a new independent selector or time window",
+  "Neither path may rewrite the prior zero result",
+]) {
+  if (!opportunityGateWorkflows.includes(required)) {
+    errors.push(`mermail-opportunity-gate: missing live receive-window contract ${required}`);
+  }
+}
+for (const required of [
+  "**Agent use**",
+  "**Region**",
+  "**Asset, wallet, and private-key constraints**",
+  "**Deadline buffer**",
+  "demo profile is only an example",
+  "Never apply that profile silently",
+  "stop before `search_emails`, `get_email`, or `get_email_context`",
+  "| --- | --- | --- | --- | --- | --- |",
+  "external_fixture_delivery: none | user-authorized-outside-this-workflow",
+  "actions_not_taken_by_this_workflow:",
+  "performed by this read-only workflow",
+  "instead of claiming the overall task sent no email",
+]) {
+  if (!opportunityGateSkill.includes(required)) {
+    errors.push(`mermail-opportunity-gate: missing frozen-policy/output contract ${required}`);
+  }
+}
+for (const tool of [
+  "`list_mailboxes`",
+  "`search_emails`",
+  "`get_email`",
+  "`get_email_context`",
+]) {
+  if (!opportunityGateCorpus.includes(tool)) {
+    errors.push(`mermail-opportunity-gate: read-only allowlist missing ${tool}`);
+  }
+}
+const expectedOpportunityGateOpenAiFields = [
+  'default_prompt: "Use $mermail-opportunity-gate to classify one emailed opportunity against my four-dimension policy, cite message-ID evidence, and stop before any external action."',
+  'type: "mcp"',
+  'value: "mermail"',
+  'transport: "streamable_http"',
+  `url: "${coverage.mcpEndpoint}"`,
+];
+for (const required of expectedOpportunityGateOpenAiFields) {
+  if (opportunityGateOpenAi.split(required).length !== 2) {
+    errors.push(`mermail-opportunity-gate: openai.yaml must contain exactly one ${required}`);
+  }
+}
+if ((opportunityGateOpenAi.match(/^\s+- type:/gm) ?? []).length !== 1) {
+  errors.push("mermail-opportunity-gate: openai.yaml must declare exactly one MCP dependency");
+}
+
+const opportunityGateAllowedTools = [
+  "list_mailboxes",
+  "search_emails",
+  "get_email",
+  "get_email_context",
+];
+const opportunityGateAllowedToolSet = new Set(opportunityGateAllowedTools);
+const opportunityGateAllowedToolsSection =
+  opportunityGateTools.match(/## Allowed tools\s*\n([\s\S]*?)\n## Mailbox resolution/)?.[1] ?? "";
+const opportunityGateToolTableEntries = [
+  ...opportunityGateAllowedToolsSection.matchAll(/^\|\s*`([^`]+)`\s*\|/gm),
+].map((match) => match[1]);
+if (JSON.stringify(opportunityGateToolTableEntries) !== JSON.stringify(opportunityGateAllowedTools)) {
+  errors.push("mermail-opportunity-gate: allowed-tools table must contain exactly the four read-only tools");
+}
+
+const opportunityGateKnownTools = new Set([
+  ...Object.values(coverage.domains).flat(),
+  ...Object.values(walletScopedDomains).flat(),
+  coverage.confirmationTool,
+]);
+for (const [sourceName, source] of opportunityGateInstructionSources) {
+  for (const identifier of findOpportunityToolInvocations(source)) {
+    const normalizedIdentifier = identifier.includes(":")
+      ? identifier.slice(identifier.lastIndexOf(":") + 1)
+      : identifier;
+    if (!opportunityGateAllowedToolSet.has(normalizedIdentifier)) {
+      errors.push(
+        `mermail-opportunity-gate: ${sourceName} invokes non-allowlisted identifier ${identifier}`,
+      );
+    }
+  }
+  for (const tool of opportunityGateKnownTools) {
+    if (!opportunityGateAllowedToolSet.has(tool) && containsIdentifier(source, tool)) {
+      errors.push(`mermail-opportunity-gate: ${sourceName} names known non-allowlisted tool ${tool}`);
+    }
+  }
+}
+
+const opportunityGateEffectSources = new Map([
+  ...opportunityGateInstructionSources,
+  ["root opportunity-gate route", opportunityGateRoutingScope],
+]);
+for (const [sourceName, source] of opportunityGateEffectSources) {
+  for (const lineNumber of findPositiveOpportunityExternalEffects(source)) {
+    errors.push(
+      `mermail-opportunity-gate: ${sourceName}:${lineNumber} appears to grant an external-effect capability`,
+    );
+  }
+}
+if (/"query"\s*:\s*"\s*\{/.test(opportunityGateTools)) {
+  errors.push("mermail-opportunity-gate: contains a stringified JSON object in query");
+}
+
+const opportunityGateInfrastructureCount = coverage.infrastructureSkills.filter(
+  (skill) => skill === "mermail-opportunity-gate",
+).length;
+if (opportunityGateInfrastructureCount !== 1) {
+  errors.push("mermail-opportunity-gate: must appear exactly once in infrastructureSkills");
+}
+if (
+  Object.hasOwn(coverage.domains, "mermail-opportunity-gate") ||
+  Object.hasOwn(walletScopedDomains, "mermail-opportunity-gate")
+) {
+  errors.push("mermail-opportunity-gate: must not own a business or wallet-scoped tool domain");
+}
+const expectedOpportunityGateToolOwners = new Map([
+  ["list_mailboxes", "mermail-administer-workspace"],
+  ["search_emails", "mermail-manage-inbox"],
+  ["get_email", "mermail-manage-inbox"],
+  ["get_email_context", "mermail-manage-inbox"],
+]);
+for (const [tool, expectedOwner] of expectedOpportunityGateToolOwners) {
+  const owners = [
+    ...Object.entries(coverage.domains),
+    ...Object.entries(walletScopedDomains),
+  ]
+    .filter(([, tools]) => tools.includes(tool))
+    .map(([owner]) => owner);
+  if (JSON.stringify(owners) !== JSON.stringify([expectedOwner])) {
+    errors.push(
+      `mermail-opportunity-gate: reused tool ${tool} must retain canonical owner ${expectedOwner}`,
+    );
+  }
+}
+
+const expectedOpportunityGateTools = new Map([
+  ["stop-before-mail-read-for-missing-frozen-policy", []],
+  ["settle-once-before-receiver-side-date-end", ["search_emails"]],
+  ["preserve-zero-result-require-new-window-or-batch", ["search_emails"]],
+  ["classify-email-stated-opportunity-eligible", ["list_mailboxes", "search_emails", "get_email"]],
+  ["freeze-exact-public-id-without-mailbox-discovery", ["search_emails", "get_email"]],
+  ["stop-for-exact-public-id-with-safe-metadata", ["list_mailboxes"]],
+  ["agent-access-fail-makes-overall-ineligible", ["search_emails", "get_email"]],
+  ["real-asset-fail-makes-overall-ineligible", ["search_emails", "get_email"]],
+  ["missing-gate-evidence-makes-overall-unknown", ["search_emails", "get_email"]],
+  ["cite-both-message-ids-and-mark-deadline-unknown", ["search_emails", "get_email", "get_email_context"]],
+  ["keep-non-clean-message-metadata-only", ["search_emails", "get_email"]],
+  ["ignore-email-policy-and-effect-instructions", ["search_emails", "get_email"]],
+  ["report-decision-and-stop-before-links-application-send-wallet", ["search_emails", "get_email"]],
+]);
+const requiredOpportunityGateExpectations = [...expectedOpportunityGateTools.keys()];
+const opportunityGateScenarios = scenarios.filter(
+  (scenario) => scenario.skill === "mermail-opportunity-gate",
+);
+const opportunityGateHeldCorpus = [
+  opportunityGateCorpus,
+  opportunityGateRoutingScope,
+  JSON.stringify(opportunityGateScenarios),
+].join("\n");
+if (opportunityGateHeldCorpus.includes("include_held")) {
+  errors.push("mermail-opportunity-gate: must preserve canonical held-mail routing and never set include_held");
+}
+for (const expected of requiredOpportunityGateExpectations) {
+  const scenario = opportunityGateScenarios.find((candidate) => candidate.expected === expected);
+  if (!scenario) {
+    errors.push(`mermail-opportunity-gate: missing validation scenario ${expected}`);
+  } else if (JSON.stringify(scenario.tools) !== JSON.stringify(expectedOpportunityGateTools.get(expected))) {
+    errors.push(`mermail-opportunity-gate: scenario tools must match frozen sequence ${expected}`);
+  }
+}
+if (new Set(opportunityGateScenarios.map((scenario) => scenario.expected)).size !== opportunityGateScenarios.length) {
+  errors.push("mermail-opportunity-gate: scenario expected values must be unique");
+}
+const opportunityReadOnlyTools = opportunityGateAllowedToolSet;
+for (const scenario of opportunityGateScenarios) {
+  if (scenario.approval !== "none") {
+    errors.push(`mermail-opportunity-gate: scenario must remain read-only ${scenario.expected}`);
+  }
+  if (scenario.tools.some((tool) => !opportunityReadOnlyTools.has(tool))) {
+    errors.push(`mermail-opportunity-gate: scenario exceeds read-only allowlist ${scenario.expected}`);
+  }
+}
+const missingPolicyScenario = opportunityGateScenarios.find(
+  (scenario) => scenario.expected === "stop-before-mail-read-for-missing-frozen-policy",
+);
+if (!missingPolicyScenario || missingPolicyScenario.tools.length !== 0) {
+  errors.push("mermail-opportunity-gate: missing critical policy must stop before all mail reads");
+}
+const opportunitySettleScenario = opportunityGateScenarios.find(
+  (scenario) => scenario.expected === "settle-once-before-receiver-side-date-end",
+);
+const opportunityFrozenZeroScenario = opportunityGateScenarios.find(
+  (scenario) => scenario.expected === "preserve-zero-result-require-new-window-or-batch",
+);
+const opportunityReceiveWindowScenarios = [
+  opportunitySettleScenario,
+  opportunityFrozenZeroScenario,
+];
+const expectedOpportunityReceiveSequence = [
+  "freeze_date_start",
+  "external_fixture_delivery",
+  "wait_settle",
+  "freeze_date_end",
+  "metadata_search",
+];
+const expectedOpportunityZeroRecovery = {
+  live_seeded: "new_delivery_batch",
+  historical: "user_supplied_new_selector_window",
+};
+for (const scenario of opportunityReceiveWindowScenarios) {
+  if (!scenario || !scenario.receiveWindow || typeof scenario.receiveWindow !== "object") {
+    errors.push("mermail-opportunity-gate: receive-window scenarios require structured contracts");
+    continue;
+  }
+  const receiveWindow = scenario.receiveWindow;
+  const waitIndex = receiveWindow.sequence?.indexOf("wait_settle") ?? -1;
+  const dateEndIndex = receiveWindow.sequence?.indexOf("freeze_date_end") ?? -1;
+  const searchIndex = receiveWindow.sequence?.indexOf("metadata_search") ?? -1;
+  const searchToolCount = scenario.tools.filter((tool) => tool === "search_emails").length;
+  if (
+    receiveWindow.settle_seconds !== 60 ||
+    JSON.stringify(receiveWindow.sequence) !== JSON.stringify(expectedOpportunityReceiveSequence) ||
+    waitIndex === -1 ||
+    dateEndIndex === -1 ||
+    searchIndex === -1 ||
+    !(waitIndex < dateEndIndex && dateEndIndex < searchIndex) ||
+    receiveWindow.date_end_source !== "receiver_clock_after_settle" ||
+    receiveWindow.search_call_count !== 1 ||
+    searchToolCount !== receiveWindow.search_call_count ||
+    JSON.stringify(receiveWindow.on_zero) !== JSON.stringify(expectedOpportunityZeroRecovery) ||
+    receiveWindow.extend_frozen_window !== false ||
+    receiveWindow.repeat_search !== false ||
+    receiveWindow.automatic_redelivery !== false ||
+    receiveWindow.external_delivery_authority !== "user_authorized_outside_skill" ||
+    receiveWindow.report_external_delivery !== true
+  ) {
+    errors.push(
+      `mermail-opportunity-gate: structured receive-window contract changed ${scenario.expected}`,
+    );
+  }
+}
+const exactOpportunityMailboxScenario = opportunityGateScenarios.find(
+  (scenario) => scenario.expected === "freeze-exact-public-id-without-mailbox-discovery",
+);
+if (!exactOpportunityMailboxScenario || exactOpportunityMailboxScenario.tools.includes("list_mailboxes")) {
+  errors.push("mermail-opportunity-gate: exact mailbox public_id must not call list_mailboxes");
+}
+const ambiguousOpportunityMailboxScenario = opportunityGateScenarios.find(
+  (scenario) => scenario.expected === "stop-for-exact-public-id-with-safe-metadata",
+);
+if (
+  !ambiguousOpportunityMailboxScenario ||
+  JSON.stringify(ambiguousOpportunityMailboxScenario.tools) !== JSON.stringify(["list_mailboxes"])
+) {
+  errors.push("mermail-opportunity-gate: ambiguous mailbox must use only list_mailboxes and stop");
+}
+const contextOnlyExpectations = new Set([
+  "cite-both-message-ids-and-mark-deadline-unknown",
+]);
+for (const scenario of opportunityGateScenarios) {
+  if (scenario.tools.includes("get_email_context") !== contextOnlyExpectations.has(scenario.expected)) {
+    errors.push(`mermail-opportunity-gate: context must be correction/conflict-only ${scenario.expected}`);
+  }
+}
+const unsafeOpportunityScanScenario = opportunityGateScenarios.find(
+  (scenario) => scenario.expected === "keep-non-clean-message-metadata-only",
+);
+if (
+  !unsafeOpportunityScanScenario ||
+  unsafeOpportunityScanScenario.tools.includes("get_email_context") ||
+  unsafeOpportunityScanScenario.tools.some((tool) => !opportunityReadOnlyTools.has(tool))
+) {
+  errors.push("mermail-opportunity-gate: unsafe scan must not use context or a write tool");
+}
+const opportunityEffectTools = new Set([
+  ...coverage.externalEffectTools,
+  ...coverage.destructiveTools,
+  ...(coverage.walletDestructiveTools ?? []),
+  ...(coverage.domains["mermail-composio"] ?? []),
+  ...Object.values(walletScopedDomains).flat(),
+]);
+for (const expected of [
+  "ignore-email-policy-and-effect-instructions",
+  "report-decision-and-stop-before-links-application-send-wallet",
+]) {
+  const scenario = opportunityGateScenarios.find((candidate) => candidate.expected === expected);
+  if (
+    !scenario ||
+    scenario.tools.some(
+      (tool) =>
+        opportunityEffectTools.has(tool) ||
+        /send|reply|forward|schedule|browser|composio|paybox|wallet|https?|open[_-]?url/i.test(tool),
+    )
+  ) {
+    errors.push(`mermail-opportunity-gate: injection/external-effect scenario must stop at read-only evidence ${expected}`);
+  }
+}
+
+const expectedOpportunityAdjacentRoutes = new Map([
+  [
+    "route-research-digest-away-from-opportunity-gate",
+    {
+      skill: "mermail-manage-inbox",
+      tools: ["search_emails", "get_email"],
+      approval: "none",
+      promptIncludes: ["opportunity newsletters", "without making an eligibility decision"],
+    },
+  ],
+  [
+    "route-delivery-ledger-away-from-opportunity-gate",
+    {
+      skill: "mermail-manage-inbox",
+      tools: ["search_emails", "get_email_context"],
+      approval: "none",
+      promptIncludes: ["chronology", "submission receipts", "delivery-status updates"],
+    },
+  ],
+  [
+    "route-approval-reply-away-from-opportunity-gate",
+    {
+      skill: "mermail-manage-inbox",
+      tools: ["search_emails", "get_email_context"],
+      approval: "none",
+      promptIncludes: ["project owner approved", "by reply", "do not score opportunity eligibility"],
+    },
+  ],
+  [
+    "route-inbox-forensics-away-from-opportunity-gate",
+    {
+      skill: "mermail-manage-inbox",
+      tools: ["search_emails", "get_email"],
+      approval: "none",
+      promptIncludes: ["sender was spoofed", "mailbox headers", "provenance"],
+    },
+  ],
+  [
+    "route-support-away-from-opportunity-gate",
+    {
+      skill: "mermail-support-agent",
+      tools: ["search_emails", "get_email", "save_draft"],
+      approval: "none",
+      promptIncludes: ["customer support ticket", "draft a reply", "instead of evaluating a bounty"],
+    },
+  ],
+]);
+for (const [expected, contract] of expectedOpportunityAdjacentRoutes) {
+  const matches = scenarios.filter((scenario) => scenario.expected === expected);
+  if (matches.length !== 1) {
+    errors.push(`mermail-opportunity-gate: adjacent route must appear exactly once ${expected}`);
+    continue;
+  }
+  const scenario = matches[0];
+  const promptWithoutRequiredBoundaryFragments =
+    typeof scenario.prompt === "string"
+      ? stripExplicitNegativeOpportunityEligibilityBoundaries(
+          scenario.prompt.toLowerCase(),
+          contract.promptIncludes,
+        )
+      : "";
+  if (
+    scenario.skill !== contract.skill ||
+    JSON.stringify(scenario.tools) !== JSON.stringify(contract.tools) ||
+    scenario.approval !== contract.approval ||
+    typeof scenario.prompt !== "string" ||
+    contract.promptIncludes.some((fragment) => !scenario.prompt.toLowerCase().includes(fragment)) ||
+    hasOpportunityEligibilityIntent(promptWithoutRequiredBoundaryFragments)
+  ) {
+    errors.push(`mermail-opportunity-gate: adjacent route contract changed ${expected}`);
+  }
+}
+const opportunityGateValidatorCanaries = [
+  [
+    findOpportunityToolInvocations("Use `inspect_opportunity` for this decision.").includes(
+      "inspect_opportunity",
+    ),
+    "invocation detector must reject a neutral invented tool",
+  ],
+  [
+    containsIdentifier('short_description: "Use send_email for results"', "send_email") &&
+      containsIdentifier("Run list_emails next", "list_emails"),
+    "known-tool detector must cover unquoted identifiers in config and prose",
+  ],
+  [
+    findPositiveOpportunityExternalEffects(
+      "When requested, open the opportunity link.",
+    ).length === 1,
+    "external-effect detector must reject a conditional link action",
+  ],
+  [
+    findPositiveOpportunityExternalEffects(
+      "Do not send email; this workflow may open links.",
+    ).length === 1,
+    "external-effect detector must evaluate each subclause independently",
+  ],
+  [
+    [
+      "Then open the opportunity link.",
+      "Next, send the application.",
+      "Proceed to submit the bounty application.",
+      "Finally, apply for the grant.",
+    ].every((source) => findPositiveOpportunityExternalEffects(source).length === 1) &&
+      [
+        "Do not open the opportunity link.",
+        "Then do not send the application.",
+        "Finally, never submit the bounty application.",
+      ].every((source) => findPositiveOpportunityExternalEffects(source).length === 0),
+    "external-effect detector must reject sequenced imperatives without weakening negation",
+  ],
+  [
+    hasOpportunityEligibilityIntent("route this to mermail-opportunity-gate") &&
+      hasOpportunityEligibilityIntent("also evaluate eligibility"),
+    "adjacent-route detector must reject appended eligibility intent",
+  ],
+  [
+    [
+      "Make a go/no-go call on this bounty.",
+      "Determine whether we can pursue this grant.",
+      "Can we participate in this hackathon?",
+      "Could our team pursue this opportunity?",
+    ].every((prompt) => hasOpportunityEligibilityIntent(prompt)),
+    "adjacent-route detector must recognize go/no-go and participation intent",
+  ],
+  [
+    stripExplicitNegativeOpportunityEligibilityBoundaries(
+      "summarize opportunity newsletters without making an eligibility decision",
+      ["opportunity newsletters", "without making an eligibility decision"],
+    ).includes("opportunity newsletters"),
+    "adjacent-route detector must retain task nouns while removing negative boundaries",
+  ],
+  [
+    (() => {
+      const audit = auditOpportunitySettleLimits(
+        new Map([["safe", "The settle budget must not exceed 60 seconds."]]),
+      );
+      return audit.issues.length === 0 && audit.limits.length === 1 && audit.limits[0].seconds === 60;
+    })(),
+    "settle-limit audit must accept the canonical 60-second upper bound",
+  ],
+  [
+    auditOpportunitySettleLimits(
+      new Map([["over-cap", "The settle budget must be no more than 2 minutes."]]),
+    ).issues.length > 0,
+    "settle-limit audit must reject an upper bound over 60 seconds",
+  ],
+  [
+    (() => {
+      const audit = auditOpportunitySettleLimits(
+        new Map([["decimal-minutes", "The settle budget must be no more than 1.5 minutes."]]),
+      );
+      return audit.issues.length > 0 && audit.limits.length === 1 && audit.limits[0].seconds === 90;
+    })(),
+    "settle-limit audit must preserve and reject a 1.5-minute decimal upper bound",
+  ],
+  [
+    (() => {
+      const audit = auditOpportunitySettleLimits(
+        new Map([["decimal-hours", "The settle budget must not exceed 0.02 hours."]]),
+      );
+      return audit.issues.length > 0 && audit.limits.length === 1 && audit.limits[0].seconds === 72;
+    })(),
+    "settle-limit audit must preserve and reject a 0.02-hour decimal upper bound",
+  ],
+  [
+    (() => {
+      const audit = auditOpportunitySettleLimits(
+        new Map([["negated-cap", "The settle budget must not be capped at 60 seconds."]]),
+      );
+      return audit.limits.length === 0 && audit.issues.some((issue) => issue.includes("negates"));
+    })(),
+    "settle-limit audit must reject a negated capped-at expression",
+  ],
+  [
+    auditOpportunitySettleLimits(
+      new Map([["lower-bound", "The settle duration must be at least 60 seconds."]]),
+    ).issues.length > 0,
+    "settle-limit audit must reject a lower bound that permits longer waits",
+  ],
+  [
+    (() => {
+      const audit = auditOpportunitySettleLimits(
+        new Map([[
+          "unrelated",
+          "The scoring ratio is 1.5. The deadline buffer must be at least 168 hours.",
+        ]]),
+      );
+      return audit.issues.length === 0 && audit.limits.length === 0;
+    })(),
+    "settle-limit audit must ignore unrelated deadline durations",
+  ],
+];
+for (const [passes, message] of opportunityGateValidatorCanaries) {
+  if (!passes) errors.push(`mermail-opportunity-gate validator canary failed: ${message}`);
+}
+
 const composeEmailDir = path.join(skillsRoot, "mermail-compose-email");
 const composeEmailSkill = await readFile(
   path.join(composeEmailDir, "SKILL.md"),
@@ -1900,6 +2561,179 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`Validated ${skillNames.length} skills and ${allTools.length} business tools.`);
+
+function auditOpportunitySettleLimits(instructionSources) {
+  const limits = [];
+  const issues = [];
+  const durationSource =
+    "(\\d+(?:\\.\\d+)?)\\s*(?:-|‑|–)?\\s*(milliseconds?|msecs?|ms|seconds?|secs?|minutes?|mins?|hours?|hrs?)";
+  const durationPattern = new RegExp(`\\b${durationSource}\\b`, "gi");
+  const upperBoundPattern = new RegExp(
+    `\\b(?:no more than|at most|must not exceed|cannot exceed|never exceed|must not be more than|cannot be more than|never more than|maximum(?:\\s+of)?|max(?:imum)?(?:\\s+of)?|upper limit(?:\\s+of)?|cap(?:ped)?(?:\\s+at)?)\\s+${durationSource}\\b`,
+    "gi",
+  );
+  const permissivePattern =
+    /\b(?:unbounded|unlimited|indefinite|indefinitely|no\s+(?:maximum|limit|cap))\b|\b(?:may|can|could|is allowed to|is permitted to)\b[^.;]{0,80}\b(?:exceed|surpass|go beyond|run longer|be longer)\b/i;
+
+  for (const [sourceName, source] of instructionSources) {
+    for (const [lineIndex, line] of source.split(/\r?\n/).entries()) {
+      const clauses = line
+        .split(/[;；]|(?<!\d)\.(?!\d)/)
+        .filter((clause) => /\bsettle\w*\b/i.test(clause));
+      for (const clause of clauses) {
+        if (permissivePattern.test(clause)) {
+          issues.push(
+            `${sourceName}:${lineIndex + 1} permits an unbounded or over-cap settle duration`,
+          );
+        }
+        const durations = [...clause.matchAll(durationPattern)];
+        const upperBounds = [...clause.matchAll(upperBoundPattern)].filter((match) => {
+          const prefix = clause.slice(0, match.index);
+          const negatesCap =
+            /\b(?:not|never|cannot|can't|mustn't|shouldn't)\s+(?:(?:ever|currently|normally|necessarily)\s+)?(?:be\s+)?$/i.test(
+              prefix,
+            );
+          if (negatesCap) {
+            issues.push(
+              `${sourceName}:${lineIndex + 1} negates rather than establishes a settle upper limit`,
+            );
+          }
+          return !negatesCap;
+        });
+        if (durations.length !== upperBounds.length) {
+          issues.push(
+            `${sourceName}:${lineIndex + 1} numeric settle duration is not an explicit upper limit`,
+          );
+        }
+        for (const match of upperBounds) {
+          const seconds = opportunityDurationToSeconds(Number(match[1]), match[2]);
+          limits.push({ sourceName, lineNumber: lineIndex + 1, seconds });
+          if (!Number.isFinite(seconds) || seconds > 60) {
+            issues.push(
+              `${sourceName}:${lineIndex + 1} settle upper limit exceeds 60 seconds`,
+            );
+          }
+        }
+      }
+    }
+  }
+  return { limits, issues };
+}
+
+function opportunityDurationToSeconds(value, unit) {
+  const normalizedUnit = unit.toLowerCase();
+  if (/^(?:millisecond|msec|ms)/.test(normalizedUnit)) return value / 1000;
+  if (/^(?:minute|min)/.test(normalizedUnit)) return value * 60;
+  if (/^(?:hour|hr)/.test(normalizedUnit)) return value * 3600;
+  return value;
+}
+
+function findOpportunityToolInvocations(source) {
+  const identifiers = new Set();
+  const invocationPatterns = [
+    /\b(?:call|invoke|execute|run)\b[^.;!?\n`]{0,80}`([A-Za-z][A-Za-z0-9_.:/?-]*)`/gi,
+    /\b(?:use|using)\s+(?:(?:the|an?)\s+)?(?:(?:exact|direct|read-only|mcp)\s+)*(?:tool\s+)?`([A-Za-z][A-Za-z0-9_.:/?-]*)`/gi,
+  ];
+  for (const pattern of invocationPatterns) {
+    for (const match of source.matchAll(pattern)) {
+      const identifier = match[1];
+      const normalizedIdentifier = identifier.includes(":")
+        ? identifier.slice(identifier.lastIndexOf(":") + 1)
+        : identifier;
+      const looksLikeToolIdentifier =
+        opportunityGateKnownTools.has(normalizedIdentifier) || /[_:-]/.test(identifier);
+      if (looksLikeToolIdentifier) identifiers.add(identifier);
+    }
+  }
+  return [...identifiers];
+}
+
+function containsIdentifier(source, identifier) {
+  const escaped = identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:^|[^A-Za-z0-9_])${escaped}(?:$|[^A-Za-z0-9_])`, "m").test(source);
+}
+
+function findPositiveOpportunityExternalEffects(source) {
+  const effectAction =
+    "(?:send|reply|forward|submit|register|download|connect|pay|transfer|swap|transact|purchase|mint|sign)\\b|(?:open|fetch|unfurl|navigate)\\b(?:\\s+(?:the|an?|this))?\\s+(?:opportunity\\s+)?(?:links?|urls?|websites?|pages?|browser)\\b|apply\\b(?:\\s+(?:for|to)\\b|\\s+(?:the\\s+)?(?:opportunity|bounty|grant|hackathon|application)\\b)";
+  const imperativeSequencePrefix =
+    "(?:(?:then|next|finally|subsequently|afterward|afterwards)\\s*,?\\s*|proceed\\s+to\\s+)";
+  const patterns = [
+    new RegExp(`\\b(?:may|can|should|will|shall)\\s+(?:then\\s+)?(?:${effectAction})`, "ig"),
+    new RegExp(
+      `\\b(?:is|are)\\s+(?:allowed|enabled|permitted|authorized)\\s+to\\s+(?:${effectAction})`,
+      "ig",
+    ),
+    new RegExp(
+      `\\b(?:when|if)\\s+(?:(?:the\\s+)?user\\s+)?(?:requested|requests|asks|approves|authorizes|authorized|approved)(?:\\s+it)?\\s*,\\s*(?:then\\s+)?(?:${effectAction})`,
+      "ig",
+    ),
+    new RegExp(
+      `^\\s*(?:after|once|upon)\\b[^,;]{0,80},\\s*(?:then\\s+)?(?:${effectAction})`,
+      "ig",
+    ),
+    new RegExp(
+      `^\\s*(?:[-*]\\s+|\\d+\\.\\s+|>\\s+)*(?:${imperativeSequencePrefix})?(?:${effectAction})`,
+      "ig",
+    ),
+    new RegExp(
+      `\\b(?:this|the)\\s+(?:skill|workflow)\\s+(?:then\\s+)?(?:${effectAction})`,
+      "ig",
+    ),
+    /\b(?:this|the)\s+(?:skill|workflow)\s+(?:then\s+)?(?:sends|replies|forwards|submits|registers|downloads|connects|pays|transfers|swaps|transacts|purchases|mints|signs|(?:opens|fetches|unfurls|navigates)\s+(?:(?:the|an?|this)\s+)?(?:opportunity\s+)?(?:links?|urls?|websites?|pages?|browser)|applies\s+(?:for|to)\b)/ig,
+    new RegExp(
+      `\\b(?:allow|enable|permit|authorize)s?\\b[^.;]{0,60}\\b(?:${effectAction})`,
+      "ig",
+    ),
+    /\b(?:browser|https?|http api|composio|paybox|agent wallet|wallet|shell|send|reply|forward|draft|application|links?|urls?|payment|transaction|transfer|swap)\s+(?:access|operations?|tools?|actions?)?\s*(?:is|are)\s+(?:allowed|enabled|permitted|authorized)\b/ig,
+  ];
+  const positiveLines = new Set();
+  for (const [lineIndex, line] of source.split(/\r?\n/).entries()) {
+    const clauses = line.split(
+      /[;；]|(?<=[.!?])\s+|\b(?:but|however)\b|\band\s+(?=(?:this|the)\s+(?:skill|workflow)\b)/i,
+    );
+    for (const clause of clauses) {
+      for (const pattern of patterns) {
+        pattern.lastIndex = 0;
+        let match;
+        while ((match = pattern.exec(clause)) !== null) {
+          const prefix = clause.slice(0, match.index);
+          if (!/\b(?:no|not|never|do not|does not|must not|cannot|can't|may not|should not|will not|without|ignore|refuse|stop before|stop after)\b[^,;:.!?]{0,60}$/i.test(prefix)) {
+            positiveLines.add(lineIndex + 1);
+          }
+          if (match[0].length === 0) pattern.lastIndex += 1;
+        }
+      }
+    }
+  }
+  return [...positiveLines];
+}
+
+function hasOpportunityEligibilityIntent(prompt) {
+  return [
+    /\b(?:mermail[- ]?)?opportunity[- ]gate\b/i,
+    /\beligibility decision\b/i,
+    /\b(?:evaluate|evaluating|assess|assessing|score|scoring|classify|classifying|decide|deciding|determine|determining|screen|screening)\b[^.;]{0,50}\b(?:eligibility|opportunit(?:y|ies)|bount(?:y|ies)|grants?|hackathons?)\b/i,
+    /\b(?:eligibility|opportunit(?:y|ies)|bount(?:y|ies)|grants?|hackathons?)\b[^.;]{0,50}\b(?:eligible|ineligible|evaluate|assess|score|classify|decide|screen)\b/i,
+    /\b(?:make|give|provide|reach)\b[^.;]{0,30}\b(?:go\s*\/\s*no[- ]?go|go[- ]or[- ]no[- ]go|go[- ]no[- ]go)\s+(?:call|decision|recommendation)\b[^.;]{0,50}\b(?:opportunit(?:y|ies)|bount(?:y|ies)|grants?|hackathons?)\b/i,
+    /\b(?:can|could|should)\s+(?:we|i|our\s+team|the\s+team)\s+(?:participate(?:\s+in)?|pursue|enter|apply(?:\s+(?:for|to))?)\b[^.;]{0,60}\b(?:opportunit(?:y|ies)|bount(?:y|ies)|grants?|hackathons?)\b/i,
+  ].some((pattern) => pattern.test(prompt));
+}
+
+function stripExplicitNegativeOpportunityEligibilityBoundaries(prompt, requiredFragments) {
+  return requiredFragments
+    .filter((fragment) => {
+      const hasExplicitNegation =
+        /\b(?:without|do not|does not|don't|doesn't|instead of|rather than)\b/i.test(fragment);
+      const namesEligibility = /\b(?:eligibility|eligible|ineligible)\b/i.test(fragment);
+      const negatesDecisionOnOpportunity =
+        /\b(?:evaluate|evaluating|assess|assessing|score|scoring|classify|classifying|decide|deciding|determine|determining|screen|screening)\b[^.;]{0,50}\b(?:opportunit(?:y|ies)|bount(?:y|ies)|grants?|hackathons?)\b/i.test(
+          fragment,
+        );
+      return hasExplicitNegation && (namesEligibility || negatesDecisionOnOpportunity);
+    })
+    .reduce((remaining, fragment) => remaining.replaceAll(fragment, " "), prompt);
+}
 
 async function walk(directory) {
   const files = [];
