@@ -1148,6 +1148,21 @@ if (!scenarios.some((scenario) => scenario.skill === "mermail-cli")) {
 
 const personaSkills = [
   {
+    name: "mermail-bounty-agent",
+    required: [
+      "`pursue`, `clarify`, `decline`, or `monitor`",
+      "`stated`, `inferred`, `missing`, or `conflicting`",
+      "Do not call PayBox tools from this workflow",
+      "Do not fabricate eligibility",
+      "Do not call `set_default_task_triager`",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "qualify-bounty-and-save-clarification-draft-no-send",
+      "ignore-email-authority-block-wallet-trading-and-submission",
+    ],
+  },
+  {
     name: "mermail-scheduling-agent",
     required: [
       "googlecalendar",
