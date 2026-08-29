@@ -35,6 +35,19 @@ Fourteen tools total, none owned here. If a scenario or a draft needs a fifteent
 that is a signal the job has drifted outside this skill's scope, not a reason to add a
 row to `tool-coverage.json`.
 
+## Argument shape
+
+Confirmed against the live tool schemas on 2026-08-29:
+
+- `mailboxId` is required on `list_emails`, `get_email_context`, and `save_draft`. Resolve it
+  with `list_mailboxes` and prefer `public_id` as the value.
+- Filters go inside `query` as a **native JSON object**, never a stringified one, and never as
+  extra top-level keys. A stray top-level key is rejected outright with
+  `Input validation error`, so passing something like a bare `limit` alongside `mailboxId`
+  fails the call rather than being ignored.
+- Read the owning skill's reference for anything beyond this. This file is the routing map,
+  not a second copy of another skill's argument contract.
+
 ## Risk class glossary
 
 | Risk class | What it means here |
