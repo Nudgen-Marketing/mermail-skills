@@ -17,6 +17,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Request intent | Skill |
 | --- | --- |
 | Reuse or provision a service-scoped mailbox and correlate expected mail for an active third-party verification, sign-in, onboarding, purchase, receipt, or order flow | `mermail-agent-inbox` |
+| Assess one bounded email thread for complete, source-grounded decision facts and a safe draft-first next action | `mermail-decision-gate` |
 | Read, search, move, organize, download, manage folders or custom-label definitions, or delete ordinary/historical mail outside an active third-party identity flow | `mermail-manage-inbox` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |
 | Inspect usage or manage workspaces, members, invitations, domains, mailboxes, settings, or storage | `mermail-administer-workspace` |
