@@ -13,7 +13,7 @@ GitHub message ids and thread ids carry the path `<owner>/<repo>/(pull|issues)/<
 | `review_requested` | message id path contains `/review_requested/`, or subject contains `requested your review` |
 | `mention` | message id path contains `/mention/`, or subject/preview contains `@<mailbox handle>` from a `pull`/`issues` thread |
 | `assigned` | message id path contains `/assign/` or subject contains `assigned you` |
-| `ci_failure` | subject contains `Run failed` (GitHub Actions); the branch appears as `… - <branch> (<sha>)`; `main`/`master` is highest priority |
+| `ci_failure` | message id path contains `/check-suites/` or `x-github-reason: ci_activity`; subject `Run failed: <workflow> - <branch> (<sha>)`; `main`/`master` is highest priority |
 | `security_alert` | sender `noreply@github.com` and subject containing `vulnerability`, `security alert`, or `secret scanning` |
 | `dependency_update` | subject starts with `[owner/repo] Bump` or sender display contains `dependabot[bot]` / `renovate[bot]` |
 | `release` | subject contains `Release` or `released` and the message id path contains `/releases/` |
@@ -21,6 +21,10 @@ GitHub message ids and thread ids carry the path `<owner>/<repo>/(pull|issues)/<
 | `other` | anything else, including mail outside the sender allowlist |
 
 When two rules match (for example `Run failed` and `Bump`), report `uncertain` for that message and ask, rather than guess.
+
+Authentication label: `sender_authentication.status: pass` marks a row `authenticated`. Hosted mailboxes on some inbound providers return `status: unknown` with `reason: provider_sender_authentication_verdict_unavailable`; classify those rows from structural evidence but label them `unverified` in the digest. Unverified rows may be digested and organized; any reply preview built from them must carry the `unverified` flag so the user sees it before approving.
+
+Reply eligibility: only messages whose `get_email` `action_metadata_only` `reply_targets.reply.to` is a `reply+<token>@reply.github.com` address (issue and pull request threads) can be answered back to GitHub. CI, security, and digest mail resolve to `<repo>@noreply.github.com`; report those as `blocked` for reply, never send to a noreply target.
 
 ## Digest
 
