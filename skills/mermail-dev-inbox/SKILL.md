@@ -24,7 +24,7 @@ This skill does not own MCP tools. It routes to `mermail-manage-inbox`, `mermail
 ## Preferred Deliverables
 
 - One ready developer mailbox, identified by email and `public_id`, that receives notifications from GitHub or CI.
-- A bounded digest grouped by category: `review_requested`, `mention`, `ci_failure`, `security_alert`, `dependency_update`, `release`, `merged`, `assigned`, `other`. Each row names repo, number, title, sender, age, and one suggested next action.
+- A bounded digest grouped by category: `review_requested`, `mention`, `ci_failure`, `security_alert`, `dependency_update`, `release`, `merged`, `assigned`, `pr_opened`, `other`. Each row names repo, number, title, sender, age, and one suggested next action.
 - A per-message classification with the evidence used (sender allowlist, GitHub message-id path `owner/repo/pull|issues/N`, subject pattern) and `sender_authentication.status`.
 - A draft reply (`save_draft`) for a review request or mention while the answer is being checked; after approval, exactly one `reply_to_email` that posts the comment back to the GitHub thread.
 - Folder or custom-label organization (`create_folder`, `bulk_move_emails`, `create_custom_label`) that keeps noise out of the primary view without deleting anything.

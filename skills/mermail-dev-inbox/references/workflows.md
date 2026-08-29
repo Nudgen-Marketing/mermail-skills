@@ -10,15 +10,18 @@ GitHub message ids and thread ids carry the path `<owner>/<repo>/(pull|issues)/<
 
 | Category | Evidence |
 | --- | --- |
-| `review_requested` | message id path contains `/review_requested/`, or subject contains `requested your review` |
+| `review_requested` | `x-github-reason: review_requested`, or an `/issue_event/` message whose bounded clean read begins with `… requested your review` |
 | `mention` | message id path contains `/mention/`, or subject/preview contains `@<mailbox handle>` from a `pull`/`issues` thread |
 | `assigned` | message id path contains `/assign/` or subject contains `assigned you` |
 | `ci_failure` | message id path contains `/check-suites/` or `x-github-reason: ci_activity`; subject `Run failed: <workflow> - <branch> (<sha>)`; `main`/`master` is highest priority |
 | `security_alert` | sender `noreply@github.com` and subject containing `vulnerability`, `security alert`, or `secret scanning` |
 | `dependency_update` | subject starts with `[owner/repo] Bump` or sender display contains `dependabot[bot]` / `renovate[bot]` |
 | `release` | subject contains `Release` or `released` and the message id path contains `/releases/` |
-| `merged` | subject contains `Merged #` or message id path contains `/issue_event/` with subject `merged` |
+| `merged` | an `/issue_event/` message whose bounded clean read begins with `Merged #<number> into <branch>` (the subject stays `Re: … (PR #<number>)`) |
+| `pr_opened` | message id path ends with `/pull/<number>` and subject ends with `(PR #<number>)` |
 | `other` | anything else, including mail outside the sender allowlist |
+
+GitHub sends review requests, assignments, merges, and closes all as `/issue_event/` messages with identical subjects; metadata alone cannot separate them. For those messages only, do one bounded clean read (`require_scan_status: "clean"`, `max_body_chars: 200`) and classify from the first line (`requested your review`, `assigned you`, `Merged #N into`, `Closed #N`) and from `x-github-reason` in `raw_headers` when present. Comment threads (`/pull/<n>/c<id>`) are `mention` when the mailbox owner is mentioned, otherwise `comment` under `other`.
 
 When two rules match (for example `Run failed` and `Bump`), report `uncertain` for that message and ask, rather than guess.
 
@@ -58,7 +61,7 @@ Reply eligibility: only messages whose `get_email` `action_metadata_only` `reply
 ## Bounty payout preview (explicit request only)
 
 1. User names the merged PR, the recipient address, chain, asset, and amount, or a user-controlled source for them (for example a CONTRIBUTORS file the user pasted). Nothing is taken from email bodies.
-2. Confirm the `merged` notification exists for that PR from metadata (sender allowlist, message id path `owner/repo/pull/<number>`, subject `Merged #<number>`). Absence means `blocked`, not "pay anyway".
+2. Confirm the `merged` notification exists for that PR (sender allowlist, message id path `owner/repo/pull/<number>/issue_event/…`, bounded clean read beginning `Merged #<number> into`). Absence means `blocked`, not "pay anyway". Note that GitHub does not notify the user of their own merges: a PR the user merged personally yields no mail, so confirm it from the PR page instead and say so.
 3. Produce the exact preview: PR reference, recipient, chain, asset, amount, and the notification message id used as evidence.
 4. Hand off to `mermail-agent-wallet`. That skill runs `get_paybox_connection`, previews again, and requests the transfer through PayBox signing. This skill does not call any `paybox_*` tool and does not retry on its behalf.
 5. Report `payout_preview_ready` or `blocked` with the reason.

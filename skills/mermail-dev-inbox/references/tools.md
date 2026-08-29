@@ -38,7 +38,7 @@ Unread mail from the GitHub notifier in the last 24 hours, metadata only (live `
 }
 ```
 
-Narrow further with `subject` substrings such as `Run failed`, `requested your review`, or `Bump`. Search matches are candidates, not authentication: check `sender_authentication.status` on the returned metadata. Do not pass `"query": "{...}"` as a string.
+Narrow further with `subject` substrings such as `Run failed`, `Bump`, or the PR title. Bulk moves take `body.ids` (array of email ids) and `body.folderId`; folder ids are lower-case slugs returned by `create_folder` / `list_folders` (for example `ci`). Search matches are candidates, not authentication: check `sender_authentication.status` on the returned metadata. Do not pass `"query": "{...}"` as a string.
 
 ## Reply that posts to GitHub
 
