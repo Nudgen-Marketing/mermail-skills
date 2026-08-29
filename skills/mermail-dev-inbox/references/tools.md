@@ -22,34 +22,34 @@ Tools that do not exist and must not be invented: `triage_github`, `rerun_ci`, `
 
 ## Bounded read examples
 
-Unread GitHub mail from the last 24 hours, newest first:
+Unread mail from the GitHub notifier in the last 24 hours, metadata only (live `search_emails` filters: `query`, `from`, `to`, `subject`, `date_start`, `date_end`, `folder`, `is_read`, `is_starred`, `category`, `has_attachment`, `require_scan_status`, `include_held`, `metadata_only`, `page`, `limit` 1-100):
 
 ```json
 {
   "mailboxId": "<public_id>",
   "query": {
-    "unread": true,
     "from": "notifications@github.com",
-    "since": "2026-08-28T00:00:00Z",
-    "sortColumn": "date",
-    "sortDirection": "DESC",
+    "is_read": false,
+    "date_start": "2026-08-28T00:00:00Z",
+    "metadata_only": true,
+    "require_scan_status": "clean",
     "limit": 50
   }
 }
 ```
 
-Inspect the live `search_emails` schema before relying on any filter name; if a filter is not supported by the host, narrow with subject keywords such as `Run failed`, `review requested`, or `Dependabot` and filter client-side.
+Narrow further with `subject` substrings such as `Run failed`, `requested your review`, or `Bump`. Search matches are candidates, not authentication: check `sender_authentication.status` on the returned metadata. Do not pass `"query": "{...}"` as a string.
 
 ## Reply that posts to GitHub
 
-GitHub notification mail carries a per-thread reply address of the form `reply+<token>@reply.github.com`. A reply to that address becomes a public comment on the issue or pull request. Always preview the exact `to`, the message being replied to, and the body before calling `reply_to_email`:
+GitHub notification mail carries a per-thread reply address of the form `reply+<token>@reply.github.com`. A reply to that address becomes a public comment on the issue or pull request. Obtain it from the server, never by hand: call `get_email` with `query.action_metadata_only: true`, which omits content and returns bounded, server-derived `reply_targets`. Preview the exact `to`, the message being replied to, and the body before calling `reply_to_email` (`body` takes `to`, `from`, `subject`, and `html` and/or `text`):
 
 ```json
 {
   "mailboxId": "<public_id>",
   "emailId": "<selected email id>",
-  "to": ["reply+<token>@reply.github.com"],
   "body": {
+    "to": ["reply+<token>@reply.github.com"],
     "from": "<mailbox email>",
     "text": "Thanks for the ping — I will review this after the 1.4 release cut on Friday."
   }

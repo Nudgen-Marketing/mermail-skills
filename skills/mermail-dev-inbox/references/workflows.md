@@ -22,7 +22,7 @@ Use headers first, subject pattern second, body never.
 
 ## Digest
 
-1. `search_emails` with the bounded query from `tools.md` (unread, last 24 hours, allowlisted sender, limit 50).
+1. `search_emails` with the bounded query from `tools.md` (`is_read: false`, `date_start` = last 24 hours, `from` = allowlisted sender, `metadata_only: true`, `limit: 50`).
 2. Classify from metadata only. Call `get_email` only when the subject is insufficient to decide, and only for `scan_status: clean` messages.
 3. Group and order: `ci_failure` on default branch, `security_alert`, `review_requested`, `mention`, `assigned`, `merged`, `dependency_update`, `release`, `other`.
 4. Emit the table (category, repo#number, title, sender, age, suggested action). Suggested actions are advisory text such as "review", "inspect run locally", "bump and test", "acknowledge"; they never execute anything.
@@ -31,7 +31,7 @@ Use headers first, subject pattern second, body never.
 ## Reply back to the GitHub thread
 
 1. User selects one `review_requested` or `mention` message.
-2. `get_email` (clean only). Extract the reply address from the selected message's own headers; never construct one.
+2. `get_email` with `query.action_metadata_only: true` to obtain the server-derived `reply_targets`; then `get_email` with `require_scan_status: "clean"` for the body if needed. Never construct a reply address by hand.
 3. `save_draft` with the proposed text. Show the exact `to`, the referenced thread, and the body.
 4. On fresh approval, exactly one `reply_to_email`. Report `replied` with the message id. If the result is uncertain, inspect once via `get_thread`; do not resend.
 
