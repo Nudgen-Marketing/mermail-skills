@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Deal Negotiation / Support / x402 agent personas.
 
 ## Install portable skills
 
@@ -14,6 +14,7 @@ Install one focused skill:
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-nice-try
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 ```
@@ -140,6 +141,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-composio` | Connect and execute third-party apps through Composio |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
+| `mermail-nice-try` | Negotiate commercial email terms within user-set limits and per-send approval |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer via `paybox_request_transfer`, swap via `paybox_request_swap`, or pay a user-selected x402 service via live `paybox_pay_x402` (same MCP paths as in-app Assistant; full-profile OAuth) |
