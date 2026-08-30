@@ -1,0 +1,12 @@
+interface:
+  display_name: "Mermail PACT"
+  short_description: "Verify paid work before settling rewards"
+  default_prompt: "Use $mermail-pact to define a proof-aware paid task, collect and verify submissions, and stop at each approval boundary before acceptance or settlement."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, Composio, and Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+
