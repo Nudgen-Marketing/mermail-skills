@@ -18,6 +18,8 @@ Nothing reached PayBox. These do **not** consume the one charge allowed per `pro
 
 ### Amount contract
 
+This contract governs the payee shapes — `paybox_request_transfer`, `request_payment`, `request_swap`. `paybox_pay_x402` carries **no amount argument**: the figure comes from the challenge's `accepts[]`, so none of the amount codes below can be raised by it.
+
 Never convert the amount to base units yourself. Mermail refuses an integer `amount` for any asset whose decimals it can resolve, because the same request has produced both the intended value and a 1000x-short one.
 
 | Field | Send |

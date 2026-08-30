@@ -1324,6 +1324,11 @@ const personaSkills = [
       "at or below",
       "`is_urgent`",
       "`success`, `transaction`, `network`, and `payer`",
+      "`x402_version: 2`",
+      "`accepts` verbatim",
+      "`credential_id` selected by the challenge's `network`",
+      "`output.value.x_payment`",
+      "`payment.ok: null`",
     ],
     expected: [
       "confirm-paybox-readiness-before-account-creation",
