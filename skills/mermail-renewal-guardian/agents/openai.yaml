@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Renewal Guardian"
+  short_description: "Turn renewal emails into decision briefs and reviewable drafts."
+  default_prompt: "Use $mermail-renewal-guardian to analyze renewal notices in my Mermail inbox without sending anything."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
