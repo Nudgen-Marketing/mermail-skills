@@ -1329,6 +1329,7 @@ const personaSkills = [
       "`credential_id` selected by the challenge's `network`",
       "`output.value.x_payment`",
       "`payment.ok: null`",
+      "Derive `date_start` **in UTC**",
     ],
     expected: [
       "confirm-paybox-readiness-before-account-creation",
