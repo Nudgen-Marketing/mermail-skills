@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Clerk"
+  short_description: "Policy-gated accounts payable: read invoice email, validate against the user's vendor policy, pay approved invoices with PayBox, confirm and label."
+  default_prompt: "Use $mermail-invoice-clerk to process new invoice email in my Mermail mailbox against my vendor policy: preview payments for passing invoices and hold everything else with reasons."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
