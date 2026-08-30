@@ -9,6 +9,8 @@
   },
   "homepage": "https://docs.mermail.app",
   "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
+  "license": "MIT",
+  "logo": "assets/logo.svg",
   "keywords": [
     "email",
     "inbox",
