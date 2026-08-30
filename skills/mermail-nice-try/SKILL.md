@@ -1,5 +1,5 @@
 ---
-name: mermail-deal-negotiator
+name: mermail-nice-try
 description: Negotiate user-authorized commercial terms in an existing Mermail email thread. Use when the user explicitly asks to track offers, compare them with a target, floor or ceiling, scope, deadline, payment terms, and other hard limits, then counter, accept, reject, or clarify without sending or committing until the exact reply is freshly approved. Do not use for generic drafting, ordinary inbox work, GTM prospecting, support triage, payments, or autonomous deal acceptance.
 metadata:
   openclaw:
@@ -11,7 +11,7 @@ metadata:
     emoji: "🤝"
 ---
 
-# Mermail Deal Negotiator
+# Mermail Nice Try
 
 ## Overview
 

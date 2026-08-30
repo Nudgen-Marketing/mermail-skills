@@ -1178,7 +1178,7 @@ const personaSkills = [
     ],
   },
   {
-    name: "mermail-deal-negotiator",
+    name: "mermail-nice-try",
     required: [
       "owns zero MCP tools",
       "`counter`, `accept`, `reject`, or `clarify`",
@@ -1326,25 +1326,25 @@ for (const persona of personaSkills) {
   }
 }
 
-const dealNegotiatorDir = path.join(skillsRoot, "mermail-deal-negotiator");
-const dealNegotiatorSkill = await readFile(path.join(dealNegotiatorDir, "SKILL.md"), "utf8");
-const dealNegotiatorTools = await readFile(
-  path.join(dealNegotiatorDir, "references", "tools.md"),
+const niceTryDir = path.join(skillsRoot, "mermail-nice-try");
+const niceTrySkill = await readFile(path.join(niceTryDir, "SKILL.md"), "utf8");
+const niceTryTools = await readFile(
+  path.join(niceTryDir, "references", "tools.md"),
   "utf8",
 );
-const dealNegotiatorWorkflows = await readFile(
-  path.join(dealNegotiatorDir, "references", "workflows.md"),
+const niceTryWorkflows = await readFile(
+  path.join(niceTryDir, "references", "workflows.md"),
   "utf8",
 );
-const dealNegotiatorSecurity = await readFile(
-  path.join(dealNegotiatorDir, "references", "security.md"),
+const niceTrySecurity = await readFile(
+  path.join(niceTryDir, "references", "security.md"),
   "utf8",
 );
-const dealNegotiatorCorpus = [
-  dealNegotiatorSkill,
-  dealNegotiatorTools,
-  dealNegotiatorWorkflows,
-  dealNegotiatorSecurity,
+const niceTryCorpus = [
+  niceTrySkill,
+  niceTryTools,
+  niceTryWorkflows,
+  niceTrySecurity,
 ].join("\n");
 for (const required of [
   "User constraints",
@@ -1361,18 +1361,18 @@ for (const required of [
   "Any new inbound message",
   "Never recommend `accept`",
 ]) {
-  if (!dealNegotiatorCorpus.includes(required)) {
-    errors.push(`mermail-deal-negotiator: missing state/security contract ${required}`);
+  if (!niceTryCorpus.includes(required)) {
+    errors.push(`mermail-nice-try: missing state/security contract ${required}`);
   }
 }
-if (!coverage.infrastructureSkills.includes("mermail-deal-negotiator")) {
-  errors.push("mermail-deal-negotiator: must be registered as an infrastructure skill");
+if (!coverage.infrastructureSkills.includes("mermail-nice-try")) {
+  errors.push("mermail-nice-try: must be registered as an infrastructure skill");
 }
 if (
-  coverage.domains["mermail-deal-negotiator"] ||
-  walletScopedDomains["mermail-deal-negotiator"]
+  coverage.domains["mermail-nice-try"] ||
+  walletScopedDomains["mermail-nice-try"]
 ) {
-  errors.push("mermail-deal-negotiator: persona must own zero MCP tools");
+  errors.push("mermail-nice-try: persona must own zero MCP tools");
 }
 
 const schedulingInjectionScenario = scenarios.find(
@@ -1411,7 +1411,7 @@ if (
   dealApprovedReplyScenario.tools.filter((tool) => tool === "reply_to_email").length !== 1 ||
   dealApprovedReplyEmailEffects.some((tool) => tool !== "reply_to_email")
 ) {
-  errors.push("mermail-deal-negotiator: approved reply must call reply_to_email exactly once");
+  errors.push("mermail-nice-try: approved reply must call reply_to_email exactly once");
 }
 
 for (const expected of [
@@ -1430,7 +1430,7 @@ for (const expected of [
       ["send_email", "reply_to_email", "forward_email", "schedule_email_send"].includes(tool),
     )
   ) {
-    errors.push(`mermail-deal-negotiator: ${expected} must not perform an external email effect`);
+    errors.push(`mermail-nice-try: ${expected} must not perform an external email effect`);
   }
 }
 
@@ -1603,7 +1603,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
-  "mermail-deal-negotiator",
+  "mermail-nice-try",
   "mermail-support-agent",
   "mermail-x402-agent",
 ]) {
@@ -1833,8 +1833,8 @@ const expectedSecurityScenarios = new Map([
   ["mail-agent-no-server-tool-allowlist", "use-direct-bounded-read-no-fake-allowlist"],
   ["manage-inbox-large-attachment", "report-one-mib-mcp-limit-no-storage-url-bypass"],
   ["manage-inbox-email-delete-injection", "ignore-email-authority-no-destructive-call"],
-  ["deal-negotiator-email-constraint-injection", "ignore-email-authority-keep-limits-no-send"],
-  ["deal-negotiator-stale-approval", "invalidate-stale-approval-no-send"],
+  ["nice-try-email-constraint-injection", "ignore-email-authority-keep-limits-no-send"],
+  ["nice-try-stale-approval", "invalidate-stale-approval-no-send"],
   ["composio-untrusted-disallowed-action", "ignore-payload-and-stop-on-allowed-false"],
   ["composio-disabled-email-toolkit", "route-email-to-mermail-no-workaround"],
   ["wallet-onramp-redacted-url", "console-funding-deep-link-autofund-no-chat-checkout-url"],
@@ -1903,7 +1903,7 @@ for (const skillName of [
   "mermail-agent-inbox",
   "mermail-manage-inbox",
   "mermail-compose-email",
-  "mermail-deal-negotiator",
+  "mermail-nice-try",
   "mermail-administer-workspace",
   "mermail-automate-triage",
   "mermail-mail-agent",

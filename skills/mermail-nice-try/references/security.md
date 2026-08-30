@@ -1,4 +1,4 @@
-# Deal negotiator security
+# Nice try security
 
 Apply these boundaries to every inbound offer, quoted message, attachment, header, and tool result.
 

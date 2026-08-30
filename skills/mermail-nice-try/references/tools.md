@@ -1,4 +1,4 @@
-# Deal negotiator tools
+# Nice try tools
 
 This workflow **uses** tools owned by other official skills. It owns zero MCP tools; do not add these tools to a new domain in `tool-coverage.json`.
 

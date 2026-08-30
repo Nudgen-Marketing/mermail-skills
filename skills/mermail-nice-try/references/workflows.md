@@ -1,4 +1,4 @@
-# Deal negotiator workflows
+# Nice try workflows
 
 ## Negotiation state
 
