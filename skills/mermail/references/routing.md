@@ -26,6 +26,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
+| Autonomously register accounts, verify email OTPs, and settle x402 trial deposits for external API/compute services | `mermail-autonomous-service-onboarder` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
 

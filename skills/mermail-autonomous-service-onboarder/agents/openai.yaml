@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Autonomous Service Onboarder"
+  short_description: "Register accounts, verify email OTPs, and settle x402 payments autonomously"
+  default_prompt: "Use $mermail-autonomous-service-onboarder when an agent requires access to a third-party developer API or compute cluster that demands account registration, email OTP verification, and an initial x402 trial deposit."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
