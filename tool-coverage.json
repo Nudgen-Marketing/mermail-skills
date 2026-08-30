@@ -11,6 +11,7 @@
     "mermail-research-agent",
     "mermail-scheduling-agent",
     "mermail-support-agent",
+    "mermail-time-capsule-agent",
     "mermail-x402-agent"
   ],
   "domains": {
