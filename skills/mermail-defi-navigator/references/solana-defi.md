@@ -324,6 +324,7 @@ source is gone. Check in a browser before you drop a row.
 | Source | Docs URL | Answers | Tier |
 |---|---|---|---|
 | Solana Foundation docs | https://solana.com/docs/core/programs/program-deployment | Program deployment and upgrade authority mechanics | 1 |
+| Solana terminology reference | https://solana.com/docs/references/terminology | Canonical definitions for Solana primitives: program, PDA, rent, slot, epoch, stake account | 1 |
 | Solana Explorer | https://explorer.solana.com | Program upgrade authority, holder concentration, live account state | 1 |
 | Kamino docs | https://kamino.com/docs | Solana isolated lending markets and curated vaults | 1 |
 | MarginFi docs | https://docs.marginfi.com | Lending, borrowing, account health, liquid staking integration | 1 |
