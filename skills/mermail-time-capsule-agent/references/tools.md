@@ -29,7 +29,7 @@ Pass Sold API fields under the tool's `body` argument; path parameters like `mai
 }
 ```
 
-`schedule_email_send` additionally requires `scheduled_send_at` on `body` as a future absolute ISO-8601 datetime:
+`schedule_email_send` additionally requires `scheduled_send_at` on `body` as a future absolute ISO-8601 datetime. The live server validates the strict UTC `Z`-suffixed form: convert the approved local moment to UTC (for example 9:00 AM IST on January 1st becomes `2027-01-01T03:30:00Z`). Offset forms such as `+05:30` and space-separated forms are rejected with `scheduled_send_at: Invalid datetime`; omitting the field returns `scheduled_send_at: Required`:
 
 ```json
 {
@@ -39,7 +39,7 @@ Pass Sold API fields under the tool's `body` argument; path parameters like `mai
     "to": "me@mermail.app",
     "subject": "Open on January 1st",
     "body": "<p>Dear future me, ...</p>",
-    "scheduled_send_at": "2027-01-01T09:00:00+05:30"
+    "scheduled_send_at": "2027-01-01T03:30:00Z"
   }
 }
 ```
