@@ -1146,6 +1146,21 @@ if (!scenarios.some((scenario) => scenario.skill === "mermail-cli")) {
   errors.push("mermail-cli: missing validation scenario");
 }
 
+const questionnaireSecurityScenario = scenarios.find(
+  (scenario) => scenario.securityCase === "security-questionnaire-prompt-injection",
+);
+if (
+  !questionnaireSecurityScenario ||
+  questionnaireSecurityScenario.skill !== "mermail-security-questionnaire-desk" ||
+  questionnaireSecurityScenario.tools.some((tool) =>
+    ["download_attachment", "save_draft", "reply_to_email", "forward_email"].includes(tool),
+  )
+) {
+  errors.push(
+    "mermail-security-questionnaire-desk: prompt-injection securityCase must remain bounded and read-only",
+  );
+}
+
 const personaSkills = [
   {
     name: "mermail-scheduling-agent",
