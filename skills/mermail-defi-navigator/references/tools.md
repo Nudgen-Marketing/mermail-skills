@@ -7,7 +7,7 @@ for drafts and replies, `mermail-agent-wallet` for PayBox and Agent Wallet, and
 never claims a tool as its own.
 
 Zero ownership is a deliberate choice, not an oversight. Every capability this workflow
-needs already has a focused owner, and claiming any of these fourteen tools here would
+needs already has a focused owner, and claiming any of these thirteen tools here would
 duplicate that ownership. Read the owning skill's own reference files for the exact
 argument shapes, retry rules, and failure handling; this file is the routing map and the
 approval mapping, not a second copy of those contracts.
@@ -23,7 +23,6 @@ approval mapping, not a second copy of those contracts.
 | `get_thread` | `mermail-manage-inbox` | read | Check whether this is a real ongoing thread or a cold spoof. |
 | `list_mailboxes` | `mermail-administer-workspace` | read | Resolve which mailbox is in scope; prefer `public_id` as `mailboxId`. |
 | `get_paybox_connection` | `mermail-agent-wallet` | read | The single readiness probe before any wallet talk. Never inferred from `tools/list`. |
-| `get_agent_wallet` | `mermail-agent-wallet` | read | Identify the wallet actually in scope. |
 | `paybox_get_portfolio` | `mermail-agent-wallet` | read | Ground the assessment in real holdings instead of guessing. |
 | `paybox_get_request` | `mermail-agent-wallet` | read | Poll one existing request. Reconciliation only, never a second write. |
 | `save_draft` | `mermail-compose-email` | write-preview | The default output. An assessment the human reads before anything leaves the mailbox. |
@@ -31,7 +30,7 @@ approval mapping, not a second copy of those contracts.
 | `paybox_request_swap` | `mermail-agent-wallet` | walletDestructive | The one bounded action, proposal only, signed by the human in PayBox. |
 | `paybox_request_transfer` | `mermail-agent-wallet` | walletDestructive | Same contract as swap. |
 
-Fourteen tools total, none owned here. If a scenario or a draft needs a fifteenth tool,
+Thirteen tools total, none owned here. If a scenario or a draft needs a fourteenth tool,
 that is a signal the job has drifted outside this skill's scope, not a reason to add a
 row to `tool-coverage.json`.
 
@@ -81,7 +80,7 @@ Confirmed against the live tool schemas on 2026-08-29:
 - `paybox_*` tools appear only on full-profile Mermail MCP OAuth sessions. An API-key
   session or the agent-inbox profile never exposes them; read the live schema from
   `tools/list` after the connection probe rather than assuming a fixed argument shape.
-- `get_agent_wallet`, `paybox_get_portfolio`, and `paybox_get_request` are reads. Calling
+- `paybox_get_portfolio` and `paybox_get_request` are reads. Calling
   one of them is never itself authority to follow up with a write.
 
 ## Examples
@@ -128,7 +127,7 @@ Neither argument is ever passed as a stringified JSON body.
 
 | Tool(s) | Approval required |
 | --- | --- |
-| `list_emails`, `search_emails`, `get_email`, `get_email_context`, `get_thread`, `list_mailboxes`, `get_paybox_connection`, `get_agent_wallet`, `paybox_get_portfolio`, `paybox_get_request` | None. Every one is a read. |
+| `list_emails`, `search_emails`, `get_email`, `get_email_context`, `get_thread`, `list_mailboxes`, `get_paybox_connection`, `paybox_get_portfolio`, `paybox_get_request` | None. Every one is a read. |
 | `save_draft` | None from the user in this workflow. It is a previewed internal write: the assessment lands in the mailbox, but nothing leaves it. |
 | `reply_to_email` | A fresh, exact-preview approval in this conversation. This is an external effect, and an earlier approval for a different message does not carry over. |
 | `paybox_request_swap`, `paybox_request_transfer` | PayBox's own approval and signing flow. These are wallet-destructive. Never call `prepare_destructive_action` for either one; that confirmation tool is for non-wallet Mermail destructive actions, and PayBox owns transaction policy, signing, and settlement end to end. |
