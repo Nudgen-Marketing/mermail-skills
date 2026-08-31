@@ -50,3 +50,14 @@ A reference implementation of that contract is Sentinel
 Kamino lending health and prepares unsigned repays, refusing any instruction
 set carrying a foreign program, a wrong owner, a wrong reserve, or a wrong
 amount. Any source meeting the contract above works.
+
+Sentinel exposes the same two contracts as WASM plugins and as dependency-free
+Python scripts, `tools/kamino_health.py` and `tools/prepare_repay.py`. Either
+satisfies this skill; the scripts need no toolchain, so they are the quicker
+way to reproduce the workflow in a new client.
+
+One argument is worth passing deliberately. Give the repay preparation the
+borrowed token's decimals. Without them an amount can only be checked against
+some power of ten, and an approval of 25 is indistinguishable from a hundred
+times that at a different token scale. The decimals are known once health has
+been read, so there is never a reason to omit them.
