@@ -1,1 +1,11 @@
-
+interface:
+  display_name: "Mermail Action Brief"
+  short_description: "Your inbox intelligence agent — turns opportunities and requests into structured, deadline-aware briefs. Read-only: it never sends, replies, or touches Agent Wallet."
+  default_prompt: "Use $mermail-action-brief to check my Mermail inbox for the latest partnership opportunity and turn it into an action brief."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail hosted MCP server, least-privilege agent-inbox profile (mailbox discovery + bounded email search/read only — no send, destructive, or wallet tools)"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp?profile=agent-inbox"
