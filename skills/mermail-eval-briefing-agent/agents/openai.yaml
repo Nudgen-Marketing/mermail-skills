@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Eval Briefing Agent"
+  short_description: "Measured hardware/model-fit briefings, emailed from a Mermail inbox"
+  default_prompt: "Use $mermail-eval-briefing-agent to parse a hardware-fit email, produce a measured go/no-go briefing, and draft or send it from a Mermail eval mailbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
