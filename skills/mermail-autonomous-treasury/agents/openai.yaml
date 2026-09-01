@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Autonomous Treasury"
+  short_description: "Automate multi-stream revenue tracking, operating expense reserves, and executive P&L financial digests."
+  default_prompt: "Use $mermail-autonomous-treasury to audit incoming cashflows and manage operating budget reserves."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
