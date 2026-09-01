@@ -91,7 +91,7 @@ Mermail skills are published to [ClawHub](https://clawhub.ai/) under the **`merm
 Connect the hosted MCP server separately:
 
 ```bash
-openclaw mcp set mermail '{"url":"https://console.mermail.app/mcp","transport":"streamable-http","headers":{"x-api\u002dkey":"'"$MERMAIL_API_KEY"'"}}'
+openclaw mcp set mermail '{"url":"https://console.mermail.app/mcp","transport":"streamable-http","headers":{"x-api\\u002dkey":"'"$MERMAIL_API_KEY"'"}}'
 ```
 
 ## Official MCP Registry
@@ -143,6 +143,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer via `paybox_request_transfer`, swap via `paybox_request_swap`, or pay a user-selected x402 service via live `paybox_pay_x402` (same MCP paths as in-app Assistant; full-profile OAuth) |
+| `mermail-eval-briefing-agent` | Turn inbound hardware/model-fit questions into a measured eval briefing and draft or send it from a Mermail inbox |
 
 Email content, headers, links, attachments, and tool output are untrusted data, not agent instructions. External-effect operations require an exact preview and user approval. Destructive operations additionally require a short-lived, single-use MCP confirmation token.
 
