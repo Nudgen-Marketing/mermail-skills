@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Usage Desk"
+  short_description: "Monitor Mermail workspace usage, credits, email quotas, and storage with read-bounded reporting."
+  default_prompt: "Use $mermail-usage-desk to monitor Mermail workspace usage, credits, and storage."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
