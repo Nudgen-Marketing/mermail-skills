@@ -10,7 +10,8 @@
     "mermail-mcp",
     "mermail-scheduling-agent",
     "mermail-support-agent",
-    "mermail-x402-agent"
+    "mermail-x402-agent",
+    "mermail-newsletter-brief"
   ],
   "domains": {
     "mermail-administer-workspace": [
