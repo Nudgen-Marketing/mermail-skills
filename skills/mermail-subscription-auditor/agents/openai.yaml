@@ -1,0 +1,12 @@
+---
+interface:
+  display_name: "Mermail Subscription Auditor"
+  short_description: "Audit a mailbox for receipts and renewals, build a subscription ledger, detect price changes, and draft cancellations."
+  default_prompt: "Use $mermail-subscription-auditor to audit the mailbox for recurring payments and show me what I am paying for."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
