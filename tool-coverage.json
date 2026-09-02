@@ -5,6 +5,7 @@
   "infrastructureSkills": [
     "mermail",
     "mermail-agent-inbox",
+    "mermail-bounty-inbox",
     "mermail-cli",
     "mermail-gtm-agent",
     "mermail-mcp",
