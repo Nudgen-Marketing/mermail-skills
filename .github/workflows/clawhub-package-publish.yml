@@ -1,0 +1,84 @@
+name: Publish plugin bundle to ClawHub
+
+on:
+  pull_request:
+    paths:
+      - ".codex-plugin/**"
+      - ".claude-plugin/**"
+      - ".cursor-plugin/**"
+      - ".plugin/**"
+      - ".mcp.json"
+      - "assets/**"
+      - "openclaw.plugin.json"
+      - "package.json"
+      - "README.md"
+      - ".github/workflows/clawhub-package-publish.yml"
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clawhub-package-${{ github.event_name == 'pull_request' && github.ref || 'publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Validate repository and release source
+        run: |
+          set -euo pipefail
+          npm test
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            [[ "$GITHUB_REF" == "refs/heads/main" || "$GITHUB_REF" == refs/tags/v* ]] || {
+              echo "::error::Manual package publishes must run from main or a v* tag."
+              exit 1
+            }
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+          fi
+
+      - name: Install ClawHub CLI
+        run: npm i -g clawhub@0.23.3
+
+      - name: Validate ClawHub package metadata
+        run: clawhub package validate . --json > /dev/null
+
+  dry-run:
+    needs: validate
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      id-token: write
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ecf09b868a986751137f4272283f84967a16c765 # v0.12.0
+    with:
+      dry_run: true
+      owner: mermail
+
+  publish:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      id-token: write
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ecf09b868a986751137f4272283f84967a16c765 # v0.12.0
+    with:
+      dry_run: false
+      owner: mermail
+    secrets:
+      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}

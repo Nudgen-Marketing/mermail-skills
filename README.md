@@ -48,13 +48,18 @@ Run `/reload-plugins` after an update and `/mcp` to inspect the connection.
 
 ### Cursor
 
-**Option A — Cursor Marketplace (preferred once listed)**
+**Option A — Cursor Directory**
+
+1. Open [cursor.directory/plugins/new](https://cursor.directory/plugins/new) to submit this repo, or browse the listing once it is indexed.
+2. Publisher checklist: [CURSOR_DIRECTORY.md](./CURSOR_DIRECTORY.md).
+
+**Option B — Cursor Marketplace (when approved)**
 
 1. Open [cursor.com/marketplace](https://cursor.com/marketplace) and search **Mermail**, or install after this repo is approved.
 2. Select **Install**, then **Authenticate** to connect your Mermail workspace with OAuth.
 3. Publisher checklist: [CURSOR_MARKETPLACE.md](./CURSOR_MARKETPLACE.md).
 
-**Option B — Cursor MCP settings (manual)**
+**Option C — Cursor MCP settings (manual)**
 
 1. Add the hosted server URL in Cursor MCP settings:
 
@@ -71,7 +76,7 @@ Run `/reload-plugins` after an update and `/mcp` to inspect the connection.
 
 2. Select **Authenticate**, approve access in Mermail, then inspect Mermail under MCP tools.
 
-**Option C — Local / team plugin**
+**Option D — Local / team plugin**
 
 ```bash
 ln -sfn /path/to/mermail-skills ~/.cursor/plugins/local/mermail

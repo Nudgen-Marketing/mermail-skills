@@ -1,8 +1,36 @@
 {
   "name": "mermail-skills",
   "version": "1.5.5",
-  "private": true,
+  "description": "Official Mermail skills and plugin bundle for Codex, Claude Code, Cursor, and OpenClaw.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nudgen-Marketing/mermail-skills.git"
+  },
+  "homepage": "https://docs.mermail.app/ai/skills",
+  "files": [
+    "skills",
+    "assets",
+    "README.md",
+    "LICENSE",
+    "openclaw.plugin.json",
+    ".mcp.json",
+    ".plugin",
+    ".codex-plugin",
+    ".claude-plugin",
+    ".cursor-plugin",
+    "compatibility.json",
+    "tool-coverage.json"
+  ],
+  "openclaw": {
+    "install": {
+      "clawhubSpec": "clawhub:mermail-skills",
+      "defaultChoice": "clawhub",
+      "localPath": "."
+    }
+  },
   "scripts": {
+    "prepublishOnly": "node -e \"throw new Error('mermail-skills is published through ClawHub, not the npm registry')\"",
     "test": "node tests/validate.mjs",
     "validate:remote": "node tests/validate.mjs --remote",
     "build:openai-zip": "bash scripts/build-openai-skills-zip.sh"

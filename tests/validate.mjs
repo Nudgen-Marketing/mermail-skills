@@ -1986,15 +1986,51 @@ async function authenticatedMcpRequest(apiKey, body) {
 }
 
 async function validatePluginManifests() {
-  const version = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).version;
+  const packageManifest = JSON.parse(
+    await readFile(path.join(root, "package.json"), "utf8"),
+  );
+  const version = packageManifest.version;
   if (compatibility.pluginVersion !== version) {
     errors.push("compatibility.json: pluginVersion must match package.json");
+  }
+  if (packageManifest.private === true) {
+    errors.push("package.json: ClawHub bundle publishing requires a packable public package");
+  }
+  if (!packageManifest.scripts?.prepublishOnly?.includes("not the npm registry")) {
+    errors.push("package.json: prepublishOnly must prevent accidental npm registry publication");
+  }
+  if (packageManifest.license !== "MIT") {
+    errors.push("package.json: ClawHub bundle license must be MIT");
+  }
+  if (!packageManifest.files?.includes("openclaw.plugin.json")) {
+    errors.push("package.json: files must include openclaw.plugin.json");
+  }
+  if (packageManifest.openclaw?.install?.clawhubSpec !== "clawhub:mermail-skills") {
+    errors.push("package.json: OpenClaw install metadata must target clawhub:mermail-skills");
+  }
+  const openclawManifest = JSON.parse(
+    await readFile(path.join(root, "openclaw.plugin.json"), "utf8"),
+  );
+  if (openclawManifest.id !== "mermail" || openclawManifest.name !== "Mermail") {
+    errors.push("openclaw.plugin.json: id/name must identify the Mermail plugin");
+  }
+  if (
+    typeof openclawManifest.icon !== "string" ||
+    !openclawManifest.icon.startsWith("https://")
+  ) {
+    errors.push("openclaw.plugin.json: icon must be an HTTPS URL");
+  }
+  if (
+    openclawManifest.configSchema?.type !== "object" ||
+    openclawManifest.configSchema?.additionalProperties !== false
+  ) {
+    errors.push("openclaw.plugin.json: configSchema must reject undeclared configuration");
   }
   const manifests = [
     ".codex-plugin/plugin.json",
     ".claude-plugin/plugin.json",
     ".cursor-plugin/plugin.json",
-    ".plugin/plugin.json"
+    ".plugin/plugin.json",
   ];
   for (const relative of manifests) {
     const manifest = JSON.parse(await readFile(path.join(root, relative), "utf8"));
@@ -2085,6 +2121,9 @@ async function validatePluginManifests() {
   if (genericManifest.mcpServers !== "./.mcp.json") {
     errors.push(".plugin/plugin.json: mcpServers must point at ./.mcp.json");
   }
+  if (genericManifest.license !== "MIT" || genericManifest.logo !== "assets/logo.svg") {
+    errors.push(".plugin/plugin.json: Cursor Directory metadata must include the MIT license and logo");
+  }
 
   const genericMcp = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
   if (genericMcp.mcpServers?.mermail?.type !== "http") {
@@ -2138,6 +2177,21 @@ async function validatePluginManifests() {
     await stat(path.join(root, "LICENSE"));
   } catch {
     errors.push("LICENSE is required for Cursor Marketplace (MIT)");
+  }
+  try {
+    await stat(path.join(root, "CURSOR_DIRECTORY.md"));
+  } catch {
+    errors.push("CURSOR_DIRECTORY.md is required for Cursor Directory submission");
+  }
+  try {
+    await stat(path.join(root, ".github", "workflows", "cursor-directory.yml"));
+  } catch {
+    errors.push("Cursor Directory workflow is required at .github/workflows/cursor-directory.yml");
+  }
+  try {
+    await stat(path.join(root, ".github", "workflows", "clawhub-package-publish.yml"));
+  } catch {
+    errors.push("ClawHub package workflow is required at .github/workflows/clawhub-package-publish.yml");
   }
 
   const cursor = JSON.parse(await readFile(path.join(root, ".cursor-plugin/mcp.json"), "utf8"));
