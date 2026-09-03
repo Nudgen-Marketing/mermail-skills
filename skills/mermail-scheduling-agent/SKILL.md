@@ -32,7 +32,7 @@ This skill does not own MCP tools. Follow the same argument, approval, and retry
 
 ## Workflow
 
-1. Confirm the user wants scheduling (book time, check availability, or handle scheduling email). Route generic search to `mermail-manage-inbox`, outbound to `mermail-gtm-agent`, and support tickets to `mermail-support-agent`.
+1. Confirm the user wants scheduling (book time, check availability, or handle scheduling email). Route generic search to `mermail-manage-inbox`, outbound to `mermail-gtm-agent`, support tickets to `mermail-support-agent`, and website/freelance intake to `mermail-client-brief-desk`.
 2. Resolve one ready receiving mailbox with `list_mailboxes`. Prefer `public_id` as `mailboxId`. Do not use verification isolation (`agentInbox.mode: "verification"`). Create a mailbox only when none fits and the user authorizes the 10 provision-credit `create_mailbox` call.
 3. Ask for product name and reply signature only when the current request did not provide them. Do not stall on placeholder tokens.
 4. Confirm Google Calendar with `list_composio_connections` for toolkit slug `googlecalendar`. If not `ACTIVE`, follow the connect handoff in [workflows.md](references/workflows.md). Never connect Gmail or Outlook Composio; keep all email in this Mermail mailbox.
