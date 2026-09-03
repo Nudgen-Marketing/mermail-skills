@@ -25,6 +25,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Connect or use third-party apps such as GitHub, Slack, Apollo, Notion, or Google Calendar through the authenticated user's Mermail Composio connection | `mermail-composio` |
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
+| Capture, audit, or report email commitments and promises | `mermail-promise-ledger` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
