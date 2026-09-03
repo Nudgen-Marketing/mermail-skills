@@ -43,6 +43,26 @@ Four sequences. Stop at the first one that cannot complete and report why.
 | `degraded` | Delivered but a check returned `unknown`, or the probe was skipped or not authorized |
 | `blocked` | Connection, headroom, authorization, or delivery failed; name the failed check |
 
+## Rehearsing without credentials
+
+The hosted Mermail MCP server needs an `sk-proj-` API key that is minted through a browser
+sign-in, so a builder cannot try this workflow the minute they read it. A 183-line offline
+stand-in is published so they can:
+
+    https://github.com/machine-of-earn/mermail-inbox-readiness-demo/tree/main/rehearsal
+
+Register `rehearsal/mermail_mock.py` as a stdio MCP server, then drive the skill with any of
+the prompts below. It answers the 15 tools this skill routes to, with response shapes taken
+from `references/tools.md`, and it deliberately returns
+`sender_authentication.status: "unknown"` on a domain whose SPF and DKIM both pass — so a
+rehearsal has to exercise the rule the skill is built around: `unknown` is not `pass`. A
+correct rehearsal ends on `degraded`, never on `ready`. `send_email` also answers `conflict`
+on a replayed idempotency key, so the "no second probe without a new approval" branch is
+reachable offline.
+
+It is a rehearsal harness, not a substitute: a run against the mock proves the workflow,
+never the service. Recorded demos are made against `https://console.mermail.app/mcp`.
+
 ## Example prompts and expected results
 
 Each example gives the triggering prompt and the shape of the report the skill is
