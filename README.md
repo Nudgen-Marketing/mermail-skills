@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, competitive sourcing rounds, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 agent personas.
 
 ## Install portable skills
 
@@ -131,6 +131,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail` | Route broad or cross-domain requests |
 | `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
 | `mermail-cli` | Install and use the CLI for deterministic shell automation |
+| `mermail-competitive-rounds` | Run source-verified competitive RFQ and blind BAFO rounds with approval-gated effects |
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
