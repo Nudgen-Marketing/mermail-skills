@@ -1,0 +1,11 @@
+interface:
+  display_name: "Run a Mermail Expense Desk"
+  short_description: "Extract, log, reconcile, and file receipts and invoices"
+  default_prompt: "Use $mermail-expense-agent when this task is receipt or invoice extraction, an expense log, spend reconciliation, duplicate or overcharge checks, or filing billing mail — not generic inbox cleanup or sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
