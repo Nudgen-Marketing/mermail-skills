@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Newsletter Monitor"
+  short_description: "Digest newsletters from a Mermail inbox into a curated roundup email"
+  default_prompt: "Use $mermail-newsletter-monitor to scan the agent Mermail inbox for unread newsletters and digests, extract top links and one-sentence summaries per issue, and compose a curated roundup email back to the user after explicit preview approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
