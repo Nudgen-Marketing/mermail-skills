@@ -1869,6 +1869,8 @@ for (const required of [
 for (const required of [
   "Freeze product",
   "sender_authentication.status === pass",
+  "authenticated mailbox's own outbound record",
+  "delivery_status: delivered",
   "Do not preflight one-time",
   "private network",
   "Never claim `PASS`",
@@ -1879,6 +1881,7 @@ for (const required of [
 }
 for (const expected of [
   "frozen-gate-bounded-read-reproducible-decision",
+  "disclose-frozen-correlation-outbound-safe-content-not-delivery-proof",
   "needs-evidence-save-unsent-draft",
   "exact-preview-one-approved-reply",
   "keep-frozen-gate-reject-privileged-link-no-pass",
