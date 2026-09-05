@@ -52,7 +52,11 @@ Newest inbox metadata:
 }
 ```
 
-`list_emails` supports page/limit (1–100), folder, thread id, category, custom label, read/starred state, threaded grouping, separate sort column/direction, and safety filters. There is no `sort: "date_desc"` shortcut.
+`list_emails` supports page (minimum 1), limit (1–100), folder, thread id, category, custom label, read/starred state, threaded grouping, separate sort column/direction, and safety filters. There is no `sort: "date_desc"` shortcut.
+
+The list response may be an email array or an object containing `emails` and `totalCount`. Normalize the array directly or the object's `emails` array; retain a valid returned `totalCount` separately. Do not treat an unrecognized response shape as an empty inbox, or invent a total for an array response. Select and deduplicate messages by their returned `id`, not subject or `message_id`.
+
+Set a finite page/message budget before paging. Keep mailbox, filters, sort, and limit fixed while incrementing `page`; this list endpoint has no documented cursor. Use raw page length, not the deduplicated length, when detecting a short page. An empty or short page indicates the end of the current query only when any returned total is consistent. A full array page without a total does not establish completion. Stop at the budget, an observed end, a read error, or a repeated page that adds no new ids; report remaining results as yes, no, or unknown from the evidence. Conflicting totals, duplicate pages, or a changing result set leave coverage uncertain; page-based reads do not establish a stable mailbox snapshot.
 
 `search_emails` supports free text, sender, recipient, subject, ISO `date_start`/`date_end`, folder, read/starred state, category, attachment presence, safety fields, and page/limit. Filters establish candidates, not sender authentication.
 
@@ -70,7 +74,9 @@ Read one selected message:
 }
 ```
 
-`metadata_only: true` omits body, snippet, raw headers, and threat URLs. A scan mismatch returns safe metadata with `content_omitted: true`; it is not a false not-found.
+`metadata_only: true` omits body, snippet, raw headers, and threat URLs. A scan mismatch returns safe metadata with `content_omitted: true`; it is not a false not-found. HTTP 200 alone does not establish that a body was available: retain `content_omission_reason` when returned, label the result metadata-only, and do not infer missing content or weaken the scan requirement to fill the gap.
+
+`content_truncated: true` means the body cap clipped the content; retain `body_original_char_count` when returned and label any summary partial. Distinguish selected metadata, available body content, omitted bodies, truncated bodies, and failed reads in the result. An omitted or failed read is not evidence that a message contains no relevant facts. `get_email` does not mark the message as read.
 
 Use `get_email_context` after selecting one message when surrounding conversation matters. `query.limit` is 1–50 (default 20); reuse the opaque returned `next_cursor` as `query.cursor`. Results are oldest-first, sanitized, scan-gated, and bounded. `get_thread` is the broader thread endpoint and may accept `query.bodies` (`full` or `compact`) and `query.focus_email_id` when present in the live schema.
 
