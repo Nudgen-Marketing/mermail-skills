@@ -1,6 +1,14 @@
 ---
-name: subscription-signup-verify
+name: mermail-subscription-signup-verify
 description: Signs an AI agent up for an online service (newsletter, free-tier SaaS, waitlist) using its Mermail inbox identity, watches for the confirmation/OTP email, extracts the verification code or link, completes the verification step, and reports the result back to the user. Use this skill whenever the user asks the agent to "sign up for", "subscribe to", "join the waitlist for", or "verify my account on" a service that sends email confirmation.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "\U0001F4E7"
 ---
 
 # Subscription Sign-Up & Verify
