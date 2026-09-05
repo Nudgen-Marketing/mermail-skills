@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Order Desk"
+  short_description: "Take file orders by email, fulfill with a script, reply with the finished file"
+  default_prompt: "Use $mermail-order-desk when the job is taking customer order emails with file attachments, running a deterministic fulfillment script, and replying with the finished file plus payment terms."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
