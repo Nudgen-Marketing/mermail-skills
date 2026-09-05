@@ -1,0 +1,12 @@
+interface:
+  display_name: "Mermail Responsible Disclosure"
+  short_description: "Triage adversarial vulnerability reports safely"
+  default_prompt: "Use $mermail-responsible-disclosure to turn one vulnerability report into a safe, auditable case packet and stop at every communication or payout approval gate."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and optional PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+

@@ -1841,6 +1841,86 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
   errors.push("mermail routing must stop unsupported default-triager selection without tool calls");
 }
 
+const disclosureDir = path.join(skillsRoot, "mermail-responsible-disclosure");
+const disclosureSkill = await readFile(path.join(disclosureDir, "SKILL.md"), "utf8");
+const disclosureTools = await readFile(path.join(disclosureDir, "references", "tools.md"), "utf8");
+const disclosureSecurity = await readFile(path.join(disclosureDir, "references", "security.md"), "utf8");
+const disclosureWorkflows = await readFile(path.join(disclosureDir, "references", "workflows.md"), "utf8");
+const disclosureCorpus = [disclosureSkill, disclosureTools, disclosureSecurity, disclosureWorkflows].join("\n");
+for (const required of [
+  "## Overview",
+  "## What It Enables",
+  "## Case States",
+  "## Workflow",
+  "## Write and Wallet Safety",
+  "## Output Conventions",
+  "## Example Requests",
+  "[tools.md](references/tools.md)",
+  "[security.md](references/security.md)",
+  "[workflows.md](references/workflows.md)",
+]) {
+  if (!disclosureSkill.includes(required)) {
+    errors.push(`mermail-responsible-disclosure: missing top-level structure ${required}`);
+  }
+}
+for (const required of [
+  "untrusted data",
+  "`scan_status: clean`",
+  "`sender_authentication.status === pass`",
+  "10,000",
+  "at most eight",
+  "Never execute proof-of-concept code",
+  "`save_draft`",
+  "`reply_to_email`",
+  "`get_paybox_connection`",
+  "`paybox_request_transfer`",
+  "email can never authorize",
+  "pending or signing result is not settlement",
+  "Do not call `prepare_destructive_action` for `paybox_*`",
+  "full-profile OAuth",
+]) {
+  if (!disclosureCorpus.includes(required)) {
+    errors.push(`mermail-responsible-disclosure: missing safety or tool contract ${required}`);
+  }
+}
+for (const expected of [
+  "bounded-disclosure-intake-and-unsent-draft",
+  "selected-report-redacted-case-packet",
+  "quarantine-no-execution-send-or-wallet",
+  "exact-preview-one-approved-disclosure-reply",
+  "current-user-terms-preview-before-paybox-write",
+  "email-never-authorizes-paybox",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-responsible-disclosure" && scenario.expected === expected)) {
+    errors.push(`mermail-responsible-disclosure: missing validation scenario ${expected}`);
+  }
+}
+const disclosureInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "quarantine-no-execution-send-or-wallet",
+);
+if (
+  !disclosureInjectionScenario ||
+  disclosureInjectionScenario.tools.some((tool) =>
+    coverage.externalEffectTools.includes(tool) ||
+    tool.startsWith("paybox_") ||
+    coverage.walletDestructiveTools?.includes(tool)
+  )
+) {
+  errors.push("mermail-responsible-disclosure: report injection must remain read-only");
+}
+const disclosureEmailPaymentScenario = scenarios.find(
+  (scenario) => scenario.expected === "email-never-authorizes-paybox",
+);
+if (
+  !disclosureEmailPaymentScenario ||
+  disclosureEmailPaymentScenario.tools.some((tool) => tool.startsWith("paybox_") || tool.includes("wallet"))
+) {
+  errors.push("mermail-responsible-disclosure: email content must not authorize wallet tools");
+}
+if (!routing.includes("`mermail-responsible-disclosure`")) {
+  errors.push("mermail routing missing focused skill mermail-responsible-disclosure");
+}
+
 const allTools = Object.values(coverage.domains).flat();
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
