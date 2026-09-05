@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settlement"
+  short_description: "Autonomous accounts payable: triage invoice emails, verify vendor billing, execute Agent Wallet settlements, and draft payment receipts."
+  default_prompt: "Use $mermail-invoice-settlement to discover, verify, settle, and acknowledge vendor invoices safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
