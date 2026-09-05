@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Subscription Sign-Up & Verify"
+  short_description: "Sign up for a service by email and auto-verify with Mermail"
+  default_prompt: "Use $mermail-subscription-signup-verify when the job is signing up for and verifying a service by email"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
