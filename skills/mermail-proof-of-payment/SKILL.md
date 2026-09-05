@@ -48,7 +48,7 @@ The skill performs independent on-chain verification using the Solana RPC endpoi
 
 **Verification checks (all must pass):**
 1. tx exists on the Solana mainnet-beta
-2. tx `from` = sleeve address (GjGfjN7uaDuieHMgBA1bxPEF9zSb33LEukrknnAXwdWv) **or** the claimed sender
+2. tx `from` = expected sender address, if one is configured (e.g. the wallet the customer was told to pay from)
 3. tx `to` = expected recipient address
 4. tx amount = claimed amount (exact match in lamports)
 5. token mint/account = expected token (not a lookalike/fake)
