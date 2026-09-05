@@ -1,6 +1,7 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
+import { parseFrontmatter } from "./frontmatter.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -32,7 +33,7 @@ if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
   const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
-  const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
+  const frontmatter = parseFrontmatter(markdown);
   if (!frontmatter) {
     errors.push(`${skillName}: missing YAML frontmatter`);
     continue;

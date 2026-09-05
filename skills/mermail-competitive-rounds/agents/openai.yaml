@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Competitive Rounds"
+  short_description: "Run isolated supplier RFQ and blind BAFO rounds"
+  default_prompt: "Use $mermail-competitive-rounds to run a buyer-approved RFQ across isolated supplier lanes and, when authorized, a blind BAFO round."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, inbox, and composition MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
