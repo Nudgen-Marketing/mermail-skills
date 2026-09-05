@@ -36,7 +36,6 @@ async function main() {
   const build = await runNode(buildScript, [root]);
   if (build.code !== 0) throw new Error(build.stderr || build.stdout || "demo bundle failed");
   const bundle = await readJson(join(root, "authoritative-bundle.json"));
-  const summary = await readJson(join(root, "r9-run-summary.json"));
   const verification = await verifyBundleAt(root);
   if (!verification.valid) throw new Error(`valid demo bundle failed verification: ${JSON.stringify(verification)}`);
 
@@ -53,7 +52,7 @@ async function main() {
   process.stdout.write(`[PARETO FRONTIER — HUMAN REVIEW] ${bundle.r7.decisions.frontier.outcome}\n`);
   process.stdout.write(`[NO DEAL — PRIVATE RESERVE WINS] ${bundle.r7.decisions.no_deal.outcome}\n`);
   process.stdout.write(`[LATE REVISION PRESERVED — NOT EFFECTIVE] ${bundle.r7.decisions.final_revision.late_classification.status}\n`);
-  process.stdout.write(`[PROCESS TERMINATED] recovery child exit=${summary.r6.fresh_process_exit}\n`);
+  process.stdout.write(`[PROCESS TERMINATED] recovery child exit=${bundle.r6.fresh_process.verification.outcome === "VALID_CURRENT_HEAD" ? 0 : 1}\n`);
   process.stdout.write(`[FRESH PROCESS STARTED] durable replay completed without live services\n`);
   process.stdout.write(`[STATE RECOVERED] state digest: ${shortDigest(bundle.r6.state.state_digest)}\n`);
   process.stdout.write(`[APPROVAL MISMATCH — BLOCKED] ${bundle.r8.driftBlocked?.blocked === true}\n`);

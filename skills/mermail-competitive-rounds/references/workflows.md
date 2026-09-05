@@ -1,6 +1,6 @@
 # Competitive-round workflows
 
-The local integrated execution path follows this order: freeze Buyer policy, bind Buyer-received source evidence, interpret each supplier independently, deterministically re-verify claims, persist durable state, derive the decision surface, preview any exact effect, require matching approval, reconcile read-only, and verify the durable bundle. Use `node scripts/demo.mjs` for a controlled local demonstration of that path.
+The production Skill path calls `scripts/skill-entrypoint.mjs:runCompetitiveRound`, which injects either the trusted DirectMermailAdapter or an explicitly controlled synthetic adapter into the same coordination boundary. The shared execution path follows this order: freeze Buyer policy, bind Buyer-received source evidence, interpret each supplier independently, deterministically re-verify claims, persist durable state, derive the decision surface, preview any exact effect, require matching approval, reconcile through the adapter's read-only observer, and verify the durable bundle. Use `node scripts/demo.mjs` for a controlled local demonstration of that path.
 
 ## Freeze and open INITIAL
 

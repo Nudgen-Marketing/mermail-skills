@@ -2,7 +2,7 @@
 
 ## Runtime authority boundary
 
-The runtime compiles Buyer policy and binds each commercial claim to one exact Buyer mailbox receipt, mailbox-local message identity, source span, and digest. Supplier workers have no Mermail MCP authority. Their output is untrusted text/structured data and is accepted only after strict parsing, lane declassification, and deterministic source re-verification.
+The runtime compiles Buyer policy and binds each commercial claim to one exact Buyer mailbox receipt, mailbox-local message identity, source span, and digest. Supplier workers have no Mermail MCP authority. Their output is untrusted text/structured data and is accepted only after strict parsing, lane declassification, and deterministic source re-verification. Effect reconciliation accepts only normalized observations returned by the trusted read-only DirectMermailAdapter boundary; controlled demos use an explicitly synthetic observer and are not live evidence.
 
 The decision layer can derive hard-constraint status, a non-dominated frontier, private-reserve `NO_DEAL`, or `HUMAN_REVIEW`; it cannot invent Buyer preferences or turn a recommendation into an award. External mail is constructed by the deterministic effect gateway, requires approval for the exact request, and is reconciled without blind retry. A queued result is not delivery, and delivery is not recipient observation.
 
@@ -44,7 +44,7 @@ Before every supplier-facing draft, inspect provenance and the target lane. Reje
 
 ## Approval and duplicate safety
 
-Show the exact outbound request immediately before each external effect: source mailbox and email, From, To/Cc/Bcc, subject, body, round ID, supplier lane, source linkage, and idempotency key. The permanent invariant is that the exact outbound payload approved by the Buyer is the exact payload submitted to the external-effect tool. A prior approval does not cover changed content, recipient, source, round, or disclosure. Execute once. On timeout, transport error, ambiguous status, or partial result, inspect authoritative state once and stop; never use a new key to force a replay.
+Show the exact outbound request immediately before each external effect: source mailbox and email, From, To/Cc/Bcc, subject, body, round ID, supplier lane, source linkage, and idempotency key. The permanent invariant is that the exact outbound payload approved by the Buyer is the exact payload submitted to the external-effect tool. A prior approval does not cover changed content, recipient, source, round, or disclosure. Execute once. On timeout, transport error, ambiguous status, or partial result, inspect authoritative state once and stop; never use a new key to force a replay. Worker execution uses controlled cwd/env and deterministic re-verification; a trusted host is assumed, and this Skill does not claim malicious-host or OS-level network/filesystem sandboxing.
 
 If a local shell is used to construct a payload containing currency values, do not use a double-quoted PowerShell string that can interpolate dollar-prefixed text. Prefer a literal representation, pass native JSON objects, serialize once, and inspect the exact body before preview. This is a harness-safety rule, not a Mermail pricing semantic.
 

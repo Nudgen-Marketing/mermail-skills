@@ -11,9 +11,11 @@ import { buildDecisionPolicy } from "./runtime/decision/schema.mjs";
 import { buildEvaluationArtifact, verifyEvaluationArtifact } from "./runtime/decision/artifact.mjs";
 import { buildR7Fixture } from "./demo/fixtures/decision-fixtures.mjs";
 import { evaluateRound } from "./runtime/decision/evaluator.mjs";
-import { verifyBundle } from "./runtime/effects/ledger.mjs";
+import { readArtifact, readBundle, verifyBundle } from "./runtime/effects/ledger.mjs";
 import { sha256Canonical } from "./runtime/effects/core.mjs";
 import { canonicalMutation, validateApprovalRecord, validateEffectIntent } from "./runtime/effects/intent.mjs";
+import { reconcileEffect } from "./runtime/effects/adapter.mjs";
+import { validateNormalizedObservation } from "./runtime/effects/observation.mjs";
 
 const CANARIES = ["B_PRIVATE_DO_NOT_LEAK_R9", "BUYER_RESERVE_PRIVATE_R9", "R9_EFFECT_CANARY", "send_email", "reply_to_email"];
 
@@ -103,8 +105,8 @@ export async function verifyAuthoritativeBundleObject(root, bundle) {
     const r8 = await verifyBundle(effectRoot, { sourcing_id: bundle.r8.intent.sourcing_id });
     add(checks, "R8 effect ledger is current and verified read-only", r8.valid && r8.checkpoint_status === "CURRENT", r8);
     const r8State = (await readJson(join(effectRoot, "effects.head.json"))).expected_state_digest;
-    const effectBundle = (await import("./runtime/effects/ledger.mjs")).readBundle;
-    const effect = (await effectBundle(effectRoot, { sourcing_id: bundle.r8.intent.sourcing_id })).state.effects[bundle.r8.intent.effect_id];
+    const durableR8 = await readBundle(effectRoot, { sourcing_id: bundle.r8.intent.sourcing_id });
+    const effect = durableR8.state.effects[bundle.r8.intent.effect_id];
     validateEffectIntent(bundle.r8.intent);
     validateApprovalRecord(bundle.r8.approval, bundle.r8.candidate, bundle.r8.intent, bundle.r8.preview);
     add(checks, "R8 request is the canonical approved request", JSON.stringify(bundle.r8.request) === JSON.stringify(canonicalMutation(bundle.r8.intent)), "request binding");
@@ -112,7 +114,19 @@ export async function verifyAuthoritativeBundleObject(root, bundle) {
     add(checks, "R8 approval mismatch blocks mutated integrated request", bundle.r8.driftBlocked?.blocked === true && bundle.r8.driftBlocked.code, bundle.r8.driftBlocked);
     add(checks, "R8 has one reservation and one attempt", effect.reservation_count === 1 && effect.attempt_count === 1, { reservation_count: effect.reservation_count, attempt_count: effect.attempt_count });
     add(checks, "R8 terminal classification is mutation accepted", effect.terminal_result?.state === "MUTATION_ACCEPTED", effect.terminal_result);
+    const observationEvent = [...durableR8.events].reverse().find((event) => event.effect_id === bundle.r8.intent.effect_id && ["EFFECT_OBSERVATION_RECORDED", "EFFECT_RECONCILIATION_CONFLICT"].includes(event.event_type));
+    const observationRef = observationEvent?.artifact_refs?.find((ref) => ref.artifact_type === "EFFECT_OBSERVATION");
+    const observationArtifact = observationRef ? await readArtifact(effectRoot, observationRef) : null;
+    const derivedReconciliation = observationArtifact ? reconcileEffect(bundle.r8.intent, observationArtifact.observations) : null;
     add(checks, "R8 state records one logical reconciliation observation", effect.observations.length === 1 && effect.observations[0].logical_effect_count === 1, effect.observations);
+    const expectedObservationAdapter = observationArtifact?.observer?.observer_type === "TRUSTED_READ_ONLY_MERMAIL_ADAPTER" ? "DirectMermailAdapter" : observationArtifact?.observer?.observer_type === "CONTROLLED_SYNTHETIC_OBSERVER" ? "FakeMermailAdapter" : null;
+    const provenanceBound = Boolean(observationArtifact?.observer?.observer_type && expectedObservationAdapter) && observationArtifact?.observations?.every((item) => validateNormalizedObservation(item) && item.provenance.adapter_class === expectedObservationAdapter && item.provenance.authority_boundary === observationArtifact.observer.authority_boundary);
+    add(checks, "R8 observation artifact is provenance-bound and normalized", provenanceBound, observationArtifact?.observer);
+    add(checks, "R8 reconciliation is independently derived from the durable observation", Boolean(derivedReconciliation) && JSON.stringify(observationArtifact.reconciliation) === JSON.stringify(derivedReconciliation), derivedReconciliation);
+    add(checks, "R8 reconciliation summary matches derived authority", Boolean(derivedReconciliation) && JSON.stringify(bundle.r8.reconciliation?.reconciliation) === JSON.stringify(derivedReconciliation), bundle.r8.reconciliation?.reconciliation);
+    add(checks, "R8 durable ledger summary matches derived authority", Boolean(derivedReconciliation) && effect.observations.at(-1)?.outcome === derivedReconciliation.outcome && effect.observations.at(-1)?.logical_effect_count === derivedReconciliation.logical_effect_count, effect.observations.at(-1));
+    add(checks, "R8 result matches durable terminal authority", bundle.r8.result?.state === effect.terminal_result?.state && bundle.r8.result?.classification?.state === effect.terminal_result?.state, bundle.r8.result);
+    add(checks, "R8 adapter-call count matches durable attempt count", bundle.r8.adapter_calls === effect.attempt_count, { bundle: bundle.r8.adapter_calls, durable: effect.attempt_count });
     add(checks, "R8 fresh replay has no adapter authority", bundle.r8.replay.adapter_called === false && bundle.r8.adapter_calls === 1, { replay: bundle.r8.replay, adapter_calls: bundle.r8.adapter_calls });
     add(checks, "presentation is not an authority input", true, "presentation.json is intentionally not read");
     add(checks, "R8 checkpoint state is bound", r8State === bundle.r8.fresh.parsed.verification.state_digest, { checkpoint: r8State, fresh: bundle.r8.fresh.parsed.verification.state_digest });

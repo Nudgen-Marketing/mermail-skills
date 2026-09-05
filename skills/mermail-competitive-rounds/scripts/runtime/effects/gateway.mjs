@@ -3,6 +3,7 @@ import { buildApprovalCandidate, buildApprovalRecord, buildPreview, canonicalMut
 import { appendCommand, command, journalPaths, putArtifact, readBundle } from "./ledger.mjs";
 import { classifyMermailResult, classifyReconciliation, reconcileEffect } from "./adapter.mjs";
 import { fail } from "./core.mjs";
+import { validateNormalizedObservation, validateObserverBoundary } from "./observation.mjs";
 
 async function currentBundle(root, sourcingId) {
   return readBundle(root, { sourcing_id: sourcingId });
@@ -164,9 +165,20 @@ export async function executeEffect({ root, intent, preview, approval_candidate,
   return Object.freeze({ outcome: classification.classification, effect_id: intent.effect_id, state: classification.state, classification, raw, raw_artifact: rawArtifact, reservation, result_journal: resultJournal, egress, adapter_called: true });
 }
 
-export async function reconcileAndRecord({ root, intent, observations, command_id = null, recorded_at } = {}) {
+export async function reconcileAndRecord(options = {}) {
+  if (Object.hasOwn(options, "observations")) fail("RAW_OBSERVATIONS_FORBIDDEN", "raw authoritative observations cannot be supplied to the gateway; use an explicit read-only observer");
+  const { root, intent, observer, command_id = null, recorded_at } = options;
+  validateObserverBoundary(observer);
+  const observations = await observer.readObservations(intent);
+  if (!Array.isArray(observations)) fail("OBSERVATIONS", "observer must return a normalized observation array");
+  observations.forEach(validateNormalizedObservation);
   const reconciliation = reconcileEffect(intent, observations);
-  const observationArtifact = await putArtifact(root, { intent_effect_id: intent.effect_id, observations, reconciliation }, "EFFECT_OBSERVATION");
+  const observationArtifact = await putArtifact(root, {
+    intent_effect_id: intent.effect_id,
+    observer: { observer_type: observer.observer_type, authority_boundary: observer.authority_boundary },
+    observations,
+    reconciliation,
+  }, "EFFECT_OBSERVATION");
   const bundle = await currentBundle(root, intent.sourcing_id);
   const eventType = reconciliation.outcome === "MULTIPLE_MATCHING_EFFECTS" ? "EFFECT_RECONCILIATION_CONFLICT" : "EFFECT_OBSERVATION_RECORDED";
   const journal = await appendCommand(root, command({

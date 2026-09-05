@@ -70,7 +70,7 @@ export async function putArtifact(root, value, artifact_type) {
   return Object.freeze({ digest: artifactDigest, artifact_type });
 }
 
-async function readArtifact(root, ref) {
+export async function readArtifact(root, ref) {
   const checked = validateRef(ref);
   let bytes;
   try { bytes = await fs.readFile(join(pathsFor(root).artifacts, `${checked.digest}.json`)); }

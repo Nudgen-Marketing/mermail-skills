@@ -74,7 +74,7 @@ function assertDigest(value, path) {
 }
 
 function crashFailpoint(name) {
-  if (name) fail("FAILPOINT", `research failpoint ${name} stopped the append`, { failpoint: name });
+  if (name) fail("FAILPOINT", `test failpoint ${name} stopped the append`, { failpoint: name });
 }
 
 async function acquireLock(root, { timeout_ms = 5_000, stale_ms = 15_000 } = {}) {
@@ -536,18 +536,6 @@ export async function advanceCheckpoint(root, { sourcing_id = null } = {}) {
 export async function readOnlyState(root, { sourcing_id = null } = {}) {
   const document = await currentDocument(root, sourcing_id ?? undefined);
   return Object.freeze({ state: document.state, events: document.events, checkpoint: document.checkpoint });
-}
-
-// Research-only hook used to terminate a real lock-holder process in the R6
-// test suite. It does not append, repair, or mutate journal contents.
-export async function holdJournalLockForResearch(root, { ready_path = null, duration_ms = 60_000 } = {}) {
-  const release = await acquireLock(root);
-  try {
-    if (ready_path) await fs.writeFile(resolve(ready_path), JSON.stringify({ pid: process.pid, held: true }), "utf8");
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, duration_ms));
-  } finally {
-    await release();
-  }
 }
 
 export const r6JournalContract = Object.freeze({

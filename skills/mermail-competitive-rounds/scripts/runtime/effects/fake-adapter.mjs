@@ -1,10 +1,16 @@
 import { clone, sha256Canonical } from "./core.mjs";
+import { buildNormalizedObservation } from "./observation.mjs";
 
 export class FakeMermailAdapter {
-  constructor({ scenario = "queued", effectId = "fake-effect", providerMessageId = "fake-provider-1" } = {}) {
+  constructor({ scenario = "queued", effectId = "fake-effect", providerMessageId = "fake-provider-1", observationType = "RECIPIENT_MAILBOX", recipientMailboxId = "fake-recipient-mailbox", deliveryStatus = "received" } = {}) {
     this.scenario = scenario;
     this.effectId = effectId;
     this.providerMessageId = providerMessageId;
+    this.observationType = observationType;
+    this.recipientMailboxId = recipientMailboxId;
+    this.deliveryStatus = deliveryStatus;
+    this.observer_type = "CONTROLLED_SYNTHETIC_OBSERVER";
+    this.authority_boundary = "CONTROLLED_SYNTHETIC_FIXTURE";
     this.calls = [];
     this.logicalEffects = [];
   }
@@ -33,22 +39,38 @@ export class FakeMermailAdapter {
 
   observation(request, context, call = 1, overrides = {}) {
     const intent = context.intent ?? {};
-    return {
-      mailbox_id: request.mailboxId,
-      email_id: `fake-local-${call}`,
+    const observationType = overrides.observation_type ?? this.observationType;
+    const mailboxId = observationType === "RECIPIENT_MAILBOX" ? (overrides.mailbox_id ?? this.recipientMailboxId) : request.mailboxId;
+    const deliveryStatus = observationType === "RECIPIENT_MAILBOX" ? "received" : (overrides.delivery_status ?? (this.deliveryStatus === "received" ? "sent" : this.deliveryStatus));
+    return buildNormalizedObservation({
+      observation_type: observationType,
+      mailbox_id: mailboxId,
+      email_id: overrides.email_id ?? `fake-local-${call}`,
+      provider_message_id: overrides.provider_message_id ?? this.providerMessageId,
+      recipient_mailbox_id: observationType === "RECIPIENT_MAILBOX" ? mailboxId : null,
+      recipient_email_id: observationType === "RECIPIENT_MAILBOX" ? (overrides.email_id ?? `fake-local-${call}`) : null,
+      recipient_provider_message_id: observationType === "RECIPIENT_MAILBOX" ? (overrides.provider_message_id ?? this.providerMessageId) : null,
       thread_id: intent.reply_thread_id ?? `fake-thread-${call}`,
-      provider_message_id: this.providerMessageId,
       from: request.body?.from,
       to: request.body?.to,
       subject: request.body?.subject,
       text: request.body?.text,
       communication_ref: intent.communication_ref,
-      delivery_status: overrides.delivery_status ?? "queued",
-      provider_delivered: overrides.provider_delivered ?? false,
-      recipient_mailbox_observed: overrides.recipient_mailbox_observed ?? false,
-      observation_class: overrides.observation_class ?? "PROVIDER",
-      ...overrides,
-    };
+      delivery_status: deliveryStatus,
+      observed_at: overrides.observed_at ?? "2026-09-05T12:00:00.000Z",
+      provenance: {
+        adapter_class: "FakeMermailAdapter",
+        authority_boundary: this.authority_boundary,
+        read_operation: "CONTROLLED_SYNTHETIC_OBSERVATION",
+        queried_mailbox_id: mailboxId,
+      },
+    });
+  }
+
+  async readObservations(intent) {
+    const request = this.calls[0];
+    if (!request) return [];
+    return [this.observation(request, { intent }, 1)];
   }
 
   callsDigest() { return sha256Canonical(this.calls); }

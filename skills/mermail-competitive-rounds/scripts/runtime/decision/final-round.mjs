@@ -20,6 +20,7 @@ export function compileR7FinalRound({ frozenManifest, initialClosedState, opened
 
 export function classifyFinalSubmission({ submission, finalRound, policy, initialOfferDigest = null }) {
   try { validateOffer(submission, policy); } catch (error) { return { status: "REJECTED", reason: error.code ?? "INVALID_SUBMISSION", supplier_id: submission?.supplier_id ?? null }; }
+  if (submission.sourcing_id !== finalRound.final_state.sourcing_id) return { status: "INELIGIBLE", reason: "FINAL_SOURCING_MISMATCH", supplier_id: submission.supplier_id };
   if (submission.revision_kind !== "FINAL") return { status: "REJECTED", reason: "NOT_FINAL_REVISION" };
   if (initialOfferDigest !== null && submission.predecessor_offer_digest !== initialOfferDigest) return { status: "REJECTED", reason: "PREDECESSOR_OFFER_MISMATCH", supplier_id: submission.supplier_id };
   if (submission.round_id !== finalRound.final_state.round_id || submission.manifest_digest !== finalRound.final_state.manifest_digest || submission.manifest_revision !== finalRound.final_state.manifest_revision) return { status: "INELIGIBLE", reason: "FINAL_ANCESTRY_MISMATCH", supplier_id: submission.supplier_id };
@@ -33,6 +34,7 @@ export function classifyFinalSubmission({ submission, finalRound, policy, initia
 export function selectEffectiveRevisions({ initialOffers, finalSubmissions, finalRound, policy }) {
   const effective = [];
   const classifications = [];
+  const conflictedSupplierIds = [];
   for (const initial of initialOffers) {
     validateOffer(initial, policy);
     let chosen = initial;
@@ -42,12 +44,14 @@ export function selectEffectiveRevisions({ initialOffers, finalSubmissions, fina
       classifications.push(classification);
       if (classification.status === "ACCEPTED_ON_TIME") accepted.push(submission);
     }
-    if (accepted.length === 1) chosen = accepted[0];
-    if (accepted.length > 1) classifications.push({ status: "CONFLICT", reason: "MULTIPLE_ON_TIME_FINAL_REVISIONS", supplier_id: initial.supplier_id });
-    effective.push(chosen);
+    if (accepted.length === 1) effective.push(accepted[0]);
+    else if (accepted.length > 1) {
+      classifications.push({ status: "CONFLICT", reason: "MULTIPLE_ON_TIME_FINAL_REVISIONS", supplier_id: initial.supplier_id });
+      conflictedSupplierIds.push(initial.supplier_id);
+    } else effective.push(chosen);
   }
   effective.sort((a, b) => a.supplier_id.localeCompare(b.supplier_id));
-  return freeze({ effective_offers: effective, classifications, late_policy: "preserve_as_late", no_valid_final_behavior: "INITIAL_REMAINS_EFFECTIVE" });
+  return freeze({ effective_offers: effective, conflicted_supplier_ids: conflictedSupplierIds.sort(), classifications, late_policy: "preserve_as_late", no_valid_final_behavior: "INITIAL_REMAINS_EFFECTIVE", conflict_behavior: "NO_EFFECTIVE_OFFER_UNTIL_BUYER_RESOLUTION" });
 }
 
 export function finalRoundLineage(finalRound) {

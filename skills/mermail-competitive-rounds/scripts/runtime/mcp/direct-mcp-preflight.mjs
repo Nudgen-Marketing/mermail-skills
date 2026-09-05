@@ -17,7 +17,9 @@ const PRIVATE_DIR = process.env.MERMAIL_COMPETITIVE_OAUTH_DIR || join(tmpdir(), 
 const OAUTH_STATE_PATH = join(PRIVATE_DIR, "oauth-state.json");
 const PREFLIGHT_PATH = process.env.MERMAIL_COMPETITIVE_PREFLIGHT_PATH || join(tmpdir(), "mermail-competitive-rounds-preflight.json");
 const CALLBACK_HOST = "127.0.0.1";
-const CALLBACK_PORT = Number(process.env.MERMAIL_COMPETITIVE_CALLBACK_PORT || "57313");
+// Port 0 asks the OS for an ephemeral loopback port; callers may pin one for
+// an environment that requires a registered callback port.
+const CALLBACK_PORT = Number(process.env.MERMAIL_COMPETITIVE_CALLBACK_PORT ?? "0");
 
 function stable(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);

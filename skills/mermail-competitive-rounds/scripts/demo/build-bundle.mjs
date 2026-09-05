@@ -18,8 +18,9 @@ import { buildR7Fixture } from "./fixtures/decision-fixtures.mjs";
 import { compileR7FinalRound, classifyFinalSubmission, selectEffectiveRevisions, finalRoundLineage } from "../runtime/decision/final-round.mjs";
 import { buildEvaluationArtifact, verifyEvaluationArtifact } from "../runtime/decision/artifact.mjs";
 import { buildEffectIntent, buildApprovalInput, canonicalMutation } from "../runtime/effects/intent.mjs";
-import { createEffect, previewEffect, prepareApprovalCandidate, approveEffect, executeEffect, reconcileAndRecord } from "../runtime/effects/gateway.mjs";
+import { createEffect, previewEffect, prepareApprovalCandidate, approveEffect, executeEffect } from "../runtime/effects/gateway.mjs";
 import { FakeMermailAdapter } from "../runtime/effects/fake-adapter.mjs";
+import { runCompetitiveRound } from "../skill-entrypoint.mjs";
 import { readBundle, verifyBundle } from "../runtime/effects/ledger.mjs";
 import { sha256Canonical } from "../runtime/effects/core.mjs";
 
@@ -238,7 +239,7 @@ async function runEffect(root, r7, state, decision) {
   const candidate = await prepareApprovalCandidate({ root: effectRoot, intent, preview: preview.preview, actor_ref: "human:r9-demo" });
   const approvalInput = buildApprovalInput(candidate.candidate);
   const approval = await approveEffect({ root: effectRoot, intent, preview: preview.preview, candidate: candidate.candidate, approval_input: approvalInput, trusted_host_actor: "trusted-host:r9", approved_at: clock(), recorded_at: clock() });
-  const adapter = new FakeMermailAdapter({ scenario: "queued", effectId: "r9-mutation-1", providerMessageId: "r9-provider-1" });
+  const adapter = new FakeMermailAdapter({ scenario: "queued", effectId: "r9-mutation-1", providerMessageId: "r9-provider-1", observationType: "RECIPIENT_MAILBOX", recipientMailboxId: "supplier-a-mailbox-controlled", deliveryStatus: "received" });
   const preflight = ({ intent: current }) => ({ allowed: true, current_state_digest: current.current_state_digest, authority: "R9_DETERMINISTIC_PREFLIGHT" });
   const driftedIntent = buildEffectIntent({
     sourcing_id: intent.sourcing_id,
@@ -265,10 +266,8 @@ async function runEffect(root, r7, state, decision) {
   } catch (error) {
     driftBlocked = { blocked: true, code: error.code ?? "R8_APPROVAL_MISMATCH" };
   }
-  const result = await executeEffect({ root: effectRoot, intent, preview: preview.preview, approval_candidate: candidate.candidate, approval: approval.approval, adapter, preflight, recorded_at: clock() });
-  const observations = [adapter.observation(adapter.calls[0], { intent }, 1, { delivery_status: "provider_delivered", provider_delivered: true, recipient_mailbox_observed: true, observation_class: "RECIPIENT_MAILBOX" })];
-  const reconciliation = await reconcileAndRecord({ root: effectRoot, intent, observations, recorded_at: clock() });
-  const replay = await executeEffect({ root: effectRoot, intent, preview: preview.preview, approval_candidate: candidate.candidate, approval: approval.approval, adapter, preflight, recorded_at: clock() });
+  const integrated = await runCompetitiveRound({ mode: "controlled", root: effectRoot, intent, preview: preview.preview, approval_candidate: candidate.candidate, approval: approval.approval, adapter, observer: adapter, preflight, recorded_at: clock() });
+  const { result, reconciliation, replay } = integrated;
   const fresh = await runFresh(fileURLToPath(new URL("../runtime/effects/fresh-process-check.mjs", import.meta.url)), [effectRoot, intent.sourcing_id]);
   return { effectRoot, intent, preview: preview.preview, candidate: candidate.candidate, approval: approval.approval, driftBlocked, result, adapter_calls: adapter.calls.length, reconciliation, replay, fresh: { code: fresh.code, parsed: JSON.parse(fresh.stdout) } };
 }
@@ -294,7 +293,6 @@ async function main() {
   const authoritative = { manifest: r7.frozen, r5: { hostile_lane: hostile, source_class: "SYNTHETIC TEST EVIDENCE; R5B actual model artifacts preserved separately" }, source_evidence: sourceEvidence, r6: { verification: durable.verification, state: durable.state, fresh_process: JSON.parse(r6Fresh.stdout) }, r7: { decisions: { hard_fail: decisions.hard_fail, frontier: decisions.frontier, no_deal: decisions.no_deal, final_revision: decisions.final_revision }, evaluation, evaluation_verification: evaluationVerification }, r8: { intent: effect.intent, request: canonicalMutation(effect.intent), preview: effect.preview, candidate: effect.candidate, approval: effect.approval, driftBlocked: effect.driftBlocked, result: effect.result, reconciliation: effect.reconciliation, replay: effect.replay, adapter_calls: effect.adapter_calls, fresh: effect.fresh }, live_r8: acceptedLiveR8 };
   await writeJson(join(ROOT, "authoritative-bundle.json"), authoritative);
   await writeJson(join(ROOT, "presentation.json"), { headline: "WINNER=supplier-a DELIVERED=true", notes: "Presentation is non-authoritative and intentionally excluded from verification." });
-  await writeJson(join(ROOT, "r9-run-summary.json"), { root: ROOT, r3_r8_inventory: "411/411 PASS", preserved_r5b_actual_model_evidence: ["accepted prior R5B actual normal model evidence", "accepted prior R5B actual hostile model evidence"], accepted_live_r8_effect: acceptedLiveR8, r6: { verification: durable.verification, fresh_process_exit: r6Fresh.code }, hostile_lane: { trusted_output_state: hostile.trusted.worker_output_state, leaked_canaries: hostile.leaked_canaries }, r7: { hard_fail: decisions.hard_fail.outcome, frontier: decisions.frontier.outcome, no_deal: decisions.no_deal.outcome, late: decisions.final_revision.late_classification.status }, r7_evaluation: evaluationVerification, r8: { classification: effect.result.outcome, logical_effect_count: effect.reconciliation.reconciliation.logical_effect_count, adapter_calls: effect.adapter_calls, replay_outcome: effect.replay.outcome, fresh_process_exit: effect.fresh.code } });
   process.stdout.write(`${JSON.stringify({ root: ROOT, r6: durable.verification.outcome, hostile: hostile.trusted.worker_output_state, leaked_canaries: hostile.leaked_canaries, decisions: { hard_fail: decisions.hard_fail.outcome, frontier: decisions.frontier.outcome, no_deal: decisions.no_deal.outcome, late: decisions.final_revision.late_classification.status }, evaluation: evaluationVerification, effect: { classification: effect.result.outcome, adapter_calls: effect.adapter_calls, logical_effect_count: effect.reconciliation.reconciliation.logical_effect_count, replay: effect.replay.outcome, fresh: effect.fresh.code } })}\n`);
 }
 

@@ -1,5 +1,6 @@
 import { clone, fail } from "./core.mjs";
 import { validateEffectIntent } from "./intent.mjs";
+import { validateNormalizedObservation } from "./observation.mjs";
 
 function toolPayload(raw) {
   return raw?.tool_result?.structuredContent ?? raw?.structuredContent ?? raw?.result?.structuredContent ?? null;
@@ -37,17 +38,21 @@ export function classifyMermailResult(raw, { dispatchReserved = true } = {}) {
 }
 
 function exactBodyMatch(intent, observation) {
-  return observation.mailbox_id === intent.mailbox_id
+  const mailboxBound = observation.observation_type === "RECIPIENT_MAILBOX"
+    ? observation.recipient_mailbox_id === observation.mailbox_id
+    : observation.mailbox_id === intent.mailbox_id;
+  return mailboxBound
     && observation.to === intent.to
     && observation.from === intent.from
     && observation.subject === intent.subject
     && observation.text === intent.text
-    && (observation.communication_ref === intent.communication_ref || String(observation.text ?? "").includes(intent.communication_ref));
+    && observation.communication_ref === intent.communication_ref;
 }
 
 export function reconcileEffect(intent, observations) {
   validateEffectIntent(intent);
   if (!Array.isArray(observations)) fail("OBSERVATIONS", "observations must be an array");
+  observations.forEach(validateNormalizedObservation);
   const matches = observations.filter((item) => {
     if (!exactBodyMatch(intent, item)) return false;
     if (intent.effect_type === "REPLY_TO_EMAIL") {
@@ -57,19 +62,26 @@ export function reconcileEffect(intent, observations) {
     }
     return true;
   });
-  const providerDelivered = matches.some((item) => item.delivery_status === "provider_delivered" || item.provider_delivered === true);
-  const recipientObserved = matches.some((item) => item.recipient_mailbox_observed === true || item.observation_class === "RECIPIENT_MAILBOX");
+  const providerIds = new Set(matches.map((item) => item.provider_message_id).filter(Boolean));
+  const identities = new Set(matches.map((item) => `${item.observation_type}:${item.mailbox_id}:${item.email_id}`));
+  const logicalEffectCount = matches.length === 0
+    ? 0
+    : providerIds.size <= 1
+      ? (providerIds.size === 1 || (new Set(matches.map((item) => item.observation_type)).size === 2 && identities.size <= 2) ? 1 : identities.size)
+      : providerIds.size;
+  const providerDelivered = matches.some((item) => item.observation_type === "PROVIDER" && item.delivery_status === "provider_delivered");
+  const recipientObserved = matches.some((item) => item.observation_type === "RECIPIENT_MAILBOX" && item.delivery_status === "received");
   let outcome = "NOT_OBSERVED";
-  if (matches.length > 1) outcome = "MULTIPLE_MATCHING_EFFECTS";
-  else if (matches.length === 1) outcome = "ONE_LOGICAL_EFFECT_OBSERVED";
+  if (logicalEffectCount > 1) outcome = "MULTIPLE_MATCHING_EFFECTS";
+  else if (logicalEffectCount === 1) outcome = "ONE_LOGICAL_EFFECT_OBSERVED";
   return Object.freeze({
     outcome,
     matches: clone(matches),
-    logical_effect_count: matches.length,
+    logical_effect_count: logicalEffectCount,
     provider_delivered: providerDelivered,
     recipient_mailbox_observed: recipientObserved,
-    state: matches.length > 1 ? "RECONCILIATION_CONFLICT" : recipientObserved ? "OBSERVED_IN_RECIPIENT_MAILBOX" : providerDelivered ? "OBSERVED_PROVIDER_DELIVERED" : matches.length === 1 ? "MUTATION_ACCEPTED" : "AMBIGUOUS",
-    claim: matches.length === 0 ? "NO_AUTHORITATIVE_OBSERVATION_IN_BOUNDED_WINDOW" : matches.length === 1 ? "ONE_MATCHING_LOGICAL_EFFECT" : "MULTIPLE_MATCHING_EFFECTS_REQUIRE_REVIEW",
+    state: logicalEffectCount > 1 ? "RECONCILIATION_CONFLICT" : recipientObserved ? "OBSERVED_IN_RECIPIENT_MAILBOX" : providerDelivered ? "OBSERVED_PROVIDER_DELIVERED" : logicalEffectCount === 1 ? "MUTATION_ACCEPTED" : "AMBIGUOUS",
+    claim: logicalEffectCount === 0 ? "NO_AUTHORITATIVE_OBSERVATION_IN_BOUNDED_WINDOW" : logicalEffectCount === 1 ? "ONE_MATCHING_LOGICAL_EFFECT" : "MULTIPLE_MATCHING_EFFECTS_REQUIRE_REVIEW",
   });
 }
 
