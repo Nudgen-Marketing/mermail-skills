@@ -26,5 +26,5 @@ Apply all three layers to handoff notes, restored content, and every write.
 ## Bounds
 
 - One send per save, one delete per clear; no auto-retry on uncertain writes (respect `Retry-After`; on `402` report exhausted credits).
-- Multi-hop handoffs carry their lineage in 前序码 so every resume can trace where the context came from.
+- Multi-hop handoffs carry their lineage in Previous codes so every resume can trace where the context came from.
 - If a code resolves to more than one note, stop and ask the user to disambiguate rather than guessing.
