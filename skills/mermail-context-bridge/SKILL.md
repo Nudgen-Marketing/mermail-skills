@@ -30,7 +30,7 @@ Read [tools.md](references/tools.md) before calling Mermail tools. Read [securit
 
 ## Preferred Deliverables
 
-- Save: one self-addressed email with subject `[handoff] <CODE> <title>` and a body that follows the handoff note template; the code reported back to the user.
+- Save: one self-addressed email with subject `[handoff] <CODE> <title>` and a body that is a faithful compressed transcript of the session — timeline, decisions with rationale, per-file state, errors and fixes, next steps — based on the host's native context compaction when one exists; the code reported back to the user.
 - Resume: the note fetched by code and its goal/blocked/next restated in chat before work continues.
 - List: a table of saved handoffs (code, title, date), newest first.
 - Clear: exactly one handoff deleted, verified by a re-read, after `prepare_destructive_action`.
@@ -39,7 +39,8 @@ Read [tools.md](references/tools.md) before calling Mermail tools. Read [securit
 
 1. **Save.**
    - Confirm the user wants to freeze the session state for another client.
-   - Compress the current context into the note template below. **Strip every secret** — API keys, tokens, passwords, private keys — never put them in the note.
+   - If the host offers native context compaction (e.g. Claude Code `/compact`, Codex auto-summarization), use its output as the base of the note — never substitute a loose paraphrase when a faithful compaction exists.
+   - Fill the note template below with fidelity over brevity: use the full 10,000-character budget. A handoff that drops decisions, file states, or errors makes the next model relitigate or redo work. **Strip every secret** — API keys, tokens, passwords, private keys — never put them in the note.
    - Keep the note within 10,000 characters; record truncation if any.
    - Show the note in chat and ask: "Anything else to carry over?" before sending.
    - Generate a 6-character code from the unambiguous alphabet (`23456789ABCDEFGHJKMNPQRSTUVWXYZ`, no 0/O/1/I/L). Search the mailbox for the candidate code and regenerate on a collision.
@@ -60,20 +61,29 @@ Read [tools.md](references/tools.md) before calling Mermail tools. Read [securit
 ## 目标
 <what this piece of work is for>
 
+## 时间线
+<what happened, in order, with outcomes>
+
 ## 已完成
-<what is done, with evidence>
+<per-file/per-module current state, with evidence>
+
+## 已定决策
+<decisions already made and WHY, so the next model does not relitigate them>
+
+## 错误与修复
+<every error hit and its fix, so they are not repeated>
 
 ## 当前阻塞
 <what is stuck and why>
 
 ## 下一步
-<the concrete next actions>
+<concrete, executable next actions>
 
 ## 关键文件·路径·命令
 <paths, commands, references a fresh session needs>
 
-## 已定决策
-<decisions already made, so the next model does not relitigate them>
+## 环境与配置
+<accounts, workspaces, versions, feature flags — never secrets>
 
 ## 注意事项(给下一个模型)
 <pitfalls, conventions, constraints>
