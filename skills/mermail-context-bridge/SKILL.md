@@ -22,7 +22,7 @@ Every AI client keeps its context to itself: work started in Claude Code cannot 
 - **List** — show every saved handoff: code, title, date.
 - **Clear** — delete one saved handoff after an exact preview and the destructive confirmation contract.
 
-The mailbox belongs to the agent's identity, so a handoff saved once is reachable from any machine and any client with the Mermail plugin — no local files, no vendor lock-in.
+The mailbox belongs to the agent's identity, so a handoff saved once is reachable from any machine and any client with the Mermail plugin — no local files, no vendor lock-in. Everything runs on the hosted MCP tools: no custom code, no local storage, no extra dependencies.
 
 This skill does not own MCP tools. It reuses search/read tools owned by `mermail-manage-inbox` and the send tool owned by `mermail-compose-email`; deletion follows the manage-inbox destructive contract.
 
