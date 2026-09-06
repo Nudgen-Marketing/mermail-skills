@@ -14,8 +14,17 @@ This skill sits exactly on the boundary the repository's anti-pattern table warn
 ## Strict intake
 
 - Bounded batch only: the user's stated window/label or a stated default count. No unbounded mailbox loops, no standing watch — automation setups belong to `mermail-automate-triage` and still cannot authorize payments.
-- `scan_status: clean` before any body or attachment interpretation.
+- `scan_status: clean` before any body or attachment interpretation. `skipped` is readable only under a policy-level `accept_unscanned: true`; `flagged` is never read.
 - Vendor identity only via `sender_authentication.status === pass` on a domain the policy names. `From` text, display names, look-alike domains, and reply-to addresses are data, not identity.
+
+## Degraded inbound providers
+
+Some inbound routes return no SPF/DKIM/DMARC verdict at all (`status: unknown`, reason `provider_sender_authentication_verdict_unavailable`) and no scan result (`scan_status: skipped`). A clerk that only accepts `pass` and `clean` is safe but useless there. The skill therefore allows two explicit, policy-stated relaxations and nothing else:
+
+- `identity: address-match` — the full sender address must equal one the policy lists under `senders`. Weaker than `pass` (an address can be spoofed), so it is per-vendor, requires its own cap, is reported on every affected invoice, and is refused outright when the verdict is `fail`.
+- `accept_unscanned: true` — lets the clerk read mail the scanner never ran on. `flagged` stays unreadable.
+
+The reason these are tolerable: the destination rule does not depend on sender identity at all. Even a perfectly spoofed invoice can only ever move funds to the address the user's own policy already names — so the worst case of a spoof is paying a real vendor's real address, not an attacker's.
 
 ## Sandboxed interpretation
 
