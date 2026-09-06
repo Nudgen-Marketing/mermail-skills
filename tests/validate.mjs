@@ -1845,6 +1845,64 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
   errors.push("mermail routing must stop unsupported default-triager selection without tool calls");
 }
 
+const releaseEvidenceDir = path.join(skillsRoot, "mermail-release-evidence-gate");
+const releaseEvidenceSkill = await readFile(path.join(releaseEvidenceDir, "SKILL.md"), "utf8");
+const releaseEvidenceSecurity = await readFile(
+  path.join(releaseEvidenceDir, "references", "security.md"),
+  "utf8",
+);
+for (const required of [
+  "## What It Enables",
+  "## Decision States",
+  "## Mermail Interaction",
+  "## Example Requests and Results",
+  "## Demo Script",
+  "`PASS`",
+  "`NEEDS_EVIDENCE`",
+  "`CONFLICT`",
+  "`UNSAFE`",
+]) {
+  if (!releaseEvidenceSkill.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing workflow contract ${required}`);
+  }
+}
+for (const required of [
+  "Freeze product",
+  "sender_authentication.status === pass",
+  "authenticated mailbox's own outbound record",
+  "delivery_status: delivered",
+  "Do not preflight one-time",
+  "private network",
+  "Never claim `PASS`",
+]) {
+  if (!releaseEvidenceSecurity.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing security contract ${required}`);
+  }
+}
+for (const expected of [
+  "frozen-gate-bounded-read-reproducible-decision",
+  "disclose-frozen-correlation-outbound-safe-content-not-delivery-proof",
+  "needs-evidence-save-unsent-draft",
+  "exact-preview-one-approved-reply",
+  "keep-frozen-gate-reject-privileged-link-no-pass",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-release-evidence-gate" && scenario.expected === expected)) {
+    errors.push(`mermail-release-evidence-gate: missing scenario ${expected}`);
+  }
+}
+const releaseEvidenceInjectionScenario = scenarios.find(
+  (scenario) => scenario.securityCase === "release-evidence-email-gate-injection",
+);
+if (
+  !releaseEvidenceInjectionScenario ||
+  releaseEvidenceInjectionScenario.approval !== "none" ||
+  releaseEvidenceInjectionScenario.tools.some((tool) =>
+    [...coverage.externalEffectTools, ...coverage.destructiveTools, ...(coverage.walletDestructiveTools ?? [])].includes(tool),
+  )
+) {
+  errors.push("mermail-release-evidence-gate: injection scenario must remain read-only");
+}
+
 const allTools = Object.values(coverage.domains).flat();
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
