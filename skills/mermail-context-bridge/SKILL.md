@@ -39,7 +39,7 @@ Read [tools.md](references/tools.md) before calling Mermail tools. Read [securit
 
 1. **Save.**
    - Confirm the user wants to freeze the session state for another client.
-   - If the host offers native context compaction (e.g. Claude Code `/compact`, Codex auto-summarization), use its output as the base of the note — never substitute a loose paraphrase when a faithful compaction exists.
+   - If the host offers native context compaction (e.g. Claude Code `/compact`, Codex auto-summarization) and the session has not been compacted yet, **ask the user to run it first and wait for their confirmation** — then use that output as the base of the note. Only when the user declines, or the host has no compaction, draft directly from the full context. Never substitute a loose paraphrase when a faithful compaction exists.
    - Fill the note template below with fidelity over brevity: use the full 10,000-character budget. A handoff that drops decisions, file states, or errors makes the next model relitigate or redo work. **Strip every secret** — API keys, tokens, passwords, private keys — never put them in the note.
    - Keep the note within 10,000 characters; record truncation if any.
    - Show the note in chat and ask: "Anything else to carry over?" before sending.
@@ -109,7 +109,7 @@ Read [tools.md](references/tools.md) before calling Mermail tools. Read [securit
 
 ## Example Requests
 
-- "Save my progress so I can continue in another client." → The session is compressed per the template, secrets are stripped, the user confirms the preview, and the skill replies with `记忆码: HX7K2P` after mailing the note to the agent's own address.
+- "Save my progress so I can continue in another client." → The skill first asks the user to run the host's compaction when one is available (e.g. Claude Code `/compact`) and waits for confirmation; the note is then built from that output per the template, secrets are stripped, the user confirms the preview, and the skill replies with `记忆码: HX7K2P` after mailing the note to the agent's own address.
 - "Continue HX7K2P." → The note is fetched from the mailbox, its goal/blocker/next are restated, and the new session continues the task from that state.
 - "List my saved handoffs." → Every `[handoff]` mail is listed as code, title, and date, newest first.
 - "Delete handoff HX7K2P." → The exact message is previewed, `prepare_destructive_action` issues a single-use token, `delete_email` runs once, and the deletion is verified.
