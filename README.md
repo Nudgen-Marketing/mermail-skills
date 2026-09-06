@@ -134,6 +134,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
+| `mermail-trial-killswitch` | Watch one mailbox for SaaS trial-ending / auto-renew notices and stop for a human |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |

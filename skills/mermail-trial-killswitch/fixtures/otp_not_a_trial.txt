@@ -1,0 +1,4 @@
+From: security@github.com
+Subject: Your GitHub verification code
+
+Your one-time password is 482193. It expires in 10 minutes.

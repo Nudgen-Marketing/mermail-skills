@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Trial Killswitch"
+  short_description: "Watch one mailbox for SaaS trial-ending and auto-renew notices, then stop for a human"
+  default_prompt: "Use $mermail-trial-killswitch when the job is watching a dedicated Mermail mailbox for trial-ending or auto-renew notices and producing a keep-or-cancel brief. Do not use for payments, sending mail, or general inbox cleanup."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
