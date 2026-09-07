@@ -11,6 +11,7 @@
     "mermail-research-agent",
     "mermail-scheduling-agent",
     "mermail-support-agent",
+    "mermail-deliverable-desk",
     "mermail-x402-agent"
   ],
   "domains": {

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deliverable Desk"
+  short_description: "Fulfill scoped client deliverables over Mermail with approval and receipts."
+  default_prompt: "Use $mermail-deliverable-desk to intake the client brief, freeze acceptance criteria, draft the deliverable, and send only after I approve."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
