@@ -4,6 +4,7 @@
   "confirmationTool": "prepare_destructive_action",
   "infrastructureSkills": [
     "mermail",
+    "mermail-action-items",
     "mermail-agent-inbox",
     "mermail-cli",
     "mermail-gtm-agent",

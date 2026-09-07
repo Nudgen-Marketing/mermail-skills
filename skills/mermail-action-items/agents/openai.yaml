@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Action Items"
+  short_description: "Extract commitments and stale follow-ups into a digest draft"
+  default_prompt: "Use $mermail-action-items to scan my Mermail inbox for action items and follow-ups, then save a digest draft without sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
