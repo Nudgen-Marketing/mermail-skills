@@ -27,4 +27,5 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         env:
           MERMAIL_MCP_TEST_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
+          MERMAIL_REQUIRE_TEST_API_KEY: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: npm run validate:remote
