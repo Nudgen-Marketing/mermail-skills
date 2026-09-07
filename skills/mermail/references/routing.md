@@ -28,6 +28,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
 | Run a customer research business: owner-verified orders, protocol comparisons or market reports, approved report delivery, and same-thread follow-ups | `mermail-research-agent` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
+| Turn a designated mailbox into a local-inference work queue: poll `[WORK]` task-card emails, run them on the user's own OpenAI-compatible local endpoint, and reply results in-thread | `mermail-local-worker` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
 
 Choosing or changing the default task triager is unsupported by the curated workflow. If requested, the root router must report the limitation and stop without invoking a focused skill; never call or invent `set_default_task_triager`.
