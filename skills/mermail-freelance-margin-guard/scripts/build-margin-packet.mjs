@@ -51,6 +51,24 @@ function textValue(value, label, max = 1000) {
   return result;
 }
 
+function idValue(value, label) {
+  const result = textValue(value, label, 160);
+  invariant(
+    /^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/.test(result),
+    `${label} must use only letters, numbers, dot, underscore, colon, at, slash, or hyphen`,
+  );
+  return result;
+}
+
+function requestItemIdValue(value, label) {
+  const result = idValue(value, label);
+  invariant(
+    !/:(included|overflow)$/.test(result),
+    `${label} cannot use the reserved :included or :overflow suffix`,
+  );
+  return result;
+}
+
 function finiteNumber(value, label, { min = 0, max = 1_000_000, integer = false } = {}) {
   invariant(typeof value === "number" && Number.isFinite(value), `${label} must be a finite number`);
   invariant(value >= min, `${label} must be at least ${min}`);
@@ -118,9 +136,79 @@ function sha256(value) {
   return createHash("sha256").update(canonicalJson(value)).digest("hex");
 }
 
+function evidencePayloadFromPacket(packet) {
+  object(packet, "packet");
+  const sources = array(packet.sources, "packet.sources");
+  const baseline = object(packet.baseline, "packet.baseline");
+  const request = object(packet.request, "packet.request");
+  const requestLedger = array(packet.requestLedger, "packet.requestLedger");
+  const delayAttribution = object(packet.delayAttribution, "packet.delayAttribution");
+  const dependencies = array(delayAttribution.events, "packet.delayAttribution.events");
+
+  return {
+    sources,
+    authoritySourceRefs: array(
+      baseline.authoritySourceRefs,
+      "packet.baseline.authoritySourceRefs",
+    ),
+    requestSourceRef: textValue(request.sourceRef, "packet.request.sourceRef", 160),
+    requestLedger: requestLedger.map((row, index) => {
+      object(row, `packet.requestLedger[${index}]`);
+      return {
+        id: textValue(row.id, `packet.requestLedger[${index}].id`, 180),
+        status: textValue(row.status, `packet.requestLedger[${index}].status`, 40),
+        evidence: object(row.evidence, `packet.requestLedger[${index}].evidence`),
+      };
+    }),
+    dependencies,
+  };
+}
+
+export function verifyMarginPacket(rawPacket) {
+  object(rawPacket, "packet");
+  const integrity = object(rawPacket.integrity, "packet.integrity");
+  invariant(integrity.algorithm === "sha256", "packet.integrity.algorithm must be sha256");
+  invariant(
+    integrity.canonicalization === "sorted-json-v1",
+    "packet.integrity.canonicalization must be sorted-json-v1",
+  );
+  const actualEvidenceDigest = textValue(
+    integrity.evidenceDigest,
+    "packet.integrity.evidenceDigest",
+    64,
+  );
+  const actualPacketDigest = textValue(
+    integrity.packetDigest,
+    "packet.integrity.packetDigest",
+    64,
+  );
+  invariant(/^[a-f0-9]{64}$/.test(actualEvidenceDigest), "packet.integrity.evidenceDigest is invalid");
+  invariant(/^[a-f0-9]{64}$/.test(actualPacketDigest), "packet.integrity.packetDigest is invalid");
+
+  const { integrity: _integrity, ...packet } = rawPacket;
+  const expectedEvidenceDigest = sha256(evidencePayloadFromPacket(packet));
+  const expectedPacketDigest = sha256(packet);
+  const evidenceValid = actualEvidenceDigest === expectedEvidenceDigest;
+  const packetValid = actualPacketDigest === expectedPacketDigest;
+
+  return {
+    valid: evidenceValid && packetValid,
+    evidence: {
+      valid: evidenceValid,
+      expectedDigest: expectedEvidenceDigest,
+      actualDigest: actualEvidenceDigest,
+    },
+    packet: {
+      valid: packetValid,
+      expectedDigest: expectedPacketDigest,
+      actualDigest: actualPacketDigest,
+    },
+  };
+}
+
 function validateSource(source, index) {
   object(source, `sources[${index}]`);
-  const id = textValue(source.id, `sources[${index}].id`, 160);
+  const id = idValue(source.id, `sources[${index}].id`);
   invariant(source.type === "email" || source.type === "user", `sources[${index}].type must be email or user`);
   const normalized = { id, type: source.type };
 
@@ -218,11 +306,15 @@ function classifyItem(item) {
   }
 }
 
-function normalizeItem(raw, index, sourceMap, authoritySourceRefs) {
+function normalizeItem(raw, index, sourceMap, authoritySourceRefs, requestSourceRef) {
   object(raw, `request.items[${index}]`);
   const sourceRef = validateSourceRef(raw.sourceRef, `request.items[${index}].sourceRef`, sourceMap);
+  invariant(
+    sourceRef === requestSourceRef,
+    `request.items[${index}].sourceRef must match request.sourceRef`,
+  );
   const item = {
-    id: textValue(raw.id, `request.items[${index}].id`, 160),
+    id: requestItemIdValue(raw.id, `request.items[${index}].id`),
     label: textValue(raw.label, `request.items[${index}].label`, 500),
     kind: textValue(raw.kind, `request.items[${index}].kind`),
     relation: textValue(raw.relation, `request.items[${index}].relation`),
@@ -301,7 +393,7 @@ function validateDeliverables(values, sourceMap, authoritySourceRefs) {
   invariant(entries.length <= 100, "baseline.deliverables exceeds 100 items");
   return entries.map((entry, index) => {
     object(entry, `baseline.deliverables[${index}]`);
-    const id = textValue(entry.id, `baseline.deliverables[${index}].id`);
+    const id = idValue(entry.id, `baseline.deliverables[${index}].id`);
     invariant(!ids.has(id), `baseline.deliverables contains duplicate id ${id}`);
     ids.add(id);
     return {
@@ -369,7 +461,7 @@ function validatePricing(value, sourceMap, authoritySourceRefs) {
 }
 
 function requiresEffortEstimate(row) {
-  return row.status === "scope_change" && !["deadline", "dependency"].includes(row.kind);
+  return row.status === "scope_change";
 }
 
 export function buildMarginPacket(rawInput) {
@@ -461,8 +553,14 @@ export function buildMarginPacket(rawInput) {
   const rawItems = array(requestInput.items, "request.items");
   invariant(rawItems.length <= 100, "request.items exceeds 100 items");
   const normalizedItems = rawItems.map((item, index) =>
-    normalizeItem(item, index, sourceMap, authoritySourceRefs));
+    normalizeItem(item, index, sourceMap, authoritySourceRefs, requestSourceRef));
   invariant(normalizedItems.length > 0, "request.items must contain at least one item");
+  if (requestedDeadline !== null) {
+    invariant(
+      normalizedItems.some((item) => item.kind === "deadline"),
+      "request.requestedDeadline requires an atomic deadline request item",
+    );
+  }
   const itemIds = new Set();
   for (const item of normalizedItems) {
     invariant(!itemIds.has(item.id), `request.items contains duplicate id ${item.id}`);
@@ -518,6 +616,11 @@ export function buildMarginPacket(rawInput) {
     }
   }
   if (revisionBudget) revisionBudget.remainingAfter = revisionRemaining;
+  const rowIds = new Set();
+  for (const row of rows) {
+    invariant(!rowIds.has(row.id), `request ledger contains duplicate row id ${row.id}`);
+    rowIds.add(row.id);
+  }
 
   const rawDependencies = rawInput.dependencies === undefined ? [] : array(rawInput.dependencies, "dependencies");
   invariant(rawDependencies.length <= 50, "dependencies exceeds 50 items");
@@ -528,7 +631,7 @@ export function buildMarginPacket(rawInput) {
       invariant(DEPENDENCY_OWNERS.has(owner), `dependencies[${index}].owner is unsupported`);
       const sourceRef = validateSourceRef(entry.sourceRef, `dependencies[${index}].sourceRef`, sourceMap);
       return {
-        id: textValue(entry.id, `dependencies[${index}].id`, 160),
+        id: idValue(entry.id, `dependencies[${index}].id`),
         label: textValue(entry.label, `dependencies[${index}].label`, 500),
         owner,
         delayDays: finiteNumber(entry.delayDays, `dependencies[${index}].delayDays`, { max: 3650 }),
@@ -551,6 +654,9 @@ export function buildMarginPacket(rawInput) {
   for (const dependency of dependencies) delayByOwner[dependency.owner] += dependency.delayDays;
   for (const owner of Object.keys(delayByOwner)) delayByOwner[owner] = round(delayByOwner[owner]);
 
+  const compressionDays = deadline && requestedDeadline && requestedDeadline < deadline.date
+    ? daysBetween(requestedDeadline, deadline.date)
+    : 0;
   let knownAddedHours = range(0, 0);
   const unpricedItemIds = [];
   for (const row of rows) {
@@ -562,9 +668,13 @@ export function buildMarginPacket(rawInput) {
     knownAddedHours = addRanges(knownAddedHours, row.effortHours);
   }
 
-  const compressionDays = deadline && requestedDeadline && requestedDeadline < deadline.date
-    ? daysBetween(requestedDeadline, deadline.date)
-    : 0;
+  const compressedDeadlineRows = rows.filter(
+    (row) => row.status === "scope_change" && row.kind === "deadline",
+  );
+  if (compressionDays > 0 && compressedDeadlineRows.length > 0 && knownAddedHours.max === 0) {
+    for (const row of compressedDeadlineRows) unpricedItemIds.push(row.id);
+  }
+
   const rate = pricing?.rate ?? null;
   const effectiveHourlyRate = rate
     ? rate.unit === "hour"
@@ -599,10 +709,11 @@ export function buildMarginPacket(rawInput) {
   const basePricingState = baseComplete ? "priced" : "approval_needed";
   const pricingState = baseComplete && rushState !== "approval_needed" ? "priced" : "approval_needed";
   const hoursPerWorkday = pricing?.hoursPerWorkday ?? 8;
+  const clientDelayCalendarDays = Math.ceil(delayByOwner.client);
   const extensionDays = baseComplete
     ? {
-        min: Math.ceil(knownAddedHours.min / hoursPerWorkday) + delayByOwner.client,
-        max: Math.ceil(knownAddedHours.max / hoursPerWorkday) + delayByOwner.client,
+        min: Math.ceil(knownAddedHours.min / hoursPerWorkday) + clientDelayCalendarDays,
+        max: Math.ceil(knownAddedHours.max / hoursPerWorkday) + clientDelayCalendarDays,
       }
     : null;
 
@@ -720,8 +831,21 @@ export function buildMarginPacket(rawInput) {
   };
 }
 
+function escapeMarkdownText(value) {
+  return String(value)
+    .replace(/[\u0000-\u001F\u007F-\u009F]/gu, " ")
+    .replace(/[\u202A-\u202E\u2066-\u2069]/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replace(/([\\`*_[\]{}#!|])/gu, "\\$1")
+    .replace(/\b(https?|mailto):/giu, "$1&#58;");
+}
+
 function escapeCell(value) {
-  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+  return escapeMarkdownText(value);
 }
 
 function formatRange(value, unit = "") {
@@ -736,7 +860,7 @@ function formatMoney(value, currency) {
 
 export function renderMarkdown(packet) {
   const lines = [
-    `# Freelance Margin Guard — ${packet.project.name}`,
+    `# Freelance Margin Guard — ${escapeMarkdownText(packet.project.name)}`,
     "",
     `**State:** \`${packet.state}\``,
     "",
@@ -747,19 +871,19 @@ export function renderMarkdown(packet) {
     "### Deliverables",
     "",
     ...(packet.baseline.deliverables.length
-      ? packet.baseline.deliverables.map((item) => `- ${item.label} (\`${item.sourceRef}\`)`)
+      ? packet.baseline.deliverables.map((item) => `- ${escapeMarkdownText(item.label)} (\`${item.sourceRef}\`)`)
       : ["- None recorded"]),
     "",
     "### Exclusions",
     "",
     ...(packet.baseline.exclusions.length
-      ? packet.baseline.exclusions.map((item) => `- ${item.text} (\`${item.sourceRef}\`)`)
+      ? packet.baseline.exclusions.map((item) => `- ${escapeMarkdownText(item.text)} (\`${item.sourceRef}\`)`)
       : ["- None recorded"]),
     "",
     "### Acceptance criteria",
     "",
     ...(packet.baseline.acceptanceCriteria.length
-      ? packet.baseline.acceptanceCriteria.map((item) => `- ${item.text} (\`${item.sourceRef}\`)`)
+      ? packet.baseline.acceptanceCriteria.map((item) => `- ${escapeMarkdownText(item.text)} (\`${item.sourceRef}\`)`)
       : ["- None recorded"]),
     "",
     "### Commercial terms",

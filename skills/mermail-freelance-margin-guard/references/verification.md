@@ -13,6 +13,15 @@ node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
   --format markdown
 ```
 
+To verify a saved JSON packet independently, run:
+
+```bash
+node skills/mermail-freelance-margin-guard/scripts/verify-margin-packet.mjs \
+  --input saved-packet.json
+```
+
+The verifier exits non-zero after an evidence or result change and reports the evidence and complete-packet layers separately.
+
 The fixture must produce all of these results:
 
 - state `scope_change_detected`;
@@ -25,6 +34,17 @@ The fixture must produce all of these results:
 - stable SHA-256 evidence and packet digests across identical runs.
 
 Change one evidence quote and run the builder again. Both digests must change. Remove a required estimate or rush rule and confirm that the corresponding result becomes `approval_needed` instead of silently becoming zero.
+
+Also verify these adversarial cases:
+
+- a request item citing a different message than `request.sourceRef` is rejected;
+- an item id ending in `:included` or `:overflow` is rejected before split-row construction;
+- a deadline-only compressed request with no priced added work remains `approval_needed` instead of showing a zero fee;
+- fractional client delay rounds upward only for the date-only extension while its exact duration remains in attribution; and
+- Markdown, links, raw HTML, control characters, and bidirectional overrides in untrusted labels are rendered inert;
+- an unchanged saved packet verifies successfully;
+- a fee-only edit invalidates the packet digest but not the evidence digest; and
+- an evidence edit invalidates both integrity layers.
 
 ## Live Mermail proof
 

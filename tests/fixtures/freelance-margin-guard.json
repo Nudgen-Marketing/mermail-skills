@@ -190,7 +190,12 @@
         "evidenceQuote": "deliver five days earlier",
         "baselineSourceRefs": [
           "accepted-proposal"
-        ]
+        ],
+        "effortHours": {
+          "min": 0,
+          "max": 0,
+          "sourceRef": "approved-estimate"
+        }
       }
     ]
   },

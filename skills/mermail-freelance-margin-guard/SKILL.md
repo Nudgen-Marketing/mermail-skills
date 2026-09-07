@@ -58,6 +58,7 @@ Use `--format markdown` for a reviewable packet. The builder deterministically:
 
 - supports email-backed and owner-supplied baseline sources;
 - rejects baseline facts and request comparisons that cite sources outside the owner-selected authority set;
+- pins every atomic item to the selected later request and rejects collision-prone identifiers;
 - splits partially covered revision requests into included and overflow rows;
 - keeps explicitly excluded revisions outside the included revision allowance;
 - retains rate and effort-estimate provenance;
@@ -65,6 +66,9 @@ Use `--format markdown` for a reviewable packet. The builder deterministically:
 - attributes only explicitly supplied dependency delays;
 - calculates fee ranges and rush premiums only from supplied rules;
 - withholds commercial options while material evidence remains unresolved;
+- refuses to price a deadline-only compression as a zero-fee change;
+- neutralizes active Markdown, links, raw HTML, control characters, and bidirectional overrides in rendered evidence;
+- independently verifies saved evidence and packet digests and distinguishes evidence changes from result-only changes;
 - emits remove/swap, schedule-extension, and paid-change-order options; and
 - fingerprints both the evidence set and complete decision packet with deterministic SHA-256 digests.
 
@@ -88,15 +92,20 @@ The builder does not read mail, infer contract meaning, set rates, or send messa
 
 - Every baseline fact and request item has a valid source reference; structured owner input is valid without a message id.
 - Every baseline fact and request-side baseline reference is pinned to the owner-selected authority set.
+- Every atomic request item is pinned to the selected later-request source; a requested deadline has its own evidenced deadline item.
 - Revision allowance reports included, used-before, requested, covered, overflow, and remaining-after values.
 - Explicitly excluded revisions never consume the included revision allowance.
 - Every `scope_change` names the addition or expansion; low-impact ambiguity without implementation work remains `clarification`.
+- Every `scope_change` has an owner-supplied effort range, including an explicit zero only when the owner confirms no added labor.
 - Rate, effort, rush premium, currency, and deadline provenance remain visible in the result.
 - Exclusions and acceptance criteria remain present in JSON, Markdown, and the negotiation packet.
 - Client-owned, freelancer-owned, shared, and unknown delays are reported separately; no delay owner or duration is inferred.
 - No fee, premium, currency, deadline, revision limit, or legal conclusion is invented.
 - Missing rush authority is rendered `approval_needed`, never as a zero-value premium.
+- A deadline-only scope change without priced added work is rendered `approval_needed`, never as a zero-fee paid change order.
+- Date-only schedule extensions round fractional client-owned delay upward while preserving the exact supplied duration in delay attribution.
 - Material unknowns block generation of binding commercial options.
+- Rendered Markdown neutralizes untrusted markup, links, control characters, and bidirectional overrides; local identifiers use a restricted collision-safe alphabet.
 - Evidence and packet digests are deterministic and must be rechecked after any source, classification, estimate, rate, deadline, or option change.
 - A saved draft is never treated as sent, and no external message is sent without exact preview and fresh approval.
 - No PayBox or Agent Wallet action is part of this workflow.

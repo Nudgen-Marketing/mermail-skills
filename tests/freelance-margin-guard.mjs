@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   buildMarginPacket,
   renderMarkdown,
+  verifyMarginPacket,
 } from "../skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs";
 
 const fixturePath = path.join(import.meta.dirname, "fixtures", "freelance-margin-guard.json");
@@ -32,6 +33,7 @@ check("accepts an owner-supplied authority source without a message id", () => {
   input.baseline.acceptanceCriteria = [];
   delete input.baseline.revisionBudget;
   delete input.baseline.deadline;
+  delete input.request.requestedDeadline;
   input.request.items = [{
     id: "button-label",
     label: "Confirm the button label",
@@ -82,6 +84,28 @@ check("requires every request item to cite baseline authority", () => {
   assert.throws(() => buildMarginPacket(input), /must contain at least one authority source/);
 });
 
+check("pins every atomic item to the selected later request", () => {
+  const input = clone(fixture);
+  input.request.items[0].sourceRef = "access-delay-email";
+  assert.throws(() => buildMarginPacket(input), /must match request.sourceRef/);
+});
+
+check("requires an atomic deadline item for a requested deadline", () => {
+  const input = clone(fixture);
+  input.request.items = input.request.items.filter((item) => item.kind !== "deadline");
+  assert.throws(() => buildMarginPacket(input), /requires an atomic deadline request item/);
+});
+
+check("rejects unsafe and collision-prone request ids", () => {
+  const unsafe = clone(fixture);
+  unsafe.request.items[0].id = "dashboard|forged";
+  assert.throws(() => buildMarginPacket(unsafe), /must use only letters/);
+
+  const reserved = clone(fixture);
+  reserved.request.items[0].id = "dashboard:included";
+  assert.throws(() => buildMarginPacket(reserved), /reserved :included or :overflow suffix/);
+});
+
 check("keeps explicit exclusions as scope changes", () => {
   const row = packet.requestLedger.find((candidate) => candidate.id === "admin-dashboard");
   assert.equal(row.status, "scope_change");
@@ -90,6 +114,7 @@ check("keeps explicit exclusions as scope changes", () => {
 
 check("keeps low-impact ambiguity as clarification", () => {
   const input = clone(fixture);
+  delete input.request.requestedDeadline;
   input.request.items = [{
     id: "button-label",
     label: "Confirm the button label",
@@ -131,6 +156,7 @@ check("splits a partially covered revision request", () => {
 
 check("does not spend revision allowance on an explicitly excluded revision", () => {
   const input = clone(fixture);
+  delete input.request.requestedDeadline;
   input.request.items = [{
     id: "excluded-revision",
     label: "Create two excluded redesign rounds",
@@ -235,6 +261,30 @@ check("includes effort and client delay in the extension option", () => {
   assert.deepEqual(option.extensionDays, { min: 6, max: 7 });
 });
 
+check("rounds fractional client delay up for date-only extensions", () => {
+  const input = clone(fixture);
+  input.dependencies[0].delayDays = 2.5;
+  const result = buildMarginPacket(input);
+  const option = result.clientOptions.find((candidate) => candidate.id === "extend_schedule");
+  assert.deepEqual(option.extensionDays, { min: 7, max: 8 });
+  assert.equal(result.delayAttribution.totalDaysByOwner.client, 2.5);
+});
+
+check("does not price a deadline-only scope change as zero", () => {
+  const input = clone(fixture);
+  input.request.items = input.request.items.filter((item) => item.kind === "deadline");
+  input.dependencies = [];
+  const result = buildMarginPacket(input);
+  assert.deepEqual(result.marginSnapshot.unpricedItemIds, ["accelerated-deadline"]);
+  assert.equal(result.marginSnapshot.completeBaseFeeRange, null);
+  assert.equal(result.marginSnapshot.completeTotalFeeRange, null);
+  assert.equal(result.marginSnapshot.pricingState, "approval_needed");
+  assert.equal(
+    result.clientOptions.find((option) => option.id === "paid_change_order").feeRange,
+    null,
+  );
+});
+
 check("marks a missing scope-change estimate approval_needed", () => {
   const input = clone(fixture);
   delete input.request.items[0].effortHours;
@@ -290,6 +340,25 @@ check("does not execute instruction-like evidence text", () => {
   assert.equal(result.state, "scope_change_detected");
 });
 
+check("neutralizes untrusted Markdown, links, HTML, and bidi controls", () => {
+  const input = clone(fixture);
+  input.project.name = "Northstar\n# forged heading";
+  input.baseline.deliverables[0].label =
+    "Landing <img src=x onerror=alert(1)> [click](https://evil.example)";
+  input.baseline.exclusions[0].text = "No admin\n# forged exclusion";
+  input.request.items[0].label =
+    "Dashboard | fake row\n![pixel](https://evil.example/p)\u202E";
+  const markdown = renderMarkdown(buildMarginPacket(input));
+
+  assert.doesNotMatch(markdown, /<img/i);
+  assert.doesNotMatch(markdown, /\]\(https?:\/\//i);
+  assert.doesNotMatch(markdown, /\n# forged/);
+  assert.doesNotMatch(markdown, /\u202E/u);
+  assert.match(markdown, /&lt;img/);
+  assert.match(markdown, /\\\[click\\\]\(https&#58;\/\/evil\.example\)/);
+  assert.match(markdown, /Dashboard \\| fake row/);
+});
+
 check("does not mutate its input", () => {
   const input = clone(fixture);
   const before = JSON.stringify(input);
@@ -313,6 +382,31 @@ check("changes the evidence digest when source evidence changes", () => {
   const changed = buildMarginPacket(input);
   assert.notEqual(changed.integrity.evidenceDigest, packet.integrity.evidenceDigest);
   assert.notEqual(changed.integrity.packetDigest, packet.integrity.packetDigest);
+});
+
+check("verifies an unchanged decision packet", () => {
+  const verification = verifyMarginPacket(clone(packet));
+  assert.equal(verification.valid, true);
+  assert.equal(verification.evidence.valid, true);
+  assert.equal(verification.packet.valid, true);
+});
+
+check("detects commercial-result tampering independently from evidence", () => {
+  const changed = clone(packet);
+  changed.marginSnapshot.completeBaseFeeRange.min += 1;
+  const verification = verifyMarginPacket(changed);
+  assert.equal(verification.valid, false);
+  assert.equal(verification.evidence.valid, true);
+  assert.equal(verification.packet.valid, false);
+});
+
+check("detects evidence tampering in both integrity layers", () => {
+  const changed = clone(packet);
+  changed.sources.find((source) => source.id === "later-request").quote += " changed";
+  const verification = verifyMarginPacket(changed);
+  assert.equal(verification.valid, false);
+  assert.equal(verification.evidence.valid, false);
+  assert.equal(verification.packet.valid, false);
 });
 
 check("renders evidence, retained terms, and all client options in Markdown", () => {
