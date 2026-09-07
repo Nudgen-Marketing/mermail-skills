@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Renewal Auditor"
+  short_description: "Audit renewals, price changes, refunds, and cancellations"
+  default_prompt: "Use $mermail-renewal-auditor to audit subscription renewals safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
