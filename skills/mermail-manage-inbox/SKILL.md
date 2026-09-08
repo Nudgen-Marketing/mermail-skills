@@ -25,7 +25,7 @@ For a source-linked release handoff, read [release-handoff.md](references/releas
 
 - A bounded search result with exact mailbox and email/thread ids, filters, sort order, and remaining-page status.
 - A concise message or thread summary grounded in sanitized, scan-gated content rather than raw mailbox payloads.
-- A local release handoff with exact source excerpts, unresolved version conflicts, missing instructions, and acceptance wording distinguished from verified acceptance.
+- A local release handoff with source excerpts (credential redactions marked), unresolved version conflicts, missing instructions, and acceptance wording distinguished from verified acceptance.
 - An organization preview naming the exact read/star change, source and destination folder, or frozen bulk id set.
 - A folder or custom-label-definition change showing current state and the intended name, rules, or color diff.
 - A deletion preview that distinguishes move to Trash, permanent draft deletion, scheduled-draft cancellation, permanent Trash deletion, and empty Trash.

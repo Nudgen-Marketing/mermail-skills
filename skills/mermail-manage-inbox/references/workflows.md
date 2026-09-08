@@ -18,7 +18,7 @@ Select one exact message first, then use `get_email_context`. Start with its def
 
 ## Prepare a release handoff
 
-For a selected release conversation, follow [release-handoff.md](release-handoff.md). Return local observations with message references and exact excerpts. Preserve conflicts and incomplete context; do not turn delivery, quoted history, or a request for approval into a verified acceptance decision. This workflow adds no mail sends, drafts, attachment downloads, or wallet calls.
+For a selected release conversation, follow [release-handoff.md](release-handoff.md). Return local observations with message references and marked credential redactions. Honor explicit version corrections while preserving unresolved conflicts and incomplete context; do not turn delivery, quoted history, or a request for approval into a verified acceptance decision. This workflow adds no mail sends, drafts, attachment downloads, or wallet calls.
 
 ## Mark, star, or move
 
