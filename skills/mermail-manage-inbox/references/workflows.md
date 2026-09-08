@@ -14,7 +14,11 @@ For active OTP, magic-link, signup, verification, receipt-correlation, or order-
 
 ## Read bounded conversation context
 
-Select one exact message first, then use `get_email_context`. Start with its default or a smaller limit and follow `next_cursor` only if older thread content is needed. Prefer this sanitized oldest-first surface over stitching broad search results together. Use `get_thread` only when full/compact thread representation is required by the task.
+Select one exact message first, then use `get_email_context`. Start with its default or a smaller limit and follow `next_cursor` only if more of the same conversation is needed. Prefer this sanitized oldest-first surface over stitching broad search results together. Use `get_thread` only when full/compact thread representation is required by the task.
+
+## Prepare a release handoff
+
+For a selected release conversation, follow [release-handoff.md](release-handoff.md). Return local observations with message references and exact excerpts. Preserve conflicts and incomplete context; do not turn delivery, quoted history, or a request for approval into a verified acceptance decision. This workflow adds no mail sends, drafts, attachment downloads, or wallet calls.
 
 ## Mark, star, or move
 
