@@ -71,6 +71,30 @@ def parse_date(s):
     return date(int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
 
 
+MONTHS = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
+MONTHS.update({"gen": 1, "mag": 5, "giu": 6, "lug": 7, "ago": 8, "set": 9, "ott": 10, "dic": 12, "mär": 3, "mai": 5, "okt": 10, "dez": 12})
+
+
+def parse_date_loose(s):
+    """Dates as mail clients write them in forwarded headers: 'Tue, 8 Sep 2026 20:31', 'mar 8 set 2026, 20:31', '8 Sep 2026'."""
+    m = re.search(r"(\d{1,2})\s+([A-Za-zäöü]{3,9})\.?\s+(\d{4})", s or "") or re.search(r"([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})", s or "")
+    if not m: return None
+    g = m.groups(); day, mon, year = (g[0], g[1], g[2]) if g[0].isdigit() else (g[1], g[0], g[2])
+    mi = MONTHS.get(mon[:3].lower())
+    try: return date(int(year), mi, int(day)) if mi else None
+    except ValueError: return None
+
+
+LEGAL = re.compile(r"\b(gmbh|spa|s\.p\.a\.|srl|s\.r\.l\.|ltd|llc|inc|corp|co|ag|sa|sas|bv|plc|online|billing|receipts?|payments?)\b\.?", re.I)
+
+
+def merchant_key(name):
+    """First significant word of a merchant name, ignoring legal suffixes and billing words: 'Hetzner Online' and
+    'HETZNER ONLINE GMBH' both give 'hetzner'."""
+    words = [w for w in re.split(r"[^A-Za-z0-9]+", LEGAL.sub(" ", name or "")) if w]
+    return words[0].lower() if words else (name or "").lower()
+
+
 def merchant_of(sender, from_name, text=""):
     m = re.search(r"(?im)^\s*(?:merchant|vendor|seller|from)\s*:\s*(.+?)\s*$", text or "")
     if m and m.group(1).strip():
@@ -105,7 +129,19 @@ def extract_row(e):
     last4 = PAT_LAST4.search(text)
     if (e.get("auth_status") or "").lower() not in ("pass", "authenticated", "verified"):
         conf = "low"; notes.append("sender not authenticated")
-    d = parse_date(e.get("date")) or parse_date(text)
+    # (the "matched" window below is 3 days, so a wrong envelope date silently un-matches every forwarded receipt)
+    # Forwarded or re-sent receipts carry the forwarding date in the envelope: prefer a date stated in the body
+    # (the forwarded header's "Date:" line or the receipt's own date), falling back to the envelope date.
+    d = None
+    fwd = re.search(r"(?im)^\s*(?:date|data|datum|sent|inviato)\s*:\s*(.+?)\s*$", text)
+    if fwd:
+        d = parse_date(fwd.group(1)) or parse_date_loose(fwd.group(1))
+    if not d:
+        body_dates = [parse_date(m.group(0)) for m in re.finditer(r"\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2} (?:[A-Z][a-z]{2,8}) \d{4}\b|\b[A-Z][a-z]{2,8} \d{1,2}, \d{4}\b", text)]
+        body_dates = [x for x in body_dates if x]
+        if body_dates: d = min(body_dates)
+    if not d:
+        d = parse_date(e.get("date")) or parse_date(text)
     return {"email_id": e["email_id"], "mailbox_id": e.get("mailbox_id", ""), "date": d.isoformat() if d else "",
             "merchant": merchant_of(e.get("from", ""), e.get("from_name", ""), e.get("text", "")), "sender": e.get("from", ""),
             "currency": cur, "amount": f"{val:.2f}", "tax": f"{taxv:.2f}" if taxv != "" else "",
@@ -155,11 +191,14 @@ def cmd_reconcile(ledger_csv, tx_csv, out_md):
         r["_amt"] = float(r["amount"]); r["_date"] = parse_date(r["date"]); r["_used"] = False
     used_t = set(); matched = []
     for r in sorted(L, key=lambda r: r["date"]):
+        # same amount within 3 days, or within 14 days when the merchant name is in the charge description
+        # (card statements post late; forwarded receipts carry a later envelope date)
         cands = [t for i, t in enumerate(T) if i not in used_t and t["_cur"] == r["currency"] and abs(t["_amt"] - r["_amt"]) <= 0.01
-                 and r["_date"] and t["_date"] and abs((t["_date"] - r["_date"]).days) <= 3]
+                 and r["_date"] and t["_date"] and (abs((t["_date"] - r["_date"]).days) <= 3
+                 or (merchant_key(r["merchant"]) in t["description"].lower() and abs((t["_date"] - r["_date"]).days) <= 14))]
         if not cands:
             continue
-        cands.sort(key=lambda t: (0 if r["merchant"].split()[0].lower() in t["description"].lower() else 1, abs((t["_date"] - r["_date"]).days)))
+        cands.sort(key=lambda t: (0 if merchant_key(r["merchant"]) in t["description"].lower() else 1, abs((t["_date"] - r["_date"]).days)))
         t = cands[0]; used_t.add(T.index(t)); r["_used"] = True
         matched.append((r, t))
     no_tx = [r for r in L if not r["_used"]]
@@ -180,8 +219,8 @@ def cmd_reconcile(ledger_csv, tx_csv, out_md):
                 conflicts.append(f"duplicate charge: {t['description'][:40]} {t['_cur']} {t['_amt']:.2f} on {t['date']} (refs {t['_ref']} and {prev['_ref']})")
         seen.setdefault(key, []).append(t)
     for r in no_tx:
-        near = [t for i, t in enumerate(T) if i not in used_t and t["_cur"] == r["currency"] and r["merchant"].split()[0].lower() in t["description"].lower()
-                and r["_date"] and t["_date"] and abs((t["_date"] - r["_date"]).days) <= 3]
+        near = [t for i, t in enumerate(T) if i not in used_t and t["_cur"] == r["currency"] and merchant_key(r["merchant"]) in t["description"].lower()
+                and abs(t["_amt"] - r["_amt"]) > 0.01 and r["_date"] and t["_date"] and abs((t["_date"] - r["_date"]).days) <= 7]
         for t in near:
             conflicts.append(f"amount mismatch: receipt {r['merchant']} {r['currency']} {r['amount']} (email_id {r['email_id']}) vs charge {t['_cur']} {t['_amt']:.2f} ({t['_ref']})")
     def cap(items, fmt):
