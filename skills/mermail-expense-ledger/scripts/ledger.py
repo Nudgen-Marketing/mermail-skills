@@ -71,7 +71,10 @@ def parse_date(s):
     return date(int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
 
 
-def merchant_of(sender, from_name):
+def merchant_of(sender, from_name, text=""):
+    m = re.search(r"(?im)^\s*(?:merchant|vendor|seller|from)\s*:\s*(.+?)\s*$", text or "")
+    if m and m.group(1).strip():
+        return m.group(1).strip()[:60]
     if from_name and from_name.strip():
         return re.sub(r"\s*(no-?reply|receipts?|billing|invoices?)\s*", " ", from_name, flags=re.I).strip(" -|") or from_name.strip()
     dom = sender.split("@")[-1].lower() if "@" in sender else sender
@@ -104,7 +107,7 @@ def extract_row(e):
         conf = "low"; notes.append("sender not authenticated")
     d = parse_date(e.get("date")) or parse_date(text)
     return {"email_id": e["email_id"], "mailbox_id": e.get("mailbox_id", ""), "date": d.isoformat() if d else "",
-            "merchant": merchant_of(e.get("from", ""), e.get("from_name", "")), "sender": e.get("from", ""),
+            "merchant": merchant_of(e.get("from", ""), e.get("from_name", ""), e.get("text", "")), "sender": e.get("from", ""),
             "currency": cur, "amount": f"{val:.2f}", "tax": f"{taxv:.2f}" if taxv != "" else "",
             "order_id": order.group(1) if order else "", "payment_hint": ("*" + last4.group(1)) if last4 else "",
             "attachment_id": e.get("attachment_id", ""), "confidence": conf, "notes": " | ".join(notes),
