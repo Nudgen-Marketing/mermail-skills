@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail PR Reviewer"
+  short_description: "Review GitHub PRs requested through your agent inbox and reply with structured reviews"
+  default_prompt: "Use $mermail-pr-reviewer to complete this Mermail workflow safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
