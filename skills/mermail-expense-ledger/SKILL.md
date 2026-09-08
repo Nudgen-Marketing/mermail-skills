@@ -32,7 +32,7 @@ reconciliation, ledger files) so results are reproducible and reviewable.
   payment method hint, Mermail `email_id`, mailbox `public_id`, and a confidence flag.
 - `reconciliation.md` with four bounded lists: matched, receipt without transaction, transaction without receipt,
   and amount or duplicate conflicts, each line citing the email id or transaction reference.
-- Optional custom label `ledger/processed` applied to the messages that produced rows, after an exact preview.
+- Optional custom label `ledger/processed`, created once with a text rule after an exact preview; Mermail's own classifier applies it to matching messages (the API has no per-message label write).
 - Optional drafts, never sends: a receipt request to a merchant for a charge without a receipt, or a dispute note
   for a wrong or duplicate charge, saved with `save_draft` for the user to review.
 
@@ -63,7 +63,7 @@ reconciliation, ledger files) so results are reproducible and reviewable.
    prefer the merchant name appearing in the transaction description. Everything else lands in one of the three
    exception lists. Duplicates are two receipts or two transactions with the same merchant, amount, and date within
    1 day.
-8. Present the exceptions and the exact write preview: which message ids receive the `ledger/processed` label
+8. Present the exceptions and the exact write preview: whether the `ledger/processed` label gets created (name and rule text)
    (`create_custom_label` once if missing, then `update_email` per message), and the text of each draft. Apply the
    label and save drafts only after the user approves; if the user declines, keep the ledger and skip the writes.
 9. Summarize: rows added, rows unchanged, matched count, each exception list with its citations, skipped

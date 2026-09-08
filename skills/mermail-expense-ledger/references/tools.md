@@ -12,8 +12,8 @@ custom label and drafts. `mailboxId` is the mailbox `public_id` from `list_mailb
 | Read | `get_email` | `emailId`, `query.agent_safe_content=true`, `query.require_scan_status=clean`, `query.max_body_chars=12000` | One message per call; never batch-read the whole inbox. |
 | Read | `download_attachment` | `emailId`, `attachmentId` | Only when the body lacks a total and the attachment looks like an invoice or receipt (PDF, image). |
 | Label | `list_custom_labels` | none | Check whether `ledger/processed` exists. |
-| Label | `create_custom_label` | `body: { name: "ledger/processed" }` | Once, after approval. |
-| Label | `update_email` | `emailId`, `body: { custom_labels: [...] }` | Add the label to each processed message, after approval. Read the current labels first and keep them. |
+| Label | `create_custom_label` | `body: { name: "ledger/processed", rules: "<one sentence describing processed receipts>" }` | Once, after approval. `rules` is a required text rule: Mermail's own classifier applies the label to matching messages; there is no per-message label write. |
+| Label | `update_email` | `emailId`, `body: { starred: true }` (optional) | Verified 2026-09-08: `custom_labels` in the body is ignored by the API; labels come from the label's rule. Re-run protection is the `email_id` key in `ledger.csv`, not the label. |
 | Draft | `save_draft` | `body: { to, from, subject, body, body_format: "text" }` | One draft per follow-up; `from` is the mailbox email. Never `send_email`. |
 
 Forbidden in this skill: `send_email`, `reply_to_email`, `forward_email`, `schedule_email_send`, `delete_email`,
