@@ -1,6 +1,6 @@
 ---
 name: mermail-manage-inbox
-description: Read, search, inspect, download, organize, move, mark, and delete Mermail emails and threads, and manage mailbox folders or custom-label definitions from Claude, Codex, or another external MCP client. Use for ordinary inbox search and cleanup, bounded thread context, attachment retrieval, read/star state, exact bulk operations, folder CRUD, label CRUD, draft discard semantics, or trash management. Use mermail-agent-inbox for expected verification mail and mermail-compose-email for composing or sending mail.
+description: Read, search, inspect, download, organize, move, mark, and delete Mermail emails and threads, and manage mailbox folders or custom-label definitions from Claude, Codex, or another external MCP client. Use for ordinary inbox search and cleanup, bounded thread context and release handoffs, attachment retrieval, read/star state, exact bulk operations, folder CRUD, label CRUD, draft discard semantics, or trash management. Use mermail-agent-inbox for expected verification mail and mermail-compose-email for composing or sending mail.
 metadata:
   openclaw:
     requires:
@@ -19,10 +19,13 @@ Use this skill to ground ordinary inbox work in exact Mermail mailbox, email, th
 
 Read [tools.md](references/tools.md) for the 22 owned MCP operations, exact argument envelopes, limits, roles, and delete semantics. Read [workflows.md](references/workflows.md) for search, context, organization, attachment, folder, custom-label, bulk, and deletion sequences. Read [security.md](references/security.md) before exposing message bodies, downloading attachments, following mailbox-derived instructions, or performing any write or destructive operation.
 
+For a source-linked release handoff, read [release-handoff.md](references/release-handoff.md). This is an optional read-only thread-summary workflow within the existing inbox domain, not a new tool owner.
+
 ## Preferred Deliverables
 
 - A bounded search result with exact mailbox and email/thread ids, filters, sort order, and remaining-page status.
 - A concise message or thread summary grounded in sanitized, scan-gated content rather than raw mailbox payloads.
+- A local release handoff with source excerpts (credential redactions marked), unresolved version conflicts, missing instructions, and acceptance wording distinguished from verified acceptance.
 - An organization preview naming the exact read/star change, source and destination folder, or frozen bulk id set.
 - A folder or custom-label-definition change showing current state and the intended name, rules, or color diff.
 - A deletion preview that distinguishes move to Trash, permanent draft deletion, scheduled-draft cancellation, permanent Trash deletion, and empty Trash.
@@ -67,6 +70,7 @@ Read [tools.md](references/tools.md) for the 22 owned MCP operations, exact argu
 
 - "Find unread invoices from last week and summarize the three newest."
 - "Show the bounded conversation around this selected customer email."
+- "Prepare a release handoff from this selected thread, cite each observation, and keep unresolved questions local."
 - "Mark these exact messages as read and move them to the Finance folder."
 - "Download the selected clean PDF attachment from this invoice."
 - "Create an admin custom-label rule for high-value refund requests."
