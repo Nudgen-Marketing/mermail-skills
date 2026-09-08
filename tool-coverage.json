@@ -31,7 +31,8 @@
     ],
     "mermail-composio": [
       "list_composio_toolkits", "connect_composio_toolkit", "disconnect_composio_toolkit", "list_composio_connections", "sync_composio_connections", "search_composio_tools", "get_composio_tool_schema", "execute_composio_tool", "get_composio_calendar_account"
-    ]
+    ],
+    "mermail-pr-reviewer": []
   },
   "walletScopedDomains": {
     "mermail-agent-wallet": [
