@@ -436,8 +436,8 @@ for (const [expected, tool] of releaseHandoffScenarios) {
 }
 const handoffText = manageReleaseHandoff.replace(/\s+/g, " ");
 for (const required of [
-  "explicit correction",
-  "superseded",
+  "Honor an explicit correction that unambiguously replaces an earlier version",
+  "Mark the earlier observation as superseded",
   "newer timestamp alone is not a correction",
   "Credential redaction takes precedence over verbatim output",
   "presigned",
