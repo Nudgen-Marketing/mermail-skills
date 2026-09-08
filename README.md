@@ -15,6 +15,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-expense-ledger
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 ```
 
@@ -138,6 +139,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party apps through Composio |
+| `mermail-expense-ledger` | Build a reconciled expense ledger from receipts and invoices, flag gaps, draft follow-ups |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
