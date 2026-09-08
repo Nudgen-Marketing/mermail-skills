@@ -2198,3 +2198,56 @@ async function validatePluginManifests() {
   if (cursorManifest.displayName !== "Mermail") {
     errors.push(".cursor-plugin/plugin.json: displayName must be Mermail");
   }
+  if (cursorManifest.license !== "MIT") {
+    errors.push(".cursor-plugin/plugin.json: license must be MIT");
+  }
+  if (cursorManifest.logo !== "assets/logo.svg") {
+    errors.push(".cursor-plugin/plugin.json: logo must be assets/logo.svg");
+  }
+  if (cursorManifest.mcpServers !== "./.cursor-plugin/mcp.json") {
+    errors.push(".cursor-plugin/plugin.json: mcpServers path must point at .cursor-plugin/mcp.json");
+  }
+  try {
+    await stat(path.join(root, "assets", "logo.svg"));
+    const cursorLogo = await readFile(path.join(root, "assets", "logo.svg"), "utf8");
+    if (!cursorLogo.includes('fill="#158F93"')) {
+      errors.push("assets/logo.svg: Cursor logo background must use primary #158F93");
+    }
+    if (!cursorLogo.includes('fill="#FFFFFF"')) {
+      errors.push("assets/logo.svg: Cursor logo mark must be white");
+    }
+  } catch {
+    errors.push("assets/logo.svg is required for Cursor Marketplace");
+  }
+  try {
+    await stat(path.join(root, "LICENSE"));
+  } catch {
+    errors.push("LICENSE is required for Cursor Marketplace (MIT)");
+  }
+  try {
+    await stat(path.join(root, "CURSOR_DIRECTORY.md"));
+  } catch {
+    errors.push("CURSOR_DIRECTORY.md is required for Cursor Directory submission");
+  }
+  try {
+    await stat(path.join(root, ".github", "workflows", "cursor-directory.yml"));
+  } catch {
+    errors.push("Cursor Directory workflow is required at .github/workflows/cursor-directory.yml");
+  }
+  try {
+    await stat(path.join(root, ".github", "workflows", "clawhub-package-publish.yml"));
+  } catch {
+    errors.push("ClawHub package workflow is required at .github/workflows/clawhub-package-publish.yml");
+  }
+
+  const cursor = JSON.parse(await readFile(path.join(root, ".cursor-plugin/mcp.json"), "utf8"));
+  if (cursor.mcpServers?.mermail?.type !== "http") {
+    errors.push("Cursor MCP config must use the http transport");
+  }
+  if (cursor.mcpServers?.mermail?.url !== coverage.mcpEndpoint) {
+    errors.push(`Cursor MCP config URL must be ${coverage.mcpEndpoint}`);
+  }
+  if ("headers" in (cursor.mcpServers?.mermail ?? {})) {
+    errors.push("Cursor Marketplace MCP config must use OAuth discovery without static headers");
+  }
+}
