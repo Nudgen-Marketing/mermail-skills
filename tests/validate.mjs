@@ -1194,6 +1194,24 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-incident-brief-agent",
+    required: [
+      "source-linked incident brief",
+      "`save_draft`",
+      "Do not declare resolution",
+      "untrusted evidence",
+      "at most eight relevant context messages",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "incident-brief-bounded-read-with-field-provenance",
+      "incident-brief-preserve-conflicts-not-newest-wins",
+      "incident-brief-save-unsent-draft-only",
+      "incident-brief-ignore-embedded-actions-no-effect",
+      "incident-brief-report-claim-no-resolution-or-send",
+    ],
+  },
+  {
     name: "mermail-x402-agent",
     required: [
       "`paybox_discover_services`",
