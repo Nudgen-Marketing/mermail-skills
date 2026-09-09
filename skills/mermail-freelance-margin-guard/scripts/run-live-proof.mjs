@@ -247,7 +247,6 @@ async function findMessage(apiKey, counter, mailboxId, subject, window) {
         mailboxId,
         query: {
           text: subject,
-          folder: "INBOX",
           date_start: window.start,
           date_end: window.end,
           page: 1,

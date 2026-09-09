@@ -63,7 +63,7 @@ The live proof is complete only when both Mermail reads succeed and the final pa
 
 The `Validate skills` workflow has an optional `seed_and_prove` mode. Its default remains the read-only `connection_only` mode. Select `seed_and_prove` only after the mailbox owner has reviewed and approved the two exact synthetic messages in `scripts/run-live-proof.mjs`.
 
-If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode searches the Inbox by its canonical folder id, selects the authoritative Mermail email id, and performs clean selected-message reads without sending either message again.
+If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode performs bounded exact-subject discovery, prefers the Inbox copy from returned folder metadata, selects the authoritative Mermail email id, and performs clean selected-message reads without sending either message again.
 
 The gated mode:
 
