@@ -11,7 +11,7 @@ import {
 const MCP_ENDPOINT = "https://console.mermail.app/mcp";
 const BASELINE_DEADLINE = "2026-10-20";
 const REQUESTED_DEADLINE = "2026-10-15";
-const WAIT_ATTEMPTS = 12;
+const WAIT_ATTEMPTS = 36;
 const WAIT_MS = 2500;
 
 export const LIVE_BASELINE_BODY =
@@ -241,6 +241,7 @@ async function findMessage(apiKey, counter, mailboxId, subject, window) {
         mailboxId,
         query: {
           text: subject,
+          folder: "inbox",
           date_start: window.start,
           date_end: window.end,
           page: 1,
@@ -467,8 +468,9 @@ async function main() {
   invariant(process.argv.includes("--seed-and-prove"), "mode");
   const apiKey = process.env.MERMAIL_API_KEY;
   const runTag = process.env.MERMAIL_LIVE_RUN_TAG;
+  const resumeOnly = process.env.MERMAIL_LIVE_RESUME === "1";
   invariant(apiKey, "configuration");
-  invariant(process.env.MERMAIL_LIVE_SEND_APPROVED === "1", "send-approval");
+  invariant(resumeOnly || process.env.MERMAIL_LIVE_SEND_APPROVED === "1", "send-approval");
   invariant(typeof runTag === "string" && /^[A-Za-z0-9-]{1,48}$/.test(runTag), "run-tag");
 
   const counter = createCounter();
@@ -487,7 +489,9 @@ async function main() {
 
   const listed = await mcpRequest(apiKey, counter.next(), "tools/list", {}, "tool-list");
   const names = new Set((listed?.result?.tools ?? []).map((tool) => tool?.name));
-  for (const required of ["list_mailboxes", "send_email", "search_emails", "get_email"]) {
+  const requiredTools = ["list_mailboxes", "search_emails", "get_email"];
+  if (!resumeOnly) requiredTools.push("send_email");
+  for (const required of requiredTools) {
     invariant(names.has(required), "tool-contract");
   }
 
@@ -496,27 +500,29 @@ async function main() {
   const baselineSubject = `[FMG-LIVE-${runTag}] Accepted scope`;
   const requestSubject = `[FMG-LIVE-${runTag}] Change request`;
 
-  const sends = [
-    { subject: baselineSubject, body: LIVE_BASELINE_BODY, suffix: "baseline" },
-    { subject: requestSubject, body: LIVE_REQUEST_BODY, suffix: "request" },
-  ];
-  for (const message of sends) {
-    await callMutationOnce(
-      apiKey,
-      counter,
-      "send_email",
-      {
-        mailboxId: mailbox.id,
-        idempotencyKey: `fmg-live-${runTag}-${message.suffix}`,
-        body: {
-          to: mailbox.email,
-          from: mailbox.email,
-          subject: message.subject,
-          text: message.body,
+  if (!resumeOnly) {
+    const sends = [
+      { subject: baselineSubject, body: LIVE_BASELINE_BODY, suffix: "baseline" },
+      { subject: requestSubject, body: LIVE_REQUEST_BODY, suffix: "request" },
+    ];
+    for (const message of sends) {
+      await callMutationOnce(
+        apiKey,
+        counter,
+        "send_email",
+        {
+          mailboxId: mailbox.id,
+          idempotencyKey: `fmg-live-${runTag}-${message.suffix}`,
+          body: {
+            to: mailbox.email,
+            from: mailbox.email,
+            subject: message.subject,
+            text: message.body,
+          },
         },
-      },
-      `self-send-${message.suffix}`,
-    );
+        `self-send-${message.suffix}`,
+      );
+    }
   }
 
   const now = new Date();

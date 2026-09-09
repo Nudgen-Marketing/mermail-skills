@@ -17,6 +17,12 @@ on:
         options:
           - connection_only
           - seed_and_prove
+          - resume_and_prove
+      resume_run_tag:
+        description: "Existing run tag for a read-only resume (for example 34372972140-1)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -44,4 +50,11 @@ jobs:
           MERMAIL_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
           MERMAIL_LIVE_SEND_APPROVED: "1"
           MERMAIL_LIVE_RUN_TAG: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: npm run prove:live-margin
+      - name: Resume live Margin Guard proof without another send
+        if: github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'resume_and_prove'
+        env:
+          MERMAIL_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
+          MERMAIL_LIVE_RESUME: "1"
+          MERMAIL_LIVE_RUN_TAG: ${{ inputs.resume_run_tag }}
         run: npm run prove:live-margin
