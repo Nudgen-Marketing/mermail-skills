@@ -1500,6 +1500,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-invoice-settle",
   "mermail-x402-agent",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
@@ -1802,6 +1803,7 @@ for (const skillName of [
   "mermail-composio",
   "mermail-agent-wallet",
   "mermail-research-agent",
+  "mermail-invoice-settle",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
