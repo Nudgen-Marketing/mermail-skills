@@ -48,29 +48,7 @@ individually evidenced.
 the message before it goes out; scheduling would place mail beyond the preview-then-approve
 contract.
 
-## Settlement
 
-Wallet-scoped and OAuth-only. The connection is owner-only and never established by this skill.
-
-| Tool | Use here | Owner |
-| --- | --- | --- |
-| `get_paybox_connection` | Confirm a wallet is connected before offering settlement | `mermail-agent-wallet` |
-| `get_agent_wallet` | Read connection, balances, limits, and request state | `mermail-agent-wallet` |
-| `list_agent_wallet_credentials` | Resolve the delegated `credential_id` for the transfer | `mermail-agent-wallet` |
-| `paybox_request_transfer` | Open the PayBox signing window for a reconciled USDC payable | `mermail-agent-wallet` |
-| `get_agent_wallet_request` | Poll the returned request id before any retry decision | `mermail-agent-wallet` |
-
-`paybox_request_transfer` takes `credential_id`, `chain`, `to`, `amount`, and optional `token`. It
-settles USDC on Base or Solana and performs no conversion. It has no propose/reject pair: the
-signing window is the approval surface, and the user authorises there. **The skill's defence is
-therefore not to call it** — a failed reconciliation means no transfer tool is invoked at all.
-
-`create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, and
-`reject_agent_wallet_transfer_proposal` are deprecated compatibility shims and owner-only. This
-skill does not use them.
-
-`get_agent_wallet_portfolio` is not used; balance reads go through `get_agent_wallet`, matching
-what `mermail-agent-wallet` documents.
 
 ## Not Used
 
