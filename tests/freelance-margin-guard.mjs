@@ -11,6 +11,7 @@ import {
   buildLiveMarginInput,
   LIVE_BASELINE_BODY,
   LIVE_REQUEST_BODY,
+  resolveEmailMetadata,
 } from "../skills/mermail-freelance-margin-guard/scripts/run-live-proof.mjs";
 
 const fixturePath = path.join(import.meta.dirname, "fixtures", "freelance-margin-guard.json");
@@ -51,6 +52,32 @@ check("keeps the approved live synthetic messages exact and non-confidential", (
   assert.match(LIVE_REQUEST_BODY, /five calendar days earlier/);
   assert.match(LIVE_REQUEST_BODY, /supplied two days after/);
   assert.doesNotMatch(`${LIVE_BASELINE_BODY} ${LIVE_REQUEST_BODY}`, /@|api key|wallet|private project/i);
+});
+
+check("uses the authoritative Mermail id instead of RFC correlation metadata", () => {
+  const selected = resolveEmailMetadata([
+    {
+      emails: [{
+        id: "msg-authoritative",
+        message_id: "<provider-correlation@example.test>",
+        subject: "[FMG-LIVE-test] Accepted scope",
+        folder_id: "INBOX",
+      }],
+    },
+  ], "[FMG-LIVE-test] Accepted scope");
+  assert.equal(selected.id, "msg-authoritative");
+});
+
+check("prefers the Inbox copy of an exact self-addressed message", () => {
+  const selected = resolveEmailMetadata([
+    {
+      emails: [
+        { id: "msg-sent", subject: "[FMG-LIVE-test] Change request", folder_name: "Sent" },
+        { id: "msg-inbox", subject: "[FMG-LIVE-test] Change request", folder_id: "INBOX" },
+      ],
+    },
+  ], "[FMG-LIVE-test] Change request");
+  assert.equal(selected.id, "msg-inbox");
 });
 
 check("accepts an owner-supplied authority source without a message id", () => {

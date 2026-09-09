@@ -176,14 +176,17 @@ function resolveMailbox(payloads, selectedId) {
   return unique[0];
 }
 
-function resolveEmailMetadata(payloads, subject) {
+export function resolveEmailMetadata(payloads, subject) {
   const expected = normalize(subject);
   const candidates = [];
   for (const object of walkObjects(payloads)) {
     const actualSubject = firstString(object, ["subject", "email_subject", "emailSubject"]);
     if (!actualSubject || normalize(actualSubject) !== expected) continue;
-    const id = firstString(object, ["email_id", "emailId", "message_id", "messageId", "public_id", "publicId", "id"]);
+    // Mermail `id` is authoritative for get_email. Provider/RFC message ids are
+    // correlation metadata and must never be used as the resource identifier.
+    const id = firstString(object, ["id", "email_id", "emailId"]);
     if (!id) continue;
+    const folder = firstString(object, ["folder_id", "folderId", "folder_name", "folderName"]);
     const rawDate = firstString(object, [
       "date",
       "received_at",
@@ -194,9 +197,12 @@ function resolveEmailMetadata(payloads, subject) {
       "createdAt",
       "timestamp",
     ]);
-    candidates.push({ id, rawDate });
+    candidates.push({ id, rawDate, folder });
   }
   const unique = [...new Map(candidates.map((candidate) => [candidate.id, candidate])).values()];
+  const inbox = unique.filter((candidate) => normalize(candidate.folder) === "inbox");
+  if (inbox.length === 1) return inbox[0];
+  invariant(inbox.length === 0, "message-selection");
   invariant(unique.length === 1, "message-selection");
   return unique[0];
 }
@@ -241,7 +247,7 @@ async function findMessage(apiKey, counter, mailboxId, subject, window) {
         mailboxId,
         query: {
           text: subject,
-          folder: "inbox",
+          folder: "INBOX",
           date_start: window.start,
           date_end: window.end,
           page: 1,
