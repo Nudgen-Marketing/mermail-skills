@@ -1,0 +1,11 @@
+interface:
+  display_name: "Track Mermail Obligations"
+  short_description: "Register document expiry and invoice due dates, escalate reminders, settle payables"
+  default_prompt: "Use $mermail-obligations-agent when this task involves renewal tracking, document-validity monitoring, accounts-payable follow-up, or settling a supplier invoice that arrived by email, not generic inbox cleanup or one-off composition."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, folder, compose, and Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
