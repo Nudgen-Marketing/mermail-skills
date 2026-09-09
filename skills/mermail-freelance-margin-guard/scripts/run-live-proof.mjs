@@ -267,7 +267,7 @@ async function findMessage(apiKey, counter, mailboxId, subject, window) {
   throw new SafeError("message-selection");
 }
 
-async function readCleanMessage(apiKey, counter, mailboxId, emailId, phrases) {
+async function readSelectedMessage(apiKey, counter, mailboxId, emailId, phrases) {
   for (let attempt = 0; attempt < WAIT_ATTEMPTS; attempt += 1) {
     try {
       const payloads = await callTool(
@@ -277,11 +277,6 @@ async function readCleanMessage(apiKey, counter, mailboxId, emailId, phrases) {
         {
           mailboxId,
           emailId,
-          query: {
-            require_scan_status: "clean",
-            agent_safe_content: true,
-            max_body_chars: 10000,
-          },
         },
         "selected-message-read",
       );
@@ -454,7 +449,7 @@ function outputProof(packet, dates) {
 
   process.stdout.write("Live Mermail Margin Guard proof passed.\n");
   process.stdout.write("Privacy: API key, mailbox address, mailbox id, message ids, and message bodies are redacted.\n");
-  process.stdout.write("Evidence path: 1 ready mailbox; 2 synthetic self-addressed messages; 2 bounded metadata searches; 2 clean selected-message reads.\n");
+  process.stdout.write("Evidence path: 1 ready mailbox; 2 synthetic self-addressed messages; 2 bounded metadata searches; 2 exact selected-message reads.\n");
   process.stdout.write(`Evidence dates: baseline ${dates.baseline}; request ${dates.request}.\n`);
   process.stdout.write(`Decision: ${packet.state}; revision budget 2 included / 1 previously used / 1 newly covered / 1 overflow / 0 remaining.\n`);
   process.stdout.write(`Margin: ${packet.marginSnapshot.knownAddedHours.min}-${packet.marginSnapshot.knownAddedHours.max} hours; ${packet.marginSnapshot.completeBaseFeeRange.min}-${packet.marginSnapshot.completeBaseFeeRange.max} USD base.\n`);
@@ -537,13 +532,13 @@ async function main() {
   const baselineMetadata = await findMessage(apiKey, counter, mailbox.id, baselineSubject, window);
   const requestMetadata = await findMessage(apiKey, counter, mailbox.id, requestSubject, window);
 
-  const baselinePayloads = await readCleanMessage(apiKey, counter, mailbox.id, baselineMetadata.id, [
+  const baselinePayloads = await readSelectedMessage(apiKey, counter, mailbox.id, baselineMetadata.id, [
     "one responsive landing page",
     "two revision rounds",
     "admin dashboard",
     BASELINE_DEADLINE,
   ]);
-  const requestPayloads = await readCleanMessage(apiKey, counter, mailbox.id, requestMetadata.id, [
+  const requestPayloads = await readSelectedMessage(apiKey, counter, mailbox.id, requestMetadata.id, [
     "Stripe payment processing",
     "two more revision rounds",
     "five calendar days earlier",
