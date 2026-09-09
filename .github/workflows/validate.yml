@@ -8,6 +8,15 @@ on:
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
+    inputs:
+      live_margin_guard:
+        description: "Optional live proof; seed-and-prove sends two synthetic emails back to the same test mailbox"
+        required: true
+        default: connection_only
+        type: choice
+        options:
+          - connection_only
+          - seed_and_prove
 
 permissions:
   contents: read
@@ -29,3 +38,10 @@ jobs:
           MERMAIL_MCP_TEST_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
           MERMAIL_REQUIRE_TEST_API_KEY: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: npm run validate:remote
+      - name: Run live Margin Guard proof
+        if: github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'seed_and_prove'
+        env:
+          MERMAIL_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
+          MERMAIL_LIVE_SEND_APPROVED: "1"
+          MERMAIL_LIVE_RUN_TAG: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: npm run prove:live-margin

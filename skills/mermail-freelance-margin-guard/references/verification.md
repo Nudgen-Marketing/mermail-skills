@@ -59,6 +59,22 @@ Use a dedicated test mailbox and synthetic project messages. Do not use confiden
 
 The live proof is complete only when both Mermail reads succeed and the final packet is produced from the selected message evidence. Tool discovery alone is not a live workflow result.
 
+### Reproducible self-addressed proof
+
+The `Validate skills` workflow has an optional `seed_and_prove` mode. Its default remains the read-only `connection_only` mode. Select `seed_and_prove` only after the mailbox owner has reviewed and approved the two exact synthetic messages in `scripts/run-live-proof.mjs`.
+
+The gated mode:
+
+1. resolves exactly one ready test mailbox;
+2. sends the accepted-scope and later-request fixtures from that mailbox back to itself, once each, with run-scoped idempotency keys;
+3. discovers them through bounded metadata-only searches;
+4. retrieves only those exact clean messages;
+5. verifies required evidence phrases before building the packet;
+6. calculates the 26–33 hour and 487.5–618.75 USD requested-deadline ranges with exactly three options; and
+7. prints only a sanitized proof summary and integrity digests.
+
+The public log redacts the API key, mailbox address, mailbox id, message ids, and message bodies. This mode never contacts a client and never creates a reply, draft, wallet action, or financial action.
+
 ## Safety regressions
 
 Before presenting a result, verify that:

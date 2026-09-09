@@ -7,6 +7,11 @@ import {
   renderMarkdown,
   verifyMarginPacket,
 } from "../skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs";
+import {
+  buildLiveMarginInput,
+  LIVE_BASELINE_BODY,
+  LIVE_REQUEST_BODY,
+} from "../skills/mermail-freelance-margin-guard/scripts/run-live-proof.mjs";
 
 const fixturePath = path.join(import.meta.dirname, "fixtures", "freelance-margin-guard.json");
 const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
@@ -23,6 +28,29 @@ function check(name, fn) {
 check("builds the synthetic project packet", () => {
   assert.equal(packet.project.name, "Northstar Landing Page");
   assert.equal(packet.state, "scope_change_detected");
+});
+
+check("builds a complete live-proof input without exposing mailbox data in labels", () => {
+  const liveInput = buildLiveMarginInput({
+    baselineMessageId: "live-message-baseline",
+    requestMessageId: "live-message-request",
+    baselineDate: "2026-09-09",
+    requestDate: "2026-09-09",
+  });
+  const livePacket = buildMarginPacket(liveInput);
+  assert.equal(livePacket.state, "scope_change_detected");
+  assert.deepEqual(livePacket.marginSnapshot.knownAddedHours, { min: 26, max: 33 });
+  assert.deepEqual(livePacket.marginSnapshot.completeTotalFeeRange, { min: 487.5, max: 618.75 });
+  assert.equal(livePacket.clientOptions.length, 3);
+  assert.equal(verifyMarginPacket(livePacket).valid, true);
+});
+
+check("keeps the approved live synthetic messages exact and non-confidential", () => {
+  assert.match(LIVE_BASELINE_BODY, /one responsive landing page/);
+  assert.match(LIVE_BASELINE_BODY, /admin dashboard/);
+  assert.match(LIVE_REQUEST_BODY, /five calendar days earlier/);
+  assert.match(LIVE_REQUEST_BODY, /supplied two days after/);
+  assert.doesNotMatch(`${LIVE_BASELINE_BODY} ${LIVE_REQUEST_BODY}`, /@|api key|wallet|private project/i);
 });
 
 check("accepts an owner-supplied authority source without a message id", () => {
