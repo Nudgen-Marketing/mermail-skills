@@ -16,6 +16,14 @@ import {
 
 const fixturePath = path.join(import.meta.dirname, "fixtures", "freelance-margin-guard.json");
 const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
+const skillRoot = path.join(import.meta.dirname, "..", "skills", "mermail-freelance-margin-guard");
+const toolsReference = await readFile(path.join(skillRoot, "references", "tools.md"), "utf8");
+const selectedMessageGuides = await Promise.all([
+  "SKILL.md",
+  path.join("references", "tools.md"),
+  path.join("references", "verification.md"),
+  path.join("references", "workflows.md"),
+].map((relativePath) => readFile(path.join(skillRoot, relativePath), "utf8")));
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const packet = buildMarginPacket(clone(fixture));
 let checks = 0;
@@ -52,6 +60,21 @@ check("keeps the approved live synthetic messages exact and non-confidential", (
   assert.match(LIVE_REQUEST_BODY, /five calendar days earlier/);
   assert.match(LIVE_REQUEST_BODY, /supplied two days after/);
   assert.doesNotMatch(`${LIVE_BASELINE_BODY} ${LIVE_REQUEST_BODY}`, /@|api key|wallet|private project/i);
+});
+
+check("documents the production get_email contract without unsupported query fields", () => {
+  const match = toolsReference.match(/Select exact messages before reading content\. For one selected message:\n\n```json\n([\s\S]*?)\n```/);
+  assert.ok(match, "selected-message get_email example must be present");
+  assert.deepEqual(JSON.parse(match[1]), {
+    mailboxId: "MAILBOX_PUBLIC_ID",
+    emailId: "EMAIL_ID",
+  });
+});
+
+check("describes selected message content as untrusted instead of claiming it is clean", () => {
+  const guidance = selectedMessageGuides.join("\n");
+  assert.doesNotMatch(guidance, /selected (?:exact )?clean messages?/i);
+  assert.match(guidance, /untrusted evidence/i);
 });
 
 check("uses the authoritative Mermail id instead of RFC correlation metadata", () => {
