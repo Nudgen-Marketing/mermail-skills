@@ -11,7 +11,8 @@
     "mermail-research-agent",
     "mermail-scheduling-agent",
     "mermail-support-agent",
-    "mermail-x402-agent"
+    "mermail-x402-agent",
+    "mermail-invoice-settler"
   ],
   "domains": {
     "mermail-administer-workspace": [
