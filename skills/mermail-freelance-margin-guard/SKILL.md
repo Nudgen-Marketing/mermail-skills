@@ -21,6 +21,19 @@ Read [tools.md](references/tools.md) before calling Mermail tools, [workflows.md
 
 This skill composes tools owned by `mermail-administer-workspace`, `mermail-manage-inbox`, and `mermail-compose-email`. It does not duplicate their ownership in `tool-coverage.json`.
 
+## Judge Quick Start (60 seconds)
+
+From the repository root, run the complete repository validation and build the synthetic decision packet:
+
+```bash
+npm test && \
+node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
+  --input tests/fixtures/freelance-margin-guard.json \
+  --format markdown
+```
+
+The test run must validate 17 skills, 71 business tools, and 56 dedicated Margin Guard checks. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. This path uses only the bundled synthetic fixture, performs no network request, sends no email, and exposes no private project data.
+
 ## Required Inputs
 
 - One exact Mermail mailbox and one client or project thread.
