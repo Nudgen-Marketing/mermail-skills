@@ -133,6 +133,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-cli` | Install and use the CLI for deterministic shell automation |
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
+| `mermail-decision-room` | Turn business email threads into evidence-bound decision briefs with facts, conflicts, gaps, options, risks, and a recommended next action; analysis only |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |

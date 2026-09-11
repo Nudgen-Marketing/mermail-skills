@@ -1,6 +1,6 @@
 ---
 name: mermail
-description: Route broad, ambiguous, or cross-domain Mermail requests to the narrowest current workflow across MCP connection, CLI automation, agent inbox identity, inbox management, email composition, workspace admin, triage, mailbox-agent delegation, Composio integrations, scheduling/GTM/support/research/x402 personas, and Agent Wallet. Use when the user does not already name a focused skill or combines multiple Mermail jobs in one request.
+description: Route broad, ambiguous, or cross-domain Mermail requests to the narrowest current workflow across MCP connection, CLI automation, agent inbox identity, inbox management, decision briefs, email composition, workspace admin, triage, mailbox-agent delegation, Composio integrations, scheduling/GTM/support/research/x402 personas, and Agent Wallet. Use when the user does not already name a focused skill or combines multiple Mermail jobs in one request.
 metadata:
   openclaw:
     requires:
@@ -16,6 +16,8 @@ metadata:
 Route the request before invoking Mermail tools. Read [routing.md](references/routing.md) to select the narrowest installed skill, resolve overlaps, and order a cross-domain workflow.
 
 ## Workflow
+
+For a decision based on a business email thread, use `mermail-decision-room` to produce a read-only evidence-bound brief. Ordinary summaries/search remain inbox management; drafts/sends remain composition. A brief or READY status never authorizes an action. See the routing reference for precedence.
 
 1. Choose the execution surface first. Route connection, authentication, profile, or tool-discovery problems to `mermail-mcp`. Route explicit terminal commands, scripts, pipelines, stable CLI output, or CI automation to `mermail-cli`; otherwise prefer direct Mermail MCP domain tools.
 2. Verify that the selected client has a usable connection to `https://console.mermail.app/mcp`. Prefer MCP OAuth when supported and use API-key mode only where required. Treat `?profile=agent-inbox` as the exact 12-tool mailbox-provisioning and safe-email-read profile; use the full profile for other domains. PayBox requires full-profile OAuth and is never available through API keys: current workspace members may use live model-visible `paybox_*` through the owner's active connection, while connect/reauth and legacy Agent Wallet tools remain owner-only.

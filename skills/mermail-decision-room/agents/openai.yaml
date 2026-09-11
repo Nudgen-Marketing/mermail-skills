@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Decision Room"
+  short_description: "Evidence-bound decisions from business email threads"
+  default_prompt: "Use $mermail-decision-room to prepare an evidence-bound decision brief from this thread, separating facts, claims, conflicts, and missing information without executing any action."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
