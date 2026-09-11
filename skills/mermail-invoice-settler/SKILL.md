@@ -1,115 +1,52 @@
 ---
 name: mermail-invoice-settler
-version: 1.0.0
-description: Autonomous invoice verification and micropayment settlement skill using Mermail MCP inbox and agent wallet.
-author: Antigravity Agent Builder
-homepage: https://mermail.app
-tags:
-  - mermail
-  - mcp
-  - payments
-  - automation
-  - email
+description: Verify freelance contractor invoices and micro-bounty claims in a Mermail mailbox, validate deliverables against criteria, check Agent Wallet liquidity, and settle on-chain USDC payments via PayBox with cryptographic email receipts. Use when an autonomous agent is tasked with automated freelance bounty settlement, invoice triage, or deliverable verification. Do not use for read-only expense audits or unauthorized payments without explicit user policy.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: "⚡"
 ---
 
-# Mermail Invoice & Micro-Bounty Settlement Skill
+# Mermail Invoice & Micro-Bounty Settler
 
-This skill enables an autonomous AI agent to monitor its Mermail inbox for incoming freelance invoices or micro-bounty claims, verify deliverable completion against criteria, execute on-chain payments via the Mermail Agent Wallet, and reply with an immutable cryptographic receipt.
+Read [tools.md](references/tools.md), [security.md](references/security.md), and [workflows.md](references/workflows.md) before starting.
 
-## 1. What This Skill Enables
-- **Hands-Off Freelance Settling**: The agent acts as an autonomous payer for software bounties, data tasks, or API service invoices.
-- **Inbox-to-Wallet Bridge**: Integrates Mermail's email parser with Mermail's MCP wallet tools.
-- **Cryptographic Audit Trail**: Returns transaction signatures and invoice status directly to the sender via email.
+## Overview
 
----
+Use this skill to enable an autonomous AI agent operating with a Mermail mailbox and Agent Wallet / PayBox connection to:
+1. Detect and inspect incoming contractor invoices, bounty claims, and deliverable submissions.
+2. Extract payee address, token currency, amount requested, and deliverable links (GitHub PR, commit, or artifact URL).
+3. Validate deliverable acceptance against owner-defined criteria and pre-authorized spend limits.
+4. Verify wallet liquidity with `get_paybox_connection` and `get_agent_wallet_portfolio`.
+5. Execute on-chain settlement via `paybox_request_transfer`.
+6. Issue an immutable email receipt to the contractor with the transaction signature and settlement breakdown via `send_email` or `reply_to_email`.
 
-## 2. MCP Tools Used
-This skill connects to the Mermail Model Context Protocol (MCP) server:
-* `mermail_fetch_unread_emails`: Retrieves unread invoices/bounties from `agent@mermail.app`.
-* `mermail_get_email_details`: Extracts sender address, requested payout amount, currency, and deliverable URL.
-* `mermail_agent_wallet_balance`: Verifies wallet liquidity.
-* `mermail_agent_wallet_transfer`: Executes on-chain USDC/SOL transfer to the recipient's wallet.
-* `mermail_send_email`: Sends automated confirmation with transaction hash and receipt details.
+## Preferred Deliverables
 
----
+- Grounded invoice summary linking contractor email ID, invoice number, requested token/amount, and deliverable URL.
+- Verification status confirming deliverable validity and compliance with max authorized spend ceiling.
+- Explicit settlement preview before dispatch: payee address, token asset, network, and amount.
+- On-chain transfer submission via `paybox_request_transfer` with verified transaction signature.
+- Confirmation email dispatched to the contractor containing the on-chain receipt.
 
-## 3. Workflow Steps
+## Workflow
 
-```
-[Contractor sends email to agent@mermail.app with invoice + deliverable link]
-                                |
-                                v
-               [Step 1: Check Mermail Unread Inbox]
-                                |
-                                v
-               [Step 2: Parse Invoice & Verify Deliverables]
-                 - Check GitHub PR or document URL
-                 - Verify requested amount <= Max approved budget
-                                |
-                                v
-               [Step 3: Check Agent Wallet Balance]
-                                |
-                                v
-               [Step 4: Execute On-Chain Transfer via Wallet MCP]
-                                |
-                                v
-               [Step 5: Send Email Confirmation with Tx Hash]
-```
-
-### Step-by-Step Execution:
-
-1. **Poll & Filter Messages**:
-   Agent calls `mermail_fetch_unread_emails(filter="invoice")` to detect pending payment requests.
-
-2. **Extraction & Verification**:
-   Extract:
-   - `recipient_wallet`: Recipient on-chain address (Solana or EVM).
-   - `amount`: Token amount requested (e.g., `50 USDC`).
-   - `proof_link`: URL to GitHub PR, commit, or deliverable.
-   Verify that `amount` does not exceed the agent's pre-authorized spending limit (e.g., 250 USDC).
-
-3. **Check Wallet Balance**:
-   Call `mermail_agent_wallet_balance(token="USDC")` to ensure sufficient funds.
-
-4. **Execute Payment**:
-   Call `mermail_agent_wallet_transfer`:
-   ```json
-   {
-     "to": "RecipientWalletAddressHere...",
-     "amount": 50,
-     "token": "USDC",
-     "network": "solana"
-   }
-   ```
-
-5. **Acknowledge and Reply**:
-   Call `mermail_send_email`:
-   ```json
-   {
-     "to": "contractor@example.com",
-     "subject": "Payment Confirmation: Invoice #1042 Settled",
-     "body": "Hello,\n\nYour deliverable has been verified and settled.\nTransaction Signature: 5Kj1...TxHash\nAmount: 50 USDC\nNetwork: Solana\n\nThank you,\nAutonomous Agent via Mermail"
-   }
-   ```
-
----
-
-## 4. Example Prompts & Expected Results
-
-### Example Trigger Prompt:
-> *"Check my Mermail inbox for any new bounty invoices under $100. Verify the submitted GitHub links, settle approved payments from my agent wallet, and email back the transaction receipts."*
-
-### Expected Agent Behavior:
-1. Agent identifies 1 unread email from `contributor@dev.com` with invoice for `25 USDC` for fixing a bug in repository `example/repo`.
-2. Agent inspects the GitHub PR, confirms the commit exists and tests pass.
-3. Agent triggers `mermail_agent_wallet_transfer(to="...", amount=25, token="USDC")`.
-4. Transaction succeeds with signature `4w3Z9F...`.
-5. Agent generates and sends confirmation email.
-6. Returns summary to user: *"Settled invoice #1042 for 25 USDC to 7Xq... via Solana. Confirmation email dispatched."*
-
----
-
-## 5. Security & Safety Limits
-- **Max Single Transaction Limit**: 100 USDC default.
-- **Whitelisted Recipient Domain Check**: Discards unauthenticated spam emails.
-- **Human Escalation**: If an invoice exceeds the limit or deliverable link is invalid, agent forwards the email to human supervisor without spending funds.
+1. **Inbox Polling & Invoice Discovery**:
+   - Query mailbox with `search_emails` or `list_emails` filtering for pending invoice submissions or bounty tags.
+   - Inspect candidate messages using `get_email` or `get_email_context`.
+2. **Deliverable & Policy Validation**:
+   - Parse contractor payment details: recipient wallet address, token currency, invoice amount, and deliverable URL.
+   - Verify that the requested amount does not exceed the agent's pre-configured spending limit (e.g. 100 USDC).
+   - If deliverable URL is missing, invalid, or exceeds policy ceiling, halt payment and flag for human supervisor review.
+3. **Liquidity Pre-flight**:
+   - Always call `get_paybox_connection` once before any PayBox operation.
+   - Inspect available USDC and native gas balance via `get_agent_wallet_portfolio`.
+4. **On-Chain Settlement**:
+   - Call `paybox_request_transfer` with recipient wallet address, asset, and authorized amount.
+   - Poll settlement confirmation once via `paybox_get_request` when needed.
+5. **Receipt Dispatch**:
+   - Generate and send an itemized receipt to the contractor using `reply_to_email` or `send_email`, quoting the transaction hash, settled amount, and date.
