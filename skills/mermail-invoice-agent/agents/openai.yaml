@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Agent"
+  short_description: "Accounts-payable clerk for invoice email"
+  default_prompt: "Use $mermail-invoice-agent to read my billing inbox, verify each invoice sender against my allowlist, apply my amount threshold, and resolve every invoice to a truthful paid, pending, rejected, or failed status without ever claiming a payment that did not execute."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, compose, and Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
