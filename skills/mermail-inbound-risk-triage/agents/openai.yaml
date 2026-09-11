@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbound Risk Triage"
+  short_description: "Judge whether inbound mail is safe to trust, then quarantine and draft an escalation"
+  default_prompt: "Use $mermail-inbound-risk-triage to assess this message for fraud or impersonation risk before anything acts on it."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
