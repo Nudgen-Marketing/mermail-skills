@@ -103,15 +103,14 @@ await checkAsync("never retries an unexpected programming error", async () => {
   assert.equal(attempts, 1);
 });
 
-check("uses a bounded inbox listing before search when resuming old proof messages", () => {
+check("uses a bounded all-folder listing before search when resuming old proof messages", () => {
   const subject = "[FMG-LIVE-existing-run] Accepted scope";
   const resumePlan = buildDiscoveryPlan("mailbox-public-id", subject, { resumeOnly: true });
-  assert.equal(resumePlan.length, 6);
+  assert.equal(resumePlan.length, 11);
   assert.equal(resumePlan[0].name, "list_emails");
   assert.deepEqual(resumePlan[0].args, {
     mailboxId: "mailbox-public-id",
     query: {
-      folder: "inbox",
       page: 1,
       limit: 100,
       sortColumn: "date",
@@ -120,10 +119,11 @@ check("uses a bounded inbox listing before search when resuming old proof messag
       agent_safe_content: true,
     },
   });
-  assert.equal(resumePlan[4].args.query.page, 5);
-  assert.equal(resumePlan[5].name, "search_emails");
-  assert.equal(resumePlan[5].args.query.subject, subject);
-  assert.equal("date_start" in resumePlan[5].args.query, false);
+  assert.equal(resumePlan[9].args.query.page, 10);
+  assert.equal(resumePlan[10].name, "search_emails");
+  assert.equal(resumePlan[10].args.query.subject, subject);
+  assert.equal("folder" in resumePlan[10].args.query, false);
+  assert.equal("date_start" in resumePlan[10].args.query, false);
   assert.equal(buildDiscoveryPlan("mailbox-public-id", subject)[0].name, "search_emails");
 });
 

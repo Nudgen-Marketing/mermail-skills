@@ -15,7 +15,7 @@ const WAIT_ATTEMPTS = 36;
 const WAIT_MS = 2500;
 const RESUME_DISCOVERY_ATTEMPTS = 4;
 const LIST_PAGE_LIMIT = 100;
-const LIST_MAX_PAGES = 5;
+const LIST_MAX_PAGES = 10;
 const READ_RETRY_ATTEMPTS = 4;
 const READ_RETRY_BASE_MS = 1000;
 const READ_RETRY_MAX_MS = 8000;
@@ -277,7 +277,6 @@ export function buildDiscoveryPlan(mailboxId, subject, { resumeOnly = false } = 
       mailboxId,
       query: {
         subject,
-        folder: "inbox",
         page: 1,
         limit: 10,
         metadata_only: true,
@@ -291,7 +290,6 @@ export function buildDiscoveryPlan(mailboxId, subject, { resumeOnly = false } = 
     args: {
       mailboxId,
       query: {
-        folder: "inbox",
         page: index + 1,
         limit: LIST_PAGE_LIMIT,
         sortColumn: "date",
