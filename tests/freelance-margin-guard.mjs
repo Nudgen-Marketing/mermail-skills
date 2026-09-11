@@ -11,6 +11,7 @@ import {
   buildDiscoveryPlan,
   buildLiveMarginInput,
   LIVE_BASELINE_BODY,
+  LIVE_PROBE_BODY,
   LIVE_REQUEST_BODY,
   retryReadOperation,
   resolveEmailMetadata,
@@ -69,6 +70,12 @@ check("keeps the approved live synthetic messages exact and non-confidential", (
   assert.match(LIVE_REQUEST_BODY, /five calendar days earlier/);
   assert.match(LIVE_REQUEST_BODY, /supplied two days after/);
   assert.doesNotMatch(`${LIVE_BASELINE_BODY} ${LIVE_REQUEST_BODY}`, /@|api key|wallet|private project/i);
+});
+
+check("keeps the one-message round-trip probe fixed and non-confidential", () => {
+  assert.match(LIVE_PROBE_BODY, /round-trip health check for PR 124/);
+  assert.match(LIVE_PROBE_BODY, /sent, discovered, selected, and read successfully/);
+  assert.doesNotMatch(LIVE_PROBE_BODY, /@|api key|wallet|private project|customer|credential/i);
 });
 
 await checkAsync("retries bounded read failures with deterministic backoff", async () => {

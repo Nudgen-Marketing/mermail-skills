@@ -31,6 +31,10 @@ export const LIVE_REQUEST_BODY =
   `two more revision rounds, and deliver five calendar days earlier (${REQUESTED_DEADLINE}). ` +
   "Staging credentials were supplied two days after the agreed access date.";
 
+export const LIVE_PROBE_BODY =
+  "Mermail round-trip health check for PR 124. " +
+  "Expected result: sent, discovered, selected, and read successfully.";
+
 export class SafeError extends Error {
   constructor(stage) {
     super(`live proof stopped at ${stage}`);
@@ -529,15 +533,25 @@ function outputProof(packet, dates) {
   process.stdout.write("Delivery: no client email, reply, draft, wallet action, or financial action was performed.\n");
 }
 
+function outputRoundtripProbe() {
+  process.stdout.write("Live Mermail round-trip probe passed.\n");
+  process.stdout.write("Privacy: API key, mailbox address, mailbox id, message id, and message body are redacted.\n");
+  process.stdout.write("Evidence path: 1 ready mailbox; 1 idempotent synthetic self-send; bounded exact-subject discovery; 1 exact selected-message read.\n");
+  process.stdout.write("Verification: the fixed probe phrases were present in the selected message.\n");
+  process.stdout.write("Delivery: no client email, reply, draft, wallet action, or financial action was performed.\n");
+}
+
 async function main() {
   if (process.argv.includes("--help") || process.argv.includes("-h")) {
-    process.stdout.write("Usage: run-live-proof.mjs --seed-and-prove\n");
+    process.stdout.write("Usage: run-live-proof.mjs (--seed-and-prove | --roundtrip-probe)\n");
     return;
   }
-  invariant(process.argv.includes("--seed-and-prove"), "mode");
+  const seedAndProve = process.argv.includes("--seed-and-prove");
+  const roundtripProbe = process.argv.includes("--roundtrip-probe");
+  invariant(Number(seedAndProve) + Number(roundtripProbe) === 1, "mode");
   const apiKey = process.env.MERMAIL_API_KEY;
   const runTag = process.env.MERMAIL_LIVE_RUN_TAG;
-  const resumeOnly = process.env.MERMAIL_LIVE_RESUME === "1";
+  const resumeOnly = seedAndProve && process.env.MERMAIL_LIVE_RESUME === "1";
   invariant(apiKey, "configuration");
   invariant(resumeOnly || process.env.MERMAIL_LIVE_SEND_APPROVED === "1", "send-approval");
   invariant(typeof runTag === "string" && /^[A-Za-z0-9-]{1,48}$/.test(runTag), "run-tag");
@@ -566,6 +580,34 @@ async function main() {
 
   const mailboxPayloads = await callTool(apiKey, counter, "list_mailboxes", {}, "mailbox-list");
   const mailbox = resolveMailbox(mailboxPayloads, process.env.MERMAIL_LIVE_MAILBOX_ID);
+
+  if (roundtripProbe) {
+    const subject = `[FMG-PROBE-${runTag}] Round-trip health check`;
+    await callMutationOnce(
+      apiKey,
+      counter,
+      "send_email",
+      {
+        mailboxId: mailbox.id,
+        idempotencyKey: `fmg-probe-${runTag}`,
+        body: {
+          to: mailbox.email,
+          from: mailbox.email,
+          subject,
+          text: LIVE_PROBE_BODY,
+        },
+      },
+      "self-send-probe",
+    );
+    const metadata = await findMessage(apiKey, counter, mailbox.id, subject);
+    await readSelectedMessage(apiKey, counter, mailbox.id, metadata.id, [
+      "round-trip health check for PR 124",
+      "sent, discovered, selected, and read successfully",
+    ]);
+    outputRoundtripProbe();
+    return;
+  }
+
   const baselineSubject = `[FMG-LIVE-${runTag}] Accepted scope`;
   const requestSubject = `[FMG-LIVE-${runTag}] Change request`;
 

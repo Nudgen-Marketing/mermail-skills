@@ -63,6 +63,8 @@ The live proof is complete only when both Mermail reads succeed and the final pa
 
 The `Validate skills` workflow has an optional `seed_and_prove` mode. Its default remains the read-only `connection_only` mode. Select `seed_and_prove` only after the mailbox owner has reviewed and approved the two exact synthetic messages in `scripts/run-live-proof.mjs`.
 
+Use `roundtrip_probe` to verify the delivery path with exactly one fixed synthetic message sent from the dedicated test mailbox back to itself. The probe makes one non-retried send request with a run-stable idempotency key, discovers the exact subject with bounded metadata calls, reads only the selected message, verifies fixed phrases, and redacts mailbox and message data from logs. A workflow rerun reuses the same idempotency key rather than authorizing another delivery.
+
 If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode searches up to ten bounded newest-first all-folder metadata pages before falling back to exact-subject search, prefers the Inbox copy from returned folder metadata when present, selects the authoritative Mermail email id, and performs exact selected-message reads without sending either message again. Looking across folders also recovers the Sent copy when a self-addressed message is no longer returned in Inbox. It does not depend on a moving 24-hour date window, so an older approved run tag remains reproducible. The synthetic bodies are fixed in the script, re-checked phrase by phrase, and never printed.
 
 The gated mode:

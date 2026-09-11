@@ -10,12 +10,13 @@ on:
   workflow_dispatch:
     inputs:
       live_margin_guard:
-        description: "Optional live proof; seed-and-prove sends two synthetic emails back to the same test mailbox"
+        description: "Optional live proof; round-trip sends one synthetic email back to the same test mailbox"
         required: true
         default: connection_only
         type: choice
         options:
           - connection_only
+          - roundtrip_probe
           - seed_and_prove
           - resume_and_prove
       resume_run_tag:
@@ -51,6 +52,13 @@ jobs:
           MERMAIL_LIVE_SEND_APPROVED: "1"
           MERMAIL_LIVE_RUN_TAG: ${{ github.run_id }}-${{ github.run_attempt }}
         run: npm run prove:live-margin
+      - name: Run one-message Mermail round-trip probe
+        if: github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'roundtrip_probe'
+        env:
+          MERMAIL_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
+          MERMAIL_LIVE_SEND_APPROVED: "1"
+          MERMAIL_LIVE_RUN_TAG: probe-${{ github.run_id }}
+        run: npm run probe:live-roundtrip
       - name: Resume live Margin Guard proof without another send
         if: github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'resume_and_prove'
         env:
