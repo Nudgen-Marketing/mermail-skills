@@ -11,7 +11,9 @@ import {
   buildLiveMarginInput,
   LIVE_BASELINE_BODY,
   LIVE_REQUEST_BODY,
+  retryReadOperation,
   resolveEmailMetadata,
+  SafeError,
 } from "../skills/mermail-freelance-margin-guard/scripts/run-live-proof.mjs";
 
 const fixturePath = path.join(import.meta.dirname, "fixtures", "freelance-margin-guard.json");
@@ -30,6 +32,12 @@ let checks = 0;
 
 function check(name, fn) {
   fn();
+  checks += 1;
+  process.stdout.write(`ok ${checks} - ${name}\n`);
+}
+
+async function checkAsync(name, fn) {
+  await fn();
   checks += 1;
   process.stdout.write(`ok ${checks} - ${name}\n`);
 }
@@ -60,6 +68,38 @@ check("keeps the approved live synthetic messages exact and non-confidential", (
   assert.match(LIVE_REQUEST_BODY, /five calendar days earlier/);
   assert.match(LIVE_REQUEST_BODY, /supplied two days after/);
   assert.doesNotMatch(`${LIVE_BASELINE_BODY} ${LIVE_REQUEST_BODY}`, /@|api key|wallet|private project/i);
+});
+
+await checkAsync("retries bounded read failures with deterministic backoff", async () => {
+  let attempts = 0;
+  const delays = [];
+  const result = await retryReadOperation(
+    async () => {
+      attempts += 1;
+      if (attempts < 3) throw new SafeError("bounded-search:tool-result");
+      return "recovered";
+    },
+    {
+      attempts: 4,
+      baseDelayMs: 25,
+      sleepFn: async (delayMs) => delays.push(delayMs),
+    },
+  );
+  assert.equal(result, "recovered");
+  assert.equal(attempts, 3);
+  assert.deepEqual(delays, [25, 50]);
+});
+
+await checkAsync("never retries an unexpected programming error", async () => {
+  let attempts = 0;
+  await assert.rejects(
+    retryReadOperation(async () => {
+      attempts += 1;
+      throw new TypeError("unexpected");
+    }, { attempts: 4, baseDelayMs: 0, sleepFn: async () => {} }),
+    TypeError,
+  );
+  assert.equal(attempts, 1);
 });
 
 check("documents the production get_email contract without unsupported query fields", () => {

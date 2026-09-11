@@ -13,6 +13,9 @@ const BASELINE_DEADLINE = "2026-10-20";
 const REQUESTED_DEADLINE = "2026-10-15";
 const WAIT_ATTEMPTS = 36;
 const WAIT_MS = 2500;
+const READ_RETRY_ATTEMPTS = 4;
+const READ_RETRY_BASE_MS = 1000;
+const READ_RETRY_MAX_MS = 8000;
 
 export const LIVE_BASELINE_BODY =
   "Accepted scope: one responsive landing page and two revision rounds. " +
@@ -25,7 +28,7 @@ export const LIVE_REQUEST_BODY =
   `two more revision rounds, and deliver five calendar days earlier (${REQUESTED_DEADLINE}). ` +
   "Staging credentials were supplied two days after the agreed access date.";
 
-class SafeError extends Error {
+export class SafeError extends Error {
   constructor(stage) {
     super(`live proof stopped at ${stage}`);
     this.name = "SafeError";
@@ -42,6 +45,31 @@ function isObject(value) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function retryReadOperation(
+  operation,
+  {
+    attempts = READ_RETRY_ATTEMPTS,
+    baseDelayMs = READ_RETRY_BASE_MS,
+    sleepFn = sleep,
+  } = {},
+) {
+  invariant(typeof operation === "function", "read-retry:operation");
+  invariant(Number.isInteger(attempts) && attempts > 0, "read-retry:attempts");
+  invariant(Number.isFinite(baseDelayMs) && baseDelayMs >= 0, "read-retry:delay");
+  invariant(typeof sleepFn === "function", "read-retry:sleep");
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!(error instanceof SafeError) || attempt === attempts - 1) throw error;
+      const delayMs = Math.min(baseDelayMs * (2 ** attempt), READ_RETRY_MAX_MS);
+      await sleepFn(delayMs);
+    }
+  }
+  throw new SafeError("read-retry:exhausted");
 }
 
 function normalize(value) {
@@ -128,14 +156,16 @@ async function mcpRequest(apiKey, id, method, params, stage) {
 }
 
 async function callTool(apiKey, counter, name, args, stage) {
-  const rpc = await mcpRequest(
-    apiKey,
-    counter.next(),
-    "tools/call",
-    { name, arguments: args },
-    stage,
-  );
-  return responsePayload(rpc, stage);
+  return retryReadOperation(async () => {
+    const rpc = await mcpRequest(
+      apiKey,
+      counter.next(),
+      "tools/call",
+      { name, arguments: args },
+      stage,
+    );
+    return responsePayload(rpc, stage);
+  });
 }
 
 async function callMutationOnce(apiKey, counter, name, args, stage) {
