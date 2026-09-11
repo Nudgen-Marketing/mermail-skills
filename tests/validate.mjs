@@ -1499,6 +1499,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-freelance-margin-guard",
   "mermail-research-agent",
   "mermail-x402-agent",
 ]) {
@@ -1938,15 +1939,28 @@ async function validateRemote() {
   if (unauthenticated.status !== 401) errors.push(`unauthenticated MCP request returned HTTP ${unauthenticated.status}, expected 401`);
 
   const apiKey = process.env.MERMAIL_MCP_TEST_API_KEY;
-  if (!apiKey) return;
+  const apiKeyRequired = process.env.MERMAIL_REQUIRE_TEST_API_KEY === "1";
+  if (!apiKey) {
+    if (apiKeyRequired) {
+      errors.push("manual authenticated Mermail validation requires MERMAIL_MCP_TEST_API_KEY");
+    }
+    return;
+  }
+
+  let authenticatedProofPassed = true;
   const initialized = await authenticatedMcpRequest(apiKey, initializePayload(1));
-  if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
+  if (!initialized?.result?.serverInfo) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated MCP initialize did not return serverInfo");
+  }
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
   if (remoteNames.length !== 72) {
+    authenticatedProofPassed = false;
     errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 72`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
+    authenticatedProofPassed = false;
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
   }
 
@@ -1957,11 +1971,37 @@ async function validateRemote() {
     params: { name: "list_workspaces", arguments: {} },
   });
   if (!workspaces) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces tools/call failed");
   } else if (workspaces.result?.isError) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces returned isError");
   } else if (!workspaces.result?.structuredContent && !workspaces.result?.content) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces returned empty content");
+  }
+
+  const mailboxes = await authenticatedMcpRequest(apiKey, {
+    jsonrpc: "2.0",
+    id: 4,
+    method: "tools/call",
+    params: { name: "list_mailboxes", arguments: {} },
+  });
+  if (!mailboxes) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes tools/call failed");
+  } else if (mailboxes.result?.isError) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes returned isError");
+  } else if (!mailboxes.result?.structuredContent && !mailboxes.result?.content) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes returned empty content");
+  }
+
+  if (authenticatedProofPassed) {
+    console.log(
+      "Authenticated Mermail proof passed: initialize; 72-tool catalog; list_workspaces; list_mailboxes (read-only).",
+    );
   }
 }
 

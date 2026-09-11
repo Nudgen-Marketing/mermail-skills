@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Freelance Margin Guard"
+  short_description: "Protect scope, revision budget, schedule, and fees"
+  default_prompt: "Use $mermail-freelance-margin-guard to compare a freelance project baseline with a new client request and prepare an evidence-backed margin packet without sending it."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
