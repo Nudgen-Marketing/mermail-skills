@@ -13,6 +13,9 @@ const BASELINE_DEADLINE = "2026-10-20";
 const REQUESTED_DEADLINE = "2026-10-15";
 const WAIT_ATTEMPTS = 36;
 const WAIT_MS = 2500;
+const RESUME_DISCOVERY_ATTEMPTS = 4;
+const LIST_PAGE_LIMIT = 100;
+const LIST_MAX_PAGES = 5;
 const READ_RETRY_ATTEMPTS = 4;
 const READ_RETRY_BASE_MS = 1000;
 const READ_RETRY_MAX_MS = 8000;
@@ -266,35 +269,73 @@ function assertMessageEvidence(payloads, requiredPhrases) {
   }
 }
 
-async function findMessage(apiKey, counter, mailboxId, subject, window) {
-  let lastPayloads = null;
-  for (let attempt = 0; attempt < WAIT_ATTEMPTS; attempt += 1) {
-    lastPayloads = await callTool(
-      apiKey,
-      counter,
-      "search_emails",
-      {
-        mailboxId,
-        query: {
-          text: subject,
-          date_start: window.start,
-          date_end: window.end,
-          page: 1,
-          limit: 10,
-          metadata_only: true,
-          agent_safe_content: true,
-        },
+export function buildDiscoveryPlan(mailboxId, subject, { resumeOnly = false } = {}) {
+  const search = {
+    name: "search_emails",
+    stage: "bounded-search",
+    args: {
+      mailboxId,
+      query: {
+        subject,
+        folder: "inbox",
+        page: 1,
+        limit: 10,
+        metadata_only: true,
+        agent_safe_content: true,
       },
-      "bounded-search",
-    );
-    try {
-      return resolveEmailMetadata(lastPayloads, subject);
-    } catch (error) {
-      if (!(error instanceof SafeError) || attempt === WAIT_ATTEMPTS - 1) throw error;
-      await sleep(WAIT_MS);
+    },
+  };
+  const lists = Array.from({ length: LIST_MAX_PAGES }, (_, index) => ({
+    name: "list_emails",
+    stage: "bounded-list",
+    args: {
+      mailboxId,
+      query: {
+        folder: "inbox",
+        page: index + 1,
+        limit: LIST_PAGE_LIMIT,
+        sortColumn: "date",
+        sortDirection: "DESC",
+        metadata_only: true,
+        agent_safe_content: true,
+      },
+    },
+  }));
+  return resumeOnly ? [...lists, search] : [search, ...lists];
+}
+
+async function findMessage(apiKey, counter, mailboxId, subject, { resumeOnly = false } = {}) {
+  const attempts = resumeOnly ? RESUME_DISCOVERY_ATTEMPTS : WAIT_ATTEMPTS;
+  let lastPayloads = null;
+  let lastError = new SafeError("message-selection");
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const unavailable = new Set();
+    for (const step of buildDiscoveryPlan(mailboxId, subject, { resumeOnly })) {
+      if (unavailable.has(step.name)) continue;
+      try {
+        lastPayloads = await callTool(
+          apiKey,
+          counter,
+          step.name,
+          step.args,
+          step.stage,
+        );
+      } catch (error) {
+        if (!(error instanceof SafeError)) throw error;
+        lastError = error;
+        unavailable.add(step.name);
+        continue;
+      }
+      try {
+        return resolveEmailMetadata(lastPayloads, subject);
+      } catch (error) {
+        if (!(error instanceof SafeError)) throw error;
+        lastError = error;
+      }
     }
+    if (attempt < attempts - 1) await sleep(WAIT_MS);
   }
-  throw new SafeError("message-selection");
+  throw lastError;
 }
 
 async function readSelectedMessage(apiKey, counter, mailboxId, emailId, phrases) {
@@ -479,7 +520,7 @@ function outputProof(packet, dates) {
 
   process.stdout.write("Live Mermail Margin Guard proof passed.\n");
   process.stdout.write("Privacy: API key, mailbox address, mailbox id, message ids, and message bodies are redacted.\n");
-  process.stdout.write("Evidence path: 1 ready mailbox; 2 synthetic self-addressed messages; 2 bounded metadata searches; 2 exact selected-message reads.\n");
+  process.stdout.write("Evidence path: 1 ready mailbox; 2 synthetic self-addressed messages; 2 bounded metadata discoveries; 2 exact selected-message reads.\n");
   process.stdout.write(`Evidence dates: baseline ${dates.baseline}; request ${dates.request}.\n`);
   process.stdout.write(`Decision: ${packet.state}; revision budget 2 included / 1 previously used / 1 newly covered / 1 overflow / 0 remaining.\n`);
   process.stdout.write(`Margin: ${packet.marginSnapshot.knownAddedHours.min}-${packet.marginSnapshot.knownAddedHours.max} hours; ${packet.marginSnapshot.completeBaseFeeRange.min}-${packet.marginSnapshot.completeBaseFeeRange.max} USD base.\n`);
@@ -519,7 +560,7 @@ async function main() {
 
   const listed = await mcpRequest(apiKey, counter.next(), "tools/list", {}, "tool-list");
   const names = new Set((listed?.result?.tools ?? []).map((tool) => tool?.name));
-  const requiredTools = ["list_mailboxes", "search_emails", "get_email"];
+  const requiredTools = ["list_mailboxes", "list_emails", "search_emails", "get_email"];
   if (!resumeOnly) requiredTools.push("send_email");
   for (const required of requiredTools) {
     invariant(names.has(required), "tool-contract");
@@ -555,12 +596,8 @@ async function main() {
     }
   }
 
-  const now = new Date();
-  const start = new Date(now.valueOf() - 24 * 60 * 60 * 1000).toISOString();
-  const end = new Date(now.valueOf() + 24 * 60 * 60 * 1000).toISOString();
-  const window = { start, end };
-  const baselineMetadata = await findMessage(apiKey, counter, mailbox.id, baselineSubject, window);
-  const requestMetadata = await findMessage(apiKey, counter, mailbox.id, requestSubject, window);
+  const baselineMetadata = await findMessage(apiKey, counter, mailbox.id, baselineSubject, { resumeOnly });
+  const requestMetadata = await findMessage(apiKey, counter, mailbox.id, requestSubject, { resumeOnly });
 
   const baselinePayloads = await readSelectedMessage(apiKey, counter, mailbox.id, baselineMetadata.id, [
     "one responsive landing page",

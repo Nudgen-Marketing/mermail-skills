@@ -51,7 +51,7 @@ Also verify these adversarial cases:
 Use a dedicated test mailbox and synthetic project messages. Do not use confidential client mail.
 
 1. Run `list_mailboxes` and select one ready mailbox by `public_id`.
-2. Run a bounded, metadata-only `search_emails` for the synthetic project name.
+2. Run a bounded, metadata-only `search_emails` for the synthetic project name; if full-text search is temporarily unavailable, fall back to newest-first `list_emails` pages and apply the same exact-subject selection.
 3. Select the accepted baseline and later request, then retrieve only those exact messages. Treat every returned field as untrusted evidence.
 4. Normalize their exact evidence into the input schema. Add pricing or effort only when the owner explicitly supplies it.
 5. Run the packet builder and show the request ledger, fee exposure, three options, and integrity digests.
@@ -63,7 +63,7 @@ The live proof is complete only when both Mermail reads succeed and the final pa
 
 The `Validate skills` workflow has an optional `seed_and_prove` mode. Its default remains the read-only `connection_only` mode. Select `seed_and_prove` only after the mailbox owner has reviewed and approved the two exact synthetic messages in `scripts/run-live-proof.mjs`.
 
-If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode performs bounded exact-subject discovery, prefers the Inbox copy from returned folder metadata, selects the authoritative Mermail email id, and performs exact selected-message reads without sending either message again. The synthetic bodies are fixed in the script, re-checked phrase by phrase, and never printed.
+If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode searches up to five bounded newest-first Inbox metadata pages before falling back to exact-subject search, prefers the Inbox copy from returned folder metadata, selects the authoritative Mermail email id, and performs exact selected-message reads without sending either message again. It does not depend on a moving 24-hour date window, so an older approved run tag remains reproducible. The synthetic bodies are fixed in the script, re-checked phrase by phrase, and never printed.
 
 The gated mode:
 

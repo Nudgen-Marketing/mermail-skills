@@ -8,6 +8,7 @@ import {
   verifyMarginPacket,
 } from "../skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs";
 import {
+  buildDiscoveryPlan,
   buildLiveMarginInput,
   LIVE_BASELINE_BODY,
   LIVE_REQUEST_BODY,
@@ -100,6 +101,30 @@ await checkAsync("never retries an unexpected programming error", async () => {
     TypeError,
   );
   assert.equal(attempts, 1);
+});
+
+check("uses a bounded inbox listing before search when resuming old proof messages", () => {
+  const subject = "[FMG-LIVE-existing-run] Accepted scope";
+  const resumePlan = buildDiscoveryPlan("mailbox-public-id", subject, { resumeOnly: true });
+  assert.equal(resumePlan.length, 6);
+  assert.equal(resumePlan[0].name, "list_emails");
+  assert.deepEqual(resumePlan[0].args, {
+    mailboxId: "mailbox-public-id",
+    query: {
+      folder: "inbox",
+      page: 1,
+      limit: 100,
+      sortColumn: "date",
+      sortDirection: "DESC",
+      metadata_only: true,
+      agent_safe_content: true,
+    },
+  });
+  assert.equal(resumePlan[4].args.query.page, 5);
+  assert.equal(resumePlan[5].name, "search_emails");
+  assert.equal(resumePlan[5].args.query.subject, subject);
+  assert.equal("date_start" in resumePlan[5].args.query, false);
+  assert.equal(buildDiscoveryPlan("mailbox-public-id", subject)[0].name, "search_emails");
 });
 
 check("documents the production get_email contract without unsupported query fields", () => {
