@@ -19,9 +19,10 @@ This document lists the tools used by `mermail-invoice-agent` across Mermail mai
 | :--- | :--- | :--- |
 | `get_agent_wallet_portfolio` | Inspect on-chain token balances | `walletId` |
 | `paybox_get_portfolio` | Inspect PayBox balances and supported assets | None |
-| `create_agent_wallet_transfer_proposal` | Formulate a formal transfer proposal for review | `walletId`, `recipient`, `amount`, `token` |
-| `paybox_request_transfer` | Execute on-chain token transfer | `recipient`, `amount`, `asset` |
-| `paybox_pay_x402` | Settle HTTP 402 machine payment requests | `url`, `quoteId`, `amount` |
+| `paybox_request_transfer` | Default entry point for every new native/token transfer; may return a signing handoff | Use the exact live tool schema |
+| `paybox_pay_x402` | Create the payment proof for one frozen x402 request; proof creation alone does not prove redemption or settlement | Use the exact live tool schema and pass the resolved required charge |
+| `paybox_get_request` | Reconcile one known pending or uncertain PayBox request | Use the exact request identifier returned by PayBox |
+| `create_agent_wallet_transfer_proposal` | Legacy local Circle USDC proposal for explicit proposal-review workflows only; never a fallback for a normal send | `mailboxId`, `chain`, `amount`, `destination` |
 
 ## Vendor Communication
 
@@ -29,3 +30,7 @@ This document lists the tools used by `mermail-invoice-agent` across Mermail mai
 | :--- | :--- | :--- |
 | `save_draft` | Save an invoice payment confirmation draft | `emailId`, `body`, `subject` |
 | `reply_to_email` | Send payment receipt directly to the vendor | `emailId`, `body`, `attachments` |
+
+Pass all structured arguments as native objects, not stringified JSON. Prefer a mailbox `public_id` as `mailboxId`. Read every PayBox tool's live schema before use because provider fields can evolve.
+
+PayBox requires the default full MCP profile and OAuth. API-key authentication and the focused agent-inbox profile do not expose PayBox. If a required `paybox_*` tool is absent, report it unavailable; do not substitute a proposal, a different transfer primitive, or a new payment request.
