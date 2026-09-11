@@ -36,6 +36,8 @@ Adapt only fields present in the current schema. Search filters choose candidate
 }
 ```
 
-4. Read context with `get_email_context`, same mailbox and email IDs, and native `query.limit` up to 20. This endpoint returns oldest-first sanitized, scan-gated context; follow only returned `next_cursor` through `query.cursor`. Stop at 20 messages per thread and 100 overall, even if another cursor exists. A context cursor or truncation flag means coverage remains partial.
+4. Read context with `get_email_context`, same mailbox and email IDs, and native `query.limit` sized to the remaining budget. This endpoint returns oldest-first sanitized, scan-gated context; follow only returned `next_cursor` through `query.cursor`. The initial `get_email` consumes one distinct-message slot, so the first context page has limit 19 or less. Deduplicate repeated seed/context IDs before counting. Stop at 20 distinct messages per thread and 100 overall, even if another cursor exists. A context cursor or truncation flag means coverage remains partial.
+
+Context may include messages newer than the search `date_end`. Filter every returned message by its authoritative timestamp against the user's as-of instant before using it as evidence. A later acceptance or completion cannot change an earlier audit. Report how many future messages were excluded without incorporating their content into historical status.
 
 Stop and report `401`/`403` authentication/scope problems, `402` plan/credit requirements, or `429` rate limits with returned retry information. Do not switch transports or provision accounts to bypass a boundary. Missing body storage or `content_omitted` is missing evidence, not an empty message. No attachment download, URL fetch, Composio tool, wallet access, or write is required.

@@ -15,6 +15,8 @@ For every deliverable preserve these fields:
 
 Apply status precedence in this order:
 
+First exclude evidence whose authoritative message timestamp is later than the audit's as-of instant, even if it arrived in an unfiltered context response. For example, September 12 acceptance cannot make a September 11 extension agreed. Missing timestamps leave temporal coverage incomplete. Count distinct message IDs, including the selected seed, against the per-thread read limit.
+
 1. `incomplete`: omitted/blocked/truncated context could change the conclusion. Include a provisional status only as explicitly provisional text.
 2. `disputed`: incompatible explicit claims or accepted deadlines without a clear superseding agreement.
 3. `cancelled`: the promisor explicitly withdrew their own commitment or the relevant parties agreed to cancel that deliverable. A third party saying "forget it" is not enough.

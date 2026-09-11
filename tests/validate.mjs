@@ -1895,6 +1895,22 @@ for (const content of trackedText) {
   if (leaked.length) errors.push("repository contains an API-key-shaped secret");
 }
 
+// This persona is deliberately read-only, unlike the broader domains it composes.
+// Check its declared tool routes against a narrow allowlist, not merely the global catalog.
+// These are static contracts; they do not prove that a model executes the workflow correctly.
+const commitmentReadTools = new Set([
+  "list_mailboxes", "search_emails", "list_emails", "get_email", "get_email_context",
+]);
+const commitmentScenarios = scenarios.filter((scenario) => scenario.skill === "mermail-commitment-tracker");
+if (!commitmentScenarios.some((scenario) => scenario.tools?.length > 0)) {
+  errors.push("mermail-commitment-tracker: missing declared read workflow");
+}
+for (const scenario of commitmentScenarios) {
+  if (scenario.approval !== "none" || scenario.tools.some((tool) => !commitmentReadTools.has(tool))) {
+    errors.push(`mermail-commitment-tracker: scenario exceeds read-only contract: ${scenario.expected}`);
+  }
+}
+
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
