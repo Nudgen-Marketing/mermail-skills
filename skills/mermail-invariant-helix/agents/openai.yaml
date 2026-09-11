@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invariant Helix"
+  short_description: "Run evidence-bound security reviews from a Mermail thread"
+  default_prompt: "Use $mermail-invariant-helix to run a scope-frozen invariant review, verify remediation evidence, and prepare a release-gate report in the Mermail thread."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
