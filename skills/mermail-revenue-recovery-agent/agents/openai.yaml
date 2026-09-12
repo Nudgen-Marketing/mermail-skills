@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Revenue Recovery Agent"
+  short_description: "Draft safe invoice follow-ups and classify payment replies"
+  default_prompt: "Use $mermail-revenue-recovery-agent to find overdue invoice threads, draft follow-ups, classify replies, and require independent payment verification before closing any invoice."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
