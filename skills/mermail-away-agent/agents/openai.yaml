@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Away Agent"
+  short_description: "Cover an inbox while you're away: sort, draft, hold, escalate, and brief on return"
+  default_prompt: "Use $mermail-away-agent when the job is out-of-office, vacation, or limited-availability inbox cover: set up away folders from an away brief, run a session that classifies and drafts for one batch approval, escalate by rule, and deliver a return briefing."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
