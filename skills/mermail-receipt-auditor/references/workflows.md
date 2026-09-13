@@ -35,6 +35,12 @@ Repeat pages inside the approved window before asking to widen it. Stop on ambig
 3. State coverage limits: window actually scanned, quarantined/failed items, mailboxes not audited.
 4. If the user asks about spend the ledger cannot see, run a targeted scan first; never extrapolate from narrative memory of email content.
 
+## Recurring charges
+
+1. When the user asks about subscriptions or recurring charges, run `ledger.py recurring` after the scan window is recorded.
+2. Detection groups active receipts by (vendor, amount, currency) and reports groups with at least two charges whose gaps stay within `--max-gap-days` (default 45). It reports cadence and the next expected date with the source `emailId`s; it never predicts an amount change.
+3. Frame output as observed cadence from recorded receipts, not a billing promise. A vendor that changed plans breaks the (vendor, amount) group by design; say so rather than merging mismatched amounts.
+
 ## Corrections
 
 1. Wrong or duplicate entry: never edit or delete lines. Append a `void` entry via `ledger.py void` referencing the original `emailId` and reason.

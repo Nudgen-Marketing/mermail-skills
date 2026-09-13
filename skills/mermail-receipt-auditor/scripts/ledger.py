@@ -271,6 +271,40 @@ def cmd_query(args: argparse.Namespace) -> int:
     return 0
 
 
+def mean_gap_days(dates: list[datetime]) -> float:
+    gaps = [(dates[i + 1] - dates[i]).days for i in range(len(dates) - 1)]
+    return sum(gaps) / len(gaps)
+
+
+def cmd_recurring(args: argparse.Namespace) -> int:
+    entries = load_entries(Path(args.dir) / LEDGER_FILE)
+    rows = active_receipts(entries)
+    groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    for e in rows:
+        key = (e["vendor"], str(e["amount"]), e["currency"])
+        groups.setdefault(key, []).append(e)
+    found = 0
+    for (vendor, amount, currency), group in sorted(groups.items()):
+        if len(group) < args.min_occurrences:
+            continue
+        ordered = sorted(group, key=lambda x: parse_date(x["date"]))
+        dates = [parse_date(e["date"]) for e in ordered]
+        gaps = [(dates[i + 1] - dates[i]).days for i in range(len(dates) - 1)]
+        if not gaps or max(gaps) > args.max_gap_days:
+            continue
+        cadence = round(mean_gap_days(dates))
+        next_date = dates[-1] + timedelta(days=cadence)
+        found += 1
+        ids = ", ".join(e["emailId"] for e in ordered)
+        print(
+            f"RECURRING {vendor} {amount} {currency} x{len(ordered)} "
+            f"cadence~{cadence}d next~{next_date.date()} emailIds=[{ids}]"
+        )
+    if not found:
+        print("NO_RECURRING_CHARGES_DETECTED")
+    return 0
+
+
 def cmd_export_csv(args: argparse.Namespace) -> int:
     ledger = Path(args.dir) / LEDGER_FILE
     entries = load_entries(ledger)
@@ -368,6 +402,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--currency", default=None)
     p.add_argument("--email-id", default=None)
     p.set_defaults(func=cmd_query)
+
+    p = sub.add_parser("recurring", help="detect recurring charges (vendor+amount cadence)")
+    common(p)
+    p.add_argument("--min-occurrences", type=int, default=2)
+    p.add_argument("--max-gap-days", type=int, default=45, help="ignore groups whose gaps exceed this")
+    p.set_defaults(func=cmd_recurring)
 
     p = sub.add_parser("schema", help="print entry schema")
     common(p)

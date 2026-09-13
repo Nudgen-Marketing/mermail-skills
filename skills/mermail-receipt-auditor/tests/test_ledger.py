@@ -174,6 +174,44 @@ class LedgerEngineTests(unittest.TestCase):
         r = run_cli("query", "--dir", self.dir, "--vendor", "Acme API")
         self.assertIn("1 receipts", r.stdout)
 
+    # -- recurring ----------------------------------------------------------
+
+    def test_recurring_detects_monthly_vendor(self):
+        add_receipt(self.dir, "em_1", "Acme API", "49.00", "USD", "2026-06-03", "api-services")
+        add_receipt(self.dir, "em_2", "Acme API", "49.00", "USD", "2026-07-03", "api-services")
+        add_receipt(self.dir, "em_3", "Acme API", "49.00", "USD", "2026-08-03", "api-services")
+        r = run_cli("recurring", "--dir", self.dir)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("RECURRING Acme API 49.00 USD x3", r.stdout)
+        self.assertIn("cadence~30d", r.stdout)  # gaps 30d + 31d -> mean 30.5 -> 30
+        self.assertIn("next~2026-09-02", r.stdout)
+        self.assertIn("em_1, em_2, em_3", r.stdout)
+
+    def test_recurring_gap_cap_excludes_wild_gaps(self):
+        self.seed()
+        add_receipt(self.dir, "em_5", "Wildcard Inc", "75.00", "USD", "2026-01-10")
+        add_receipt(self.dir, "em_6", "Wildcard Inc", "75.00", "USD", "2026-07-10")
+        r = run_cli("recurring", "--dir", self.dir)
+        self.assertIn("RECURRING Acme API", r.stdout, "seed contains a ~30d pair")
+        self.assertNotIn("Wildcard", r.stdout, "gap over max-gap-days is not recurring")
+        r = run_cli("recurring", "--dir", self.dir, "--max-gap-days", "365")
+        self.assertIn("RECURRING Wildcard Inc", r.stdout)
+
+    def test_recurring_respects_voids(self):
+        add_receipt(self.dir, "em_1", "Acme API", "49.00", "USD", "2026-07-03")
+        add_receipt(self.dir, "em_2", "Acme API", "49.00", "USD", "2026-08-03")
+        run_cli("void", "--dir", self.dir, "--email-id", "em_2", "--reason", "x")
+        r = run_cli("recurring", "--dir", self.dir)
+        self.assertIn("NO_RECURRING_CHARGES_DETECTED", r.stdout)
+
+    def test_recurring_min_occurrences_flag(self):
+        add_receipt(self.dir, "em_1", "Acme API", "49.00", "USD", "2026-07-03")
+        add_receipt(self.dir, "em_2", "Acme API", "49.00", "USD", "2026-08-02")
+        r = run_cli("recurring", "--dir", self.dir, "--min-occurrences", "3")
+        self.assertIn("NO_RECURRING_CHARGES_DETECTED", r.stdout)
+        r = run_cli("recurring", "--dir", self.dir, "--min-occurrences", "2")
+        self.assertIn("x2", r.stdout)
+
     # -- csv / doctor / schema ----------------------------------------------
 
     def test_export_csv_derived_view(self):

@@ -10,7 +10,7 @@ This skill owns no MCP tools. It composes the inbox-domain discovery/read tools 
 | Candidate discovery | `search_emails`, `list_emails` |
 | Exact bounded read | `get_email` |
 | Optional attachment audit (explicit user request only) | `download_attachment` |
-| Local ledger engine | [ledger.py](../scripts/ledger.py) (`scan` is conversational; `add`, `export-csv`, `summary`, `query`, `void` are local commands) |
+| Local ledger engine | [ledger.py](../scripts/ledger.py): `add`, `void`, `export-csv`, `summary`, `query`, `recurring`, `schema`, `doctor` |
 
 Everything else in the inbox domain (`update_email`, `move_email`, `bulk_*`, folder/label tools, `delete_email`, `empty_trash`) is out of scope for this skill. So are all compose tools and all PayBox/Agent Wallet tools.
 

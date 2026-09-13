@@ -68,4 +68,5 @@ Read [tools.md](references/tools.md) for the bounded read pattern and extraction
 - "Update the ledger with any new receipts since Friday and regenerate the CSV."
 - "Which vendors charged us more than $100 last quarter?"
 - "Export the year-to-date spend summary as CSV for the accountant."
+- "Which subscriptions are hitting us every month?"
 - "Void the duplicate Stripe entry from the August ledger run."
