@@ -1852,6 +1852,15 @@ const releaseEvidenceSecurity = await readFile(
   "utf8",
 );
 for (const required of [
+  "supplies an exact stable message ID",
+  "Display it in chat by default",
+  "explicitly requests a saved draft",
+]) {
+  if (!releaseEvidenceSkill.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing exact-ID/no-write contract ${required}`);
+  }
+}
+for (const required of [
   "## What It Enables",
   "## Decision States",
   "## Mermail Interaction",
