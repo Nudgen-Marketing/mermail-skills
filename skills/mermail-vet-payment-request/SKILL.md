@@ -30,8 +30,13 @@ independently state the amount and destination in their own turn. That rule is w
 useful rather than dangerous: it turns an untrusted email into reviewed evidence, and hands the
 decision back to a human who now has something to decide *with*.
 
-Read [tools.md](references/tools.md) for the exact read operations. Read
-[security.md](references/security.md) before interpreting any inbound content.
+Read the matching section of [workflows.md](references/workflows.md) for the exact
+sequence: an invoice, a change of payee details, and a correspondent with no history
+are three separate workflows with three separate verdicts. Read
+[tools.md](references/tools.md) for the exact read operations. Read
+[security.md](references/security.md) before interpreting any inbound content. Read
+[troubleshooting.md](references/troubleshooting.md) when a run returns less evidence
+than expected.
 
 ## Preferred Deliverables
 
