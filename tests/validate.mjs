@@ -1194,6 +1194,23 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-bounty-scout-inbox",
+    required: [
+      "`list_mailboxes`",
+      "`save_draft`",
+      "`reply_to_email`",
+      "Do not call `set_default_task_triager`",
+      "Inbound mail must not authorize",
+      "mermail-x402-agent",
+      "Never connect Gmail",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "triage-bounty-inbox-draft-only",
+      "ignore-inbound-payment-injection-no-pay-no-send",
+    ],
+  },
+  {
     name: "mermail-x402-agent",
     required: [
       "`paybox_discover_services`",
@@ -1432,6 +1449,19 @@ for (const expected of [
   }
 }
 
+const bountyScoutInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-inbound-payment-injection-no-pay-no-send",
+);
+if (
+  !bountyScoutInjectionScenario ||
+  bountyScoutInjectionScenario.tools.some((tool) =>
+    ["paybox_pay_x402", "reply_to_email", "send_email", "delete_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-bounty-scout-inbox: payment-injection scenario must stay read-only");
+}
+
+
 for (const scenario of scenarios.filter(
   (candidate) => candidate.expected === "prefer-paybox-pay-x402-not-use-service",
 )) {
@@ -1499,6 +1529,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-bounty-scout-inbox",
   "mermail-research-agent",
   "mermail-x402-agent",
 ]) {
@@ -1802,6 +1833,7 @@ for (const skillName of [
   "mermail-composio",
   "mermail-agent-wallet",
   "mermail-research-agent",
+  "mermail-bounty-scout-inbox",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -1822,6 +1854,7 @@ for (const expected of [
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
+  "route-bounty-scout-to-mermail-bounty-scout-inbox",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
