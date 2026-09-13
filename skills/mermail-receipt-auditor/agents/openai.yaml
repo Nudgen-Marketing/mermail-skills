@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipt Auditor"
+  short_description: "Extract receipts into a queryable local spend ledger"
+  default_prompt: "Use $mermail-receipt-auditor to scan a Mermail mailbox for receipts, keep a JSONL/CSV spend ledger, and answer spend questions without writing to the inbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
