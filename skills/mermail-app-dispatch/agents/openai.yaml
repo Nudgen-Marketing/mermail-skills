@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail App Dispatch"
+  short_description: "Carry an emailed request into one governed action in a connected third-party app"
+  default_prompt: "Use $mermail-app-dispatch to turn the request in this email into a single approved action in a connected Composio toolkit, showing the exact arguments before anything runs."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
