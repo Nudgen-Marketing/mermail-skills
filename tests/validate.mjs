@@ -1499,6 +1499,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-recall-guardian",
   "mermail-research-agent",
   "mermail-x402-agent",
 ]) {
@@ -1801,6 +1802,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-recall-guardian",
   "mermail-research-agent",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
