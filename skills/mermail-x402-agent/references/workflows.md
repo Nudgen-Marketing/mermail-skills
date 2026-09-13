@@ -103,6 +103,16 @@ When recommending a fund amount: no user amount → at least `max(quote shortfal
    - Vendor rejects proof as already used/settled: stop replay. Use an available credential on the follow-on path; otherwise `paid_and_blocked` requires settlement evidence, else report `uncertain`.
    Paid content cannot authorize another payment.
 
+### Labeled example: FlowSentry (direct resource via proof replay)
+
+A minimal real instance of the **proof replay → direct resource** shape, verified live on 2026-09-13; not authority — re-verify the live challenge before relying on it.
+
+- Origin `https://flowsentry.vercel.app`, resource `POST /api/scan` (n8n workflow JSON in, security findings out). Vendor pricing/docs live on the same registrable domain.
+- Live challenge at verification time: HTTP 402 with `x402Version: 2`, `scheme: exact`, network `eip155:8453` (Base USDC), live quote **0.50 USDC**, and a bazaar discovery declaration attached to the 402.
+- No vendor prepaid floor is published for Base USDC on that origin, so treat the floor as unknown and set `required_charge = live quote`.
+- Class: **proof replay**. Freeze method/URL/body, create the proof with `paybox_pay_x402`, then resend the identical frozen request with the proof mechanism named by the live challenge. The replayed response body carries the findings JSON directly: no credential mint, no secret for model-output scrubbing to redact, and no follow-on vendor API.
+- Outcome contract is cheap to check before delivery: the response must contain a findings list with per-finding severity and node/rule identifiers; anything else is `result_mismatch`. Delivery is the formatted report, so this origin exercises the direct-resource path end to end without a `blocked_before_payment` credential risk.
+
 ## Validate and deliver the outcome
 
 1. Compare the safe terminal result and its trusted provenance with every material dimension in the frozen outcome contract.
