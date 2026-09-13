@@ -138,6 +138,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party apps through Composio |
+| `mermail-release-evidence-gate` | Verify release and deployment claims against a frozen evidence contract |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
