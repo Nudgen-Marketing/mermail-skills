@@ -32,7 +32,7 @@ if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
 
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
-  const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
+  const markdown = (await readFile(path.join(skillDir, "SKILL.md"), "utf8")).replace(/\r\n/g, "\n");
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatter) {
     errors.push(`${skillName}: missing YAML frontmatter`);
