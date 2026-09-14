@@ -1,6 +1,7 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
+import { validateResearchAgent } from "./research-agent.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -1498,6 +1499,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-research-agent",
   "mermail-x402-agent",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
@@ -1799,6 +1801,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-research-agent",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -1818,6 +1821,7 @@ for (const expected of [
   "root-reports-default-triager-unsupported-without-focused-route",
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
+  "route-research-business-to-mermail-research-agent",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
@@ -1890,6 +1894,8 @@ for (const content of trackedText) {
   const leaked = content.match(mermailKeyShape) ?? [];
   if (leaked.length) errors.push("repository contains an API-key-shaped secret");
 }
+
+errors.push(...await validateResearchAgent(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
