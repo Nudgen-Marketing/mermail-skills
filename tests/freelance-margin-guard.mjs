@@ -388,6 +388,31 @@ check("calculates the base fee from the approved hourly rate", () => {
 check("calculates the approved rush premium", () => {
   assert.deepEqual(packet.marginSnapshot.rushPremiumAmountRange, { min: 97.5, max: 123.75 });
   assert.equal(packet.marginSnapshot.rushPremium.sourceRef, "approved-rush-rule");
+
+  const decimalBoundary = clone(fixture);
+  decimalBoundary.baseline.revisionBudget = {
+    included: 7,
+    used: 0,
+    sourceRef: "accepted-proposal",
+  };
+  decimalBoundary.baseline.pricing.rate.amount = 518.86;
+  decimalBoundary.baseline.pricing.rushPremium.percent = 228.57;
+  decimalBoundary.request.items.find((item) => item.kind === "revision").units = 4;
+  for (const item of decimalBoundary.request.items.filter(
+    (item) => item.kind !== "revision" && item.kind !== "deadline",
+  )) {
+    item.effortHours.min = 25;
+    item.effortHours.max = 43;
+  }
+  const boundaryPacket = buildMarginPacket(decimalBoundary);
+  assert.deepEqual(boundaryPacket.marginSnapshot.completeBaseFeeRange, {
+    min: 38914.5,
+    max: 66932.94,
+  });
+  assert.deepEqual(boundaryPacket.marginSnapshot.rushPremiumAmountRange, {
+    min: 88946.8727,
+    max: 152988.621,
+  });
 });
 
 check("calculates the complete requested-deadline fee", () => {

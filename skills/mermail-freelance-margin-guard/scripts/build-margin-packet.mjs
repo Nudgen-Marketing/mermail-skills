@@ -86,7 +86,11 @@ function dateValue(value, label) {
 }
 
 function round(value) {
-  return Math.round((value + Number.EPSILON) * 10000) / 10000;
+  // Scale the epsilon with the magnitude so decimal half-values produced by
+  // valid rate/premium arithmetic do not fall just below their intended
+  // boundary in binary floating point (for example, x.xxxx649999...).
+  const correction = Number.EPSILON * Math.max(1, Math.abs(value));
+  return Math.round((value + correction) * 10000) / 10000;
 }
 
 function range(min, max) {
