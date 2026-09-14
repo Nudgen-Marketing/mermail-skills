@@ -1,0 +1,11 @@
+interface:
+  display_name: "Use Mermail Freelance Desk"
+  short_description: "Intake, quote, deliver, and reconcile freelance client work through a Mermail inbox and Agent Wallet"
+  default_prompt: "Use $mermail-freelance-desk only when the agent owns a Mermail mailbox and should run freelance client intake, quoting, delivery tracking, or payment reconciliation end to end."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
