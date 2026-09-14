@@ -48,5 +48,6 @@
 - `401`/`403`: stop for authentication, workspace scope, role, or policy.
 - `402`: stop for credits and report which step was reached.
 - `404`: re-read the exact target once; do not substitute a similar message or folder.
+- `409 Conflict` on `reply_to_email`, `forward_email`, or a threaded `send_email`: confirm nothing left the mailbox (Sent folder and the thread), then report `blocked`. Observed on threads whose parent arrived through an external provider. Only with fresh owner approval of the same recipient and body, deliver once as an unthreaded `send_email` with the `Re:` subject, note in the summary that the reply is not server-threaded, and leave the original draft in place.
 - `429 email_send_rate_limit_exceeded`: surface `Retry-After`, mark remaining items `deferred`, do not auto-retry.
 - Timeout or unknown send result: inspect the thread once, then report `uncertain` without sending again.

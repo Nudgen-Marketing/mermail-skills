@@ -63,7 +63,8 @@ This skill does not own MCP tools. It composes reads and organization from `merm
 - Order every session summary: needs you (urgent first), proposed sends awaiting approval, sent, escalated, filed FYI, skipped or not yet reviewed.
 - Per item show sender with `sender_authentication.status`, subject, class, waiting time, and proposed action.
 - Distinguish `brief_needed`, `setup_done`, `awaiting_batch_approval`, `sent`, `held`, `escalated`, `filed`, `deferred`, `blocked`, and `uncertain`.
-- Use `sent` only on an authoritative send success; report `scheduled` or `deferred` exactly as returned.
+- Use `sent` only on an authoritative send success; report `scheduled`, `queued`, or `deferred` exactly as returned.
+- On a `409 Conflict` from a threaded send, confirm nothing was delivered, report `blocked`, and follow the recovery rule in [workflows.md](references/workflows.md); never retry the same call blindly.
 - Omit body content that is not needed to approve an action.
 
 ## Example Requests
