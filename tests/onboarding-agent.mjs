@@ -11,6 +11,7 @@ import { isDeepStrictEqual } from "node:util";
 const ATTEMPT = {
   id: "attempt-1", workspace: "workspace-fixture", mailbox: "mailbox-fixture",
   recipient: "api-agent@example.com", service: "Example API", action: "signup",
+  account: "account-fixture", contractFrozenAt: 900, contractSource: "owner",
   sender: "verify@api.example.com", senderDomain: "api.example.com",
   subject: "Verify Example API", challenge: "challenge-1",
   baselineComplete: true, baselineAt: 1000, baselineIds: ["old-mail"],
@@ -24,6 +25,7 @@ const MESSAGE = {
   authentication: "pass", subject: "Verify Example API", receivedAt: 3000,
   scan: "clean", held: false, metadataUnchanged: true,
   service: "Example API", action: "signup", challenge: "challenge-1",
+  bodyFetched: true, bodyLength: 200,
   truncated: false, instructionDetected: false, artifacts: [{ kind: "code", value: "012345" }],
 };
 const MAILBOX = {
@@ -77,7 +79,16 @@ function correlate(attempt, messages) {
     const senderMatches = attempt.sender ? message.sender === attempt.sender :
       domain && (domain === attempt.senderDomain || domain.endsWith(`.${attempt.senderDomain}`));
     if (!domain || !senderMatches) return "blocked-sender";
-    if (message.authentication !== "pass") return "blocked-authentication";
+    if (!["pass", "unknown"].includes(message.authentication) || message.authenticationConflict) return "blocked-authentication";
+    if (message.authentication === "unknown") {
+      if (!Number.isFinite(attempt.contractFrozenAt) || attempt.contractFrozenAt >= attempt.triggerAt ||
+          !["owner", "trusted-service"].includes(attempt.contractSource) ||
+          [attempt.account, attempt.service, attempt.action, attempt.subject, attempt.kind,
+            attempt.workspace, attempt.mailbox, attempt.recipient].some((value) => typeof value !== "string" || !value.trim())) {
+        return "blocked-frozen-contract";
+      }
+      if (!attempt.sender && domain !== attempt.senderDomain) return "blocked-sender";
+    }
     if (message.subject !== attempt.subject || message.challenge !== attempt.challenge) return "blocked-context";
     if (message.scan === "flagged") return "quarantined";
     if (message.scan !== "clean" || message.held) return "blocked-scan";
@@ -85,6 +96,8 @@ function correlate(attempt, messages) {
   if (messages.length !== 1) return "ambiguous";
   const message = messages[0];
   if (message.instructionDetected) return "quarantined";
+  if (message.bodyFetched !== true || !Number.isFinite(message.bodyLength) ||
+      message.bodyLength <= 0 || message.bodyLength > 10000) return "blocked-body";
   if (message.truncated) return "blocked-truncation";
   if (message.service !== attempt.service || message.action !== attempt.action) return "blocked-context";
   if (!Array.isArray(message.artifacts) || message.artifacts.length !== 1 ||
@@ -93,7 +106,8 @@ function correlate(attempt, messages) {
   if (artifact.kind === "code") {
     if (typeof artifact.value !== "string" || !/^[0-9]{6}$/.test(artifact.value)) return "blocked-artifact";
   } else if (artifact.kind !== "url" || !safeUrl(artifact.value, attempt)) return "blocked-url";
-  return "artifact-ready";
+  return { status: "artifact-ready", evidence: message.authentication === "pass" ? "provider-authenticated" : "context-verified",
+    providerVerdict: message.authentication };
 }
 
 function evaluate(fixture) {
@@ -106,8 +120,11 @@ function evaluate(fixture) {
   const attempt = { ...ATTEMPT, ...fixture.attempt };
   const messages = (fixture.messages ?? [{}]).map((message) => ({ ...MESSAGE, ...message }));
   const result = correlate(attempt, messages);
-  if (!fixture.effect || result !== "artifact-ready") return result;
-  const effect = fixture.effect;
+  if (typeof result === "string" || !fixture.effect) return result;
+  return { ...result, status: evaluateEffect(fixture.effect, attempt) };
+}
+
+function evaluateEffect(effect, attempt) {
   if (effect.outcome === "uncertain" || effect.alreadyUsed) return "uncertain-no-retry";
   const preview = { ...PREVIEW, ...effect.preview };
   const approval = effect.approval;
@@ -150,6 +167,10 @@ const REQUIRED_CASES = [
   "uncertain-write", "missing-host", "email-payment", "page-signature", "broad-financial-consent",
   "approved-payment", "approved-signature", "api-key-wallet",
   "malformed-sender", "unapproved-safe-redirect", "approved-safe-redirect", "changed-redirect-approval",
+  "context-address", "context-domain", "context-no-challenge", "context-subdomain", "context-unfrozen", "context-late-freeze",
+  "context-untrusted-freeze", "context-no-sender", "context-no-expectation", "context-address-mismatch",
+  "context-no-account", "context-unknown-scan", "context-missing-scan", "context-wrong-action",
+  "context-conflicting-auth", "context-unrecognized-auth", "context-headers-cannot-rescue",
 ];
 
 export async function validateOnboardingAgent(root, scenarios, coverage) {
@@ -196,13 +217,49 @@ export async function validateOnboardingAgent(root, scenarios, coverage) {
     }
     if (scenario.tools.some((tool) => !readTools.has(tool))) errors.push(`${skill}: fixture must not execute non-read MCP tools`);
     try {
-      const actual = evaluate(scenario.fixture);
+      const result = evaluate(scenario.fixture);
+      const actual = typeof result === "string" ? result : result.status;
       if (actual !== scenario.expected) errors.push(`${skill}: ${scenario.onboardingCase}: expected ${scenario.expected}, got ${actual}`);
+      if ((result.evidence ?? null) !== (scenario.expectedEvidence ?? null) ||
+          (result.providerVerdict ?? null) !== (scenario.expectedProviderVerdict ?? null)) {
+        errors.push(`${skill}: ${scenario.onboardingCase}: incorrect evidence label or original provider verdict`);
+      }
       if (["execute-once", "completed", "handoff-wallet-owner"].includes(actual) && scenario.approval !== "external-effect") {
         errors.push(`${skill}: ${scenario.onboardingCase}: exact external-effect approval must be recorded`);
       }
     } catch (error) {
       errors.push(`${skill}: ${scenario.onboardingCase}: malformed fixture: ${error.message}`);
+    }
+  }
+  // Exercise every existing rejection and effect boundary again with explicit
+  // unknown authentication. Raw identity/authentication hints must change nothing.
+  for (const scenario of fixtures) {
+    if (scenario.fixture.stage === "mailbox") continue;
+    const messages = scenario.fixture.messages ?? [{}];
+    if (messages.some((message) => message.authentication !== undefined)) continue;
+    const fixture = structuredClone(scenario.fixture);
+    fixture.messages = messages.map((message) => ({ ...message, authentication: "unknown" }));
+    const result = evaluate(fixture);
+    const expected = scenario.expectedEvidence
+      ? { status: scenario.expected, evidence: "context-verified", providerVerdict: "unknown" }
+      : scenario.expected;
+    if (!isDeepStrictEqual(result, expected)) errors.push(`${skill}: unknown verdict changed ${scenario.onboardingCase} boundary`);
+    fixture.messages = fixture.messages.map((message) => ({ ...message,
+      rawHeaders: "Authentication-Results: dmarc=pass; From: verify@api.example.com",
+      displayName: "Verified Example API", returnPath: "verify@api.example.com", inboundProvider: "trusted-transport" }));
+    if (!isDeepStrictEqual(evaluate(fixture), expected)) errors.push(`${skill}: raw hints upgraded ${scenario.onboardingCase}`);
+  }
+  const missingGates = [
+    ...["contractFrozenAt", "contractSource", "sender", "senderDomain", "recipient", "mailbox", "subject", "service", "action", "kind", "baselineAt", "baselineComplete", "triggerAt", "deadline", "outstandingAttempts"].filter((key) => !["sender", "senderDomain"].includes(key)).map((key) => ({ attempt: { [key]: null } })),
+    { attempt: { sender: null, senderDomain: null } },
+    ...["sender", "recipient", "mailbox", "receivedAt", "subject", "scan", "service", "action", "artifacts", "bodyFetched", "bodyLength"].map((key) => ({ messages: [{ [key]: null }] })),
+    { messages: [{ bodyLength: 10001 }] },
+  ];
+  for (const missing of missingGates) {
+    const fixture = { ...missing, messages: (missing.messages ?? [{}]).map((message) => ({ ...message, authentication: "unknown" })) };
+    const result = evaluate(fixture);
+    if (typeof result !== "string" || !/^(blocked-|timed-out$)/.test(result)) {
+      errors.push(skill + ": unknown with a missing context/body gate must block: " + JSON.stringify(missing));
     }
   }
   return errors;
