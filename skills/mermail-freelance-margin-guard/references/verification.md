@@ -37,8 +37,13 @@ Change one evidence quote and run the builder again. Both digests must change. R
 
 Also verify these adversarial cases:
 
+- a user-supplied source cannot masquerade as the selected later-request email;
+- the later request cannot be promoted into baseline authority, directly or through a second source id that reuses its Mermail message id;
+- an email-backed baseline authority dated after the later request is rejected while same-day evidence remains valid;
 - a request item citing a different message than `request.sourceRef` is rejected;
 - an item id ending in `:included` or `:overflow` is rejected before split-row construction;
+- an earlier requested deadline mislabeled as `included` is rejected;
+- duplicate or overlapping dependency-delay evidence under a different local id is rejected;
 - a deadline-only compressed request with no priced added work remains `approval_needed` instead of showing a zero fee;
 - fractional client delay rounds upward only for the date-only extension while its exact duration remains in attribution; and
 - Markdown, links, raw HTML, control characters, and bidirectional overrides in untrusted labels are rendered inert;

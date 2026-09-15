@@ -204,6 +204,31 @@ check("rejects an email source without a message id", () => {
   assert.throws(() => buildMarginPacket(input), /messageId/);
 });
 
+check("red-team: rejects an owner-supplied source masquerading as the later request", () => {
+  const input = clone(fixture);
+  input.request.sourceRef = "approved-estimate";
+  assert.throws(() => buildMarginPacket(input), /selected later-request email/);
+});
+
+check("red-team: rejects a later request promoted into baseline authority", () => {
+  const input = clone(fixture);
+  input.baseline.authoritySourceRefs.push("later-request");
+  assert.throws(() => buildMarginPacket(input), /cannot also be a baseline authority/);
+});
+
+check("red-team: rejects source aliases for the same Mermail message", () => {
+  const input = clone(fixture);
+  input.sources.find((source) => source.id === "access-delay-email").messageId =
+    input.sources.find((source) => source.id === "later-request").messageId;
+  assert.throws(() => buildMarginPacket(input), /duplicate email messageId/);
+});
+
+check("red-team: rejects a baseline authority email dated after the later request", () => {
+  const input = clone(fixture);
+  input.sources.find((source) => source.id === "accepted-proposal").date = "2026-08-30";
+  assert.throws(() => buildMarginPacket(input), /cannot be dated after request\.sourceRef/);
+});
+
 check("rejects a request email as baseline deliverable authority", () => {
   const input = clone(fixture);
   input.baseline.deliverables[0].sourceRef = "later-request";
@@ -244,6 +269,12 @@ check("requires an atomic deadline item for a requested deadline", () => {
   const input = clone(fixture);
   input.request.items = input.request.items.filter((item) => item.kind !== "deadline");
   assert.throws(() => buildMarginPacket(input), /requires an atomic deadline request item/);
+});
+
+check("red-team: rejects a compressed deadline mislabeled as in scope", () => {
+  const input = clone(fixture);
+  input.request.items.find((item) => item.kind === "deadline").relation = "included";
+  assert.throws(() => buildMarginPacket(input), /must be classified as a scope_change/);
 });
 
 check("rejects unsafe and collision-prone request ids", () => {
@@ -375,6 +406,31 @@ check("attributes only the supplied client delay", () => {
     shared: 0,
     unknown: 0
   });
+});
+
+check("red-team: rejects duplicate delay evidence hidden behind a new id", () => {
+  const input = clone(fixture);
+  input.dependencies.push({
+    ...clone(input.dependencies[0]),
+    id: "staging-access-alias",
+    evidenceQuote: "two days after",
+  });
+  assert.throws(() => buildMarginPacket(input), /duplicate or overlapping evidence/);
+});
+
+check("allows distinct dependency evidence from the same email", () => {
+  const input = clone(fixture);
+  input.sources.find((source) => source.id === "access-delay-email").quote +=
+    " Approved assets arrived one day late.";
+  input.dependencies.push({
+    id: "approved-assets",
+    label: "Approved assets arrived after their agreed date",
+    owner: "client",
+    delayDays: 1,
+    sourceRef: "access-delay-email",
+    evidenceQuote: "assets arrived one day late",
+  });
+  assert.equal(buildMarginPacket(input).delayAttribution.totalDaysByOwner.client, 3);
 });
 
 check("calculates the known added hours", () => {

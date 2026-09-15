@@ -478,8 +478,16 @@ export function buildMarginPacket(rawInput) {
   invariant(rawSources.length > 0 && rawSources.length <= 50, "sources must contain 1 to 50 items");
   const normalizedSources = rawSources.map(validateSource);
   const sourceMap = new Map();
+  const emailMessageIds = new Set();
   for (const source of normalizedSources) {
     invariant(!sourceMap.has(source.id), `sources contains duplicate id ${source.id}`);
+    if (source.type === "email") {
+      invariant(
+        !emailMessageIds.has(source.messageId),
+        "sources contains duplicate email messageId",
+      );
+      emailMessageIds.add(source.messageId);
+    }
     sourceMap.set(source.id, source);
   }
 
@@ -551,6 +559,19 @@ export function buildMarginPacket(rawInput) {
   const pricing = validatePricing(baselineInput.pricing, sourceMap, authoritySourceRefs);
   const requestInput = object(rawInput.request, "request");
   const requestSourceRef = validateSourceRef(requestInput.sourceRef, "request.sourceRef", sourceMap);
+  const requestSource = sourceMap.get(requestSourceRef);
+  invariant(requestSource.type === "email", "request.sourceRef must reference the selected later-request email");
+  invariant(
+    !authoritySourceRefs.includes(requestSourceRef),
+    "request.sourceRef cannot also be a baseline authority source",
+  );
+  for (const authoritySourceRef of authoritySourceRefs) {
+    const authoritySource = sourceMap.get(authoritySourceRef);
+    invariant(
+      authoritySource.type !== "email" || authoritySource.date <= requestSource.date,
+      `baseline authority email ${authoritySourceRef} cannot be dated after request.sourceRef`,
+    );
+  }
   const requestedDeadline = requestInput.requestedDeadline === undefined
     ? null
     : dateValue(requestInput.requestedDeadline, "request.requestedDeadline");
@@ -626,6 +647,13 @@ export function buildMarginPacket(rawInput) {
     rowIds.add(row.id);
   }
 
+  if (deadline && requestedDeadline && requestedDeadline < deadline.date) {
+    invariant(
+      rows.some((row) => row.kind === "deadline" && row.status === "scope_change"),
+      "an earlier requested deadline must be classified as a scope_change",
+    );
+  }
+
   const rawDependencies = rawInput.dependencies === undefined ? [] : array(rawInput.dependencies, "dependencies");
   invariant(rawDependencies.length <= 50, "dependencies exceeds 50 items");
   const dependencies = rawDependencies.map(
@@ -650,9 +678,21 @@ export function buildMarginPacket(rawInput) {
     },
   );
   const dependencyIds = new Set();
+  const dependencyEvidenceBySource = new Map();
   for (const dependency of dependencies) {
     invariant(!dependencyIds.has(dependency.id), `dependencies contains duplicate id ${dependency.id}`);
     dependencyIds.add(dependency.id);
+    if (dependency.evidenceQuote !== null) {
+      const normalizedEvidence = normalizeEvidence(dependency.evidenceQuote);
+      const existingEvidence = dependencyEvidenceBySource.get(dependency.sourceRef) ?? [];
+      invariant(
+        !existingEvidence.some((quote) =>
+          quote.includes(normalizedEvidence) || normalizedEvidence.includes(quote)),
+        `dependencies contains duplicate or overlapping evidence for source ${dependency.sourceRef}`,
+      );
+      existingEvidence.push(normalizedEvidence);
+      dependencyEvidenceBySource.set(dependency.sourceRef, existingEvidence);
+    }
   }
   const delayByOwner = { client: 0, freelancer: 0, shared: 0, unknown: 0 };
   for (const dependency of dependencies) delayByOwner[dependency.owner] += dependency.delayDays;

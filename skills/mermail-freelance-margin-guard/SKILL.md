@@ -32,7 +32,7 @@ node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
   --format markdown
 ```
 
-The test run must validate 17 skills, 71 business tools, and 58 dedicated Margin Guard checks. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. This path uses only the bundled synthetic fixture, performs no network request, sends no email, and exposes no private project data.
+The test run must validate 17 skills, 71 business tools, and 65 dedicated Margin Guard checks. Six named red-team regressions cover authority, provenance, chronology, deadline-classification, and duplicate-delay attacks, with a positive control for distinct evidence from one email. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. This path uses only the bundled synthetic fixture, performs no network request, sends no email, and exposes no private project data.
 
 ## Required Inputs
 
@@ -70,6 +70,8 @@ node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
 Use `--format markdown` for a reviewable packet. The builder deterministically:
 
 - supports email-backed and owner-supplied baseline sources;
+- requires a unique Mermail message id per email source, an email-backed later request, and baseline emails that do not postdate that request;
+- prevents the later request from becoming its own baseline authority, directly or through a duplicate-message alias;
 - rejects baseline facts and request comparisons that cite sources outside the owner-selected authority set;
 - pins every atomic item to the selected later request and rejects collision-prone identifiers;
 - splits partially covered revision requests into included and overflow rows;
@@ -77,9 +79,11 @@ Use `--format markdown` for a reviewable packet. The builder deterministically:
 - retains rate and effort-estimate provenance;
 - preserves exclusions and acceptance criteria;
 - attributes only explicitly supplied dependency delays;
+- rejects duplicate or overlapping source quotations being counted twice as dependency delay under different ids;
 - calculates fee ranges and rush premiums only from supplied rules;
 - withholds commercial options while material evidence remains unresolved;
 - refuses to price a deadline-only compression as a zero-fee change;
+- rejects an earlier requested deadline that is mislabeled as in-scope;
 - neutralizes active Markdown, links, raw HTML, control characters, and bidirectional overrides in rendered evidence;
 - independently verifies saved evidence and packet digests and distinguishes evidence changes from result-only changes;
 - emits remove/swap, schedule-extension, and paid-change-order options; and
@@ -105,6 +109,7 @@ The builder does not read mail, infer contract meaning, set rates, or send messa
 
 - Every baseline fact and request item has a valid source reference; structured owner input is valid without a message id.
 - Every baseline fact and request-side baseline reference is pinned to the owner-selected authority set.
+- The selected later request is a unique email source, cannot also be baseline authority, and cannot be preceded by a later-dated baseline email.
 - Every atomic request item is pinned to the selected later-request source; a requested deadline has its own evidenced deadline item.
 - Revision allowance reports included, used-before, requested, covered, overflow, and remaining-after values.
 - Explicitly excluded revisions never consume the included revision allowance.
@@ -113,9 +118,11 @@ The builder does not read mail, infer contract meaning, set rates, or send messa
 - Rate, effort, rush premium, currency, and deadline provenance remain visible in the result.
 - Exclusions and acceptance criteria remain present in JSON, Markdown, and the negotiation packet.
 - Client-owned, freelancer-owned, shared, and unknown delays are reported separately; no delay owner or duration is inferred.
+- Duplicate or overlapping grounded quotations from one source cannot be counted twice as dependency delay under different local ids.
 - No fee, premium, currency, deadline, revision limit, or legal conclusion is invented.
 - Missing rush authority is rendered `approval_needed`, never as a zero-value premium.
 - A deadline-only scope change without priced added work is rendered `approval_needed`, never as a zero-fee paid change order.
+- An earlier requested deadline must have an atomic row classified as `scope_change`; relabeling it `in_scope` is rejected.
 - Date-only schedule extensions round fractional client-owned delay upward while preserving the exact supplied duration in delay attribution.
 - Material unknowns block generation of binding commercial options.
 - Rendered Markdown neutralizes untrusted markup, links, control characters, and bidirectional overrides; local identifiers use a restricted collision-safe alphabet.

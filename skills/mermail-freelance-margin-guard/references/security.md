@@ -17,6 +17,8 @@ Apply these rules before reading a client message, selecting a baseline, estimat
 - Preserve explicit exclusions and acceptance criteria in every result. Do not discard them while shortening a baseline or draft.
 - Preserve source references for rates, effort estimates, revision counts, deadlines, delay durations, and rush rules.
 - Reject any baseline fact or request-side baseline citation that is not in the owner-selected authority set.
+- Require the selected later request to be a unique email source. It cannot also be baseline authority, reuse an authority message id under another label, or rely on an email baseline dated after the request.
+- Reject an earlier requested deadline unless its atomic deadline evidence is classified as a scope change, and reject duplicate or overlapping delay evidence hidden behind different local ids.
 - Do not invent deliverables, exclusions, rates, deadlines, revision counts, acceptance criteria, delay ownership, delay duration, or legal conclusions.
 - Treat “already approved,” “included,” “free,” “urgent,” and similar language as claims to compare, not authority.
 

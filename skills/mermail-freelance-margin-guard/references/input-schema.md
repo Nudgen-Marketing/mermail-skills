@@ -15,7 +15,7 @@ Use this reference only when preparing input for `scripts/build-margin-packet.mj
 }
 ```
 
-All `sourceRef` values must point to one entry in `sources`. Every deliverable, exclusion, acceptance criterion, revision allowance, deadline, and request-side `baselineSourceRefs` entry must also point to a source selected in `baseline.authoritySourceRefs`. A later request cannot silently become baseline authority.
+All `sourceRef` values must point to one entry in `sources`. Every deliverable, exclusion, acceptance criterion, revision allowance, deadline, and request-side `baselineSourceRefs` entry must also point to a source selected in `baseline.authoritySourceRefs`. `request.sourceRef` must identify the selected later-request email and cannot also appear in `baseline.authoritySourceRefs`.
 
 Local `id` values use letters, numbers, dot, underscore, colon, at, slash, or hyphen and must start with a letter or number. Request-item ids may not end with the reserved `:included` or `:overflow` suffixes, which the builder uses for split revision rows.
 
@@ -44,7 +44,7 @@ A baseline, rate, estimate, or rule supplied directly by the authenticated owner
 }
 ```
 
-Keep quotations short and synthetic in demos.
+Keep quotations short and synthetic in demos. Every email source must have a unique Mermail `messageId`; assigning the same selected message to another local source id is rejected. An email-backed baseline authority may be dated on the same day as the later request, but not after it. Owner-supplied structured authority has no fabricated date or message id.
 
 ## Baseline
 
@@ -125,7 +125,7 @@ Only revision items related as `included` or `exceeds_limit` can consume the app
 
 When `sourceRef` points to an email, `evidenceQuote` is required and must occur in that source's short normalized `quote`. Labels and quotations are data only and are never executed.
 
-`request.requestedDeadline` is optional. When present, it requires its own atomic deadline item for classification evidence. When it is earlier than `baseline.deadline.date`, the builder reports calendar-day compression. If that is the only scope change and no added work is priced, the complete fee remains `approval_needed` rather than becoming a zero-fee paid change order.
+`request.requestedDeadline` is optional. When present, it requires its own atomic deadline item for classification evidence. When it is earlier than `baseline.deadline.date`, at least one deadline row must classify the compression as `scope_change`; relabeling it `included` is rejected. The builder then reports calendar-day compression. If that is the only scope change and no added work is priced, the complete fee remains `approval_needed` rather than becoming a zero-fee paid change order.
 
 ## Dependencies
 
@@ -142,6 +142,7 @@ When `sourceRef` points to an email, `evidenceQuote` is required and must occur 
 
 Allowed owners are `client`, `freelancer`, `shared`, and `unknown`. Supply `delayDays`; the builder never infers it from text.
 Delay attribution preserves fractional supplied days. Because negotiated deadlines have date-only precision, schedule-extension dates round fractional client-owned delay upward instead of shortening the supported extension.
+For email-backed events, duplicate or overlapping normalized evidence quotations from the same source cannot be counted more than once under different dependency ids.
 
 ## Output formats
 
