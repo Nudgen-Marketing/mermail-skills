@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Countersig"
+  short_description: "Prove a payout wallet on Solana or Base before paying it"
+  default_prompt: "Use $mermail-countersig when an email asks to be paid at a new or changed Solana or Base wallet, or when the user wants a wallet proven before any payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
