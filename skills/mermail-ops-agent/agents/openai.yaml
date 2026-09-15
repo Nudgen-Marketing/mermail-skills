@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Ops Agent"
+  short_description: "Orchestrate daily inbox inspection, organization, and prepared email operations"
+  default_prompt: "Use $mermail-ops-agent to inspect my inbox, organize what needs attention, and prepare drafts and actions for my approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
