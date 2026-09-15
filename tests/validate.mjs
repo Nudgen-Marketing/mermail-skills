@@ -1496,6 +1496,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-automate-triage",
   "mermail-agent-wallet",
+  "mermail-countersig",
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
