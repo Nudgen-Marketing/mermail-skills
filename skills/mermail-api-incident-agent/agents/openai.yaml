@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail API Incident Agent"
+  short_description: "Triage API and webhook incidents from Mermail evidence."
+  default_prompt: "Use $mermail-api-incident-agent to build an evidence-linked API incident timeline and draft the next safe update."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value:
+        name: "mermail"
+        url: "https://console.mermail.app/mcp"
