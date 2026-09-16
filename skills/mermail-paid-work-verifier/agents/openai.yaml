@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Paid Work Verifier"
+  short_description: "Verify client payments before doing paid work from a Mermail inbox"
+  default_prompt: "Use $mermail-paid-work-verifier to intake a client job email, verify the claimed payment against my Agent Wallet before starting work, draft the deliverable, and deliver it in-thread only after my exact authorization."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
