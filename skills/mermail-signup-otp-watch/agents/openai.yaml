@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Signup OTP Watch"
+  short_description: "Watch a Mermail inbox for signup verification mail and extract OTPs safely."
+  default_prompt: "Use $mermail-signup-otp-watch to obtain a Mermail address for a SaaS signup, wait for the verification email, extract the OTP, and hand it back without submitting it until I approve."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
