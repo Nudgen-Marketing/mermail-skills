@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipt Digest"
+  short_description: "Build a bounded receipt and expense ledger from a Mermail inbox"
+  default_prompt: "Use $mermail-receipt-digest to search my Mermail mailbox for invoices and payment receipts in a bounded period, extract a structured ledger from sanitized content, and optionally save an owner-reviewed digest draft without sending or paying."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
