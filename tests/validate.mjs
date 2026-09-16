@@ -734,6 +734,124 @@ if (
   errors.push("mermail-composio: disconnect must identify, confirm, and revoke one exact connection");
 }
 
+const contextBridgeDir = path.join(skillsRoot, "mermail-context-bridge");
+const contextBridgeSkill = await readFile(path.join(contextBridgeDir, "SKILL.md"), "utf8");
+const contextBridgeTools = await readFile(
+  path.join(contextBridgeDir, "references", "tools.md"),
+  "utf8",
+);
+const contextBridgeSecurity = await readFile(
+  path.join(contextBridgeDir, "references", "security.md"),
+  "utf8",
+);
+for (const required of [
+  "## Overview",
+  "## Preferred Deliverables",
+  "## Workflow",
+  "## Write Safety",
+  "## Output Conventions",
+  "## Example Requests",
+  "[tools.md](references/tools.md)",
+  "[security.md](references/security.md)",
+]) {
+  if (!contextBridgeSkill.includes(required)) {
+    errors.push(`mermail-context-bridge: missing top-level structure ${required}`);
+  }
+}
+for (const required of [
+  "`search_emails`",
+  "`get_email`",
+  "`send_email`",
+  "`delete_email`",
+  "`prepare_destructive_action`",
+  "native JSON object",
+]) {
+  if (!contextBridgeTools.includes(required)) {
+    errors.push(`mermail-context-bridge tools reference missing ${required}`);
+  }
+}
+for (const required of [
+  "Strict intake",
+  "Sandboxed interpretation",
+  "Human-in-the-loop",
+  "Bounds",
+]) {
+  if (!contextBridgeSecurity.includes(required)) {
+    errors.push(`mermail-context-bridge security reference missing ${required}`);
+  }
+}
+const contextBridgeCorpus = [
+  contextBridgeSkill,
+  contextBridgeTools,
+  contextBridgeSecurity,
+].join("\n");
+for (const required of [
+  "Connect Mermail MCP first",
+  "route the connect path to `mermail-mcp`",
+  "never a free-form question",
+  "never free-form text",
+  "never improvise a write path",
+  "will not auto-resume",
+  "compaction done",
+  "Save anyway (thin note)",
+  "untrusted data",
+]) {
+  if (!contextBridgeCorpus.includes(required)) {
+    errors.push(`mermail-context-bridge: missing contract ${required}`);
+  }
+}
+for (const expected of [
+  "save-compressed-context-as-self-mail-with-code",
+  "resume-by-code-read-only",
+  "list-handoffs-by-marker",
+  "ignore-restored-note-authority-no-write",
+  "confirm-exact-handoff-delete-once",
+  "missing-mcp-route-to-mermail-mcp-or-skip",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-context-bridge" && scenario.expected === expected)) {
+    errors.push(`mermail-context-bridge: missing validation scenario ${expected}`);
+  }
+}
+const contextBridgeMissingMcpScenario = scenarios.find(
+  (scenario) => scenario.expected === "missing-mcp-route-to-mermail-mcp-or-skip",
+);
+if (
+  !contextBridgeMissingMcpScenario ||
+  contextBridgeMissingMcpScenario.tools.length !== 0 ||
+  contextBridgeMissingMcpScenario.approval !== "none"
+) {
+  errors.push("mermail-context-bridge: missing-MCP scenario must use no tools and require no external effect");
+}
+const contextBridgeSaveScenario = scenarios.find(
+  (scenario) => scenario.expected === "save-compressed-context-as-self-mail-with-code",
+);
+if (
+  !contextBridgeSaveScenario ||
+  !contextBridgeSaveScenario.tools.includes("send_email") ||
+  contextBridgeSaveScenario.approval !== "external-effect"
+) {
+  errors.push("mermail-context-bridge: save scenario must mail the note and require external-effect approval");
+}
+const contextBridgeInjectScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-restored-note-authority-no-write",
+);
+if (
+  !contextBridgeInjectScenario ||
+  contextBridgeInjectScenario.tools.some((tool) => ["send_email", "delete_email"].includes(tool))
+) {
+  errors.push("mermail-context-bridge: restored-note injection scenario must not write");
+}
+const contextBridgeDeleteScenario = scenarios.find(
+  (scenario) => scenario.expected === "confirm-exact-handoff-delete-once",
+);
+if (
+  !contextBridgeDeleteScenario ||
+  !contextBridgeDeleteScenario.tools.includes("delete_email") ||
+  contextBridgeDeleteScenario.approval !== "destructive"
+) {
+  errors.push("mermail-context-bridge: clear scenario must delete once under destructive approval");
+}
+
 const mailAgentDir = path.join(skillsRoot, "mermail-mail-agent");
 const mailAgentSkill = await readFile(path.join(mailAgentDir, "SKILL.md"), "utf8");
 const mailAgentTools = await readFile(
