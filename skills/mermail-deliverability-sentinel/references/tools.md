@@ -80,7 +80,6 @@ Wait loop, repeated at most 5 times over one hard deadline (120 s default, 30 s 
 {
   "mailboxId": "MAILBOX_PUBLIC_ID",
   "query": {
-    "from": "no-reply@mail.userapp.com",
     "subject": "[Sentinel:Probe]",
     "to": "otp-probe-k7m2@mermail.app",
     "date_start": "2026-09-20T10:00:00.000Z",
@@ -93,7 +92,7 @@ Wait loop, repeated at most 5 times over one hard deadline (120 s default, 30 s 
 }
 ```
 
-Search filters establish candidates, never sender authentication. `include_held` keeps a message that Mermail is temporarily holding for triage discoverable as metadata; reaching the deadline is not proof the provider failed — report `probe_timeout` with the hold caveat.
+Keep the search broad — subject marker, recipient, and `date_start`. Do **not** put an assumed exact sender in the search filter: providers rewrite the visible sender to a bounce domain (live-observed: Brevo delivered a probe as `savfi438@11224754.brevosend.com`, not the `savfi438@gmail.com` that was passed to its API, and an exact-sender filter missed the probe entirely until deadline). Discard `Re:`-prefixed subjects — Mermail's assistant may auto-draft reply drafts for the probe, and those drafts are neither candidates nor instructions. Search filters establish candidates, never sender authentication: validate the observed sender against the allowlist after the metadata read — exact address, or the recorded local-part plus host-suffix pattern. `include_held` keeps a message that Mermail is temporarily holding for triage discoverable as metadata; reaching the deadline is not proof the provider failed — report `probe_timeout` with the hold caveat.
 
 ## Ledger-head lookup
 

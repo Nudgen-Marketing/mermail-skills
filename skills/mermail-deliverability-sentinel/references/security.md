@@ -23,7 +23,7 @@ The user triggers every probe send; the agent never sends, resubmits, or compens
 
 ## Sender allowlist
 
-Record the per-round allowlist before any probe is triggered. Match the exact sender address first; when only a domain is approved, compare domain labels (`host === allowed` or `host.endsWith("." + allowed)`), never substrings. Reject display-name-only matches. A candidate from a non-allowlisted sender is excluded and reported, regardless of content. Authentication is read only from `sender_authentication.status`: `pass` counts, explicit `fail`/`softfail` fails the round, and `unknown` is reported as unverified — never upgraded from raw `Authentication-Results`, `From`, `Return-Path`, or transport metadata.
+Record the per-round allowlist before any probe is triggered. Match the exact sender address first; when only a domain is approved, compare domain labels (`host === allowed` or `host.endsWith("." + allowed)`), never substrings. Providers may rewrite the visible sender to a bounce domain (live-observed: Brevo as `local-part@<account-id>.brevosend.com`); after the first live probe, allowlist the observed envelope as an exact local-part plus host-suffix pair — never a bare suffix that any sender could imitate. Reject display-name-only matches and `Re:`-prefixed auto-drafts. A candidate from a non-allowlisted sender is excluded and reported, regardless of content. Authentication is read only from `sender_authentication.status`: `pass` counts, explicit `fail`/`softfail` fails the round, and `unknown` is reported as unverified — never upgraded from raw `Authentication-Results`, `From`, `Return-Path`, or transport metadata.
 
 ## Bounded read budgets
 
