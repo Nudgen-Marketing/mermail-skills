@@ -1500,6 +1500,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-receipt-digest",
   "mermail-x402-agent",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
@@ -1802,6 +1803,7 @@ for (const skillName of [
   "mermail-composio",
   "mermail-agent-wallet",
   "mermail-research-agent",
+  "mermail-receipt-digest",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -1822,6 +1824,7 @@ for (const expected of [
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
+  "route-receipt-digest-to-mermail-receipt-digest",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);

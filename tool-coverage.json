@@ -9,6 +9,7 @@
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-research-agent",
+    "mermail-receipt-digest",
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent"
