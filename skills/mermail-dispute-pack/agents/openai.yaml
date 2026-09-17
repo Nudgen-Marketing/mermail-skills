@@ -1,0 +1,12 @@
+interface:
+  display_name: "Mermail Dispute Pack"
+  short_description: "Build a cited, verifiable evidence pack from a mailbox thread for refunds, chargebacks, and disputes."
+  default_prompt: "Use $mermail-dispute-pack to build a cited evidence pack for this disputed charge."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+
