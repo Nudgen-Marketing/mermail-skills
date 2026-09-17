@@ -133,6 +133,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-cli` | Install and use the CLI for deterministic shell automation |
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
+| `mermail-dispute-pack` | Assemble a cited, verifiable evidence pack from a thread for refunds, chargebacks, and disputes — and show where the record is weak |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
@@ -168,3 +169,4 @@ This package is the **official curated** Mermail skills set. Community contribut
 | **Companion skills** | Niche workflows in your own repo / [skills.sh](https://skills.sh/) — do not claim to be this official package |
 
 Start with [CONTRIBUTING.md](./CONTRIBUTING.md). First official skill tutorial: [CONTRIBUTING_A_SKILL.md](./CONTRIBUTING_A_SKILL.md). Skill format and anti-patterns: [AUTHORING.md](./AUTHORING.md). Security reports: [SECURITY.md](./SECURITY.md). Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Maintainer process and graduation: [MAINTAINERS.md](./MAINTAINERS.md).
+

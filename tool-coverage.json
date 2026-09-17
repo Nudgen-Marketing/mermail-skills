@@ -6,6 +6,7 @@
     "mermail",
     "mermail-agent-inbox",
     "mermail-cli",
+    "mermail-dispute-pack",
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-research-agent",
@@ -66,3 +67,4 @@
     "invite_workspace_member", "resend_workspace_invite", "send_email", "reply_to_email", "forward_email", "schedule_email_send", "chat_with_mailbox_agent", "execute_composio_tool", "connect_composio_toolkit"
   ]
 }
+
