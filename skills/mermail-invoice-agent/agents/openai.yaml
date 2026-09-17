@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settlement Agent"
+  short_description: "Autonomous B2B invoice intake, verification, PayBox on-chain settlement, and vendor receipt delivery on Mermail"
+  default_prompt: "Use $mermail-invoice-agent to triage incoming vendor invoices, verify billing terms against PayBox balances, execute on-chain cryptocurrency settlements, and deliver transaction receipts to vendors"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
