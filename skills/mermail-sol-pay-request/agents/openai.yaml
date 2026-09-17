@@ -1,0 +1,11 @@
+interface:
+  display_name: "Sol Pay Request"
+  short_description: "Email a Solana Pay tip/invoice URI via Mermail (no payment server)."
+  default_prompt: "Use $mermail-sol-pay-request to draft a Mermail message with a Solana Pay transfer URI after I confirm the destination address and amount."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
