@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Perishable Verdict"
+  short_description: "Decide from mail, and state when the decision expires"
+  default_prompt: "Use $mermail-perishable-verdict when a decision rests on Mermail evidence that decays — freeze the gate and the per-class half-lives before reading, stamp each observation with the time it was read, then return GO, BLOCK, NEED_MORE_EVIDENCE, or EXPIRED with valid_until and the single observation that expires first."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
