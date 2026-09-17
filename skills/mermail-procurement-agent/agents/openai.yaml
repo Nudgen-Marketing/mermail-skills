@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Procurement Agent"
+  short_description: "Read vendor invoices, check policy, prepare payment approval"
+  default_prompt: "Use $mermail-procurement-agent when the job is reading supplier invoices from a Mermail mailbox, extracting payable terms, checking them against an owner policy, and preparing one Agent Wallet payment for owner approval before confirming and filing."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
