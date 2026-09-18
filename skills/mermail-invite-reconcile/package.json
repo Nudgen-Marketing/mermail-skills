@@ -1,0 +1,9 @@
+{
+  "name": "mermail-invite-reconcile-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ical.js": "^2.2.1"
+  }
+}
