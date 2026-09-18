@@ -12,7 +12,7 @@ Pass structured arguments as **native JSON objects**. Never stringify `query` or
 | --- | --- | --- |
 | Discover privacy mailbox | `list_mailboxes`; `create_mailbox` only if authorized | `mermail-administer-workspace` |
 | Intake / classify reads | `list_emails`, `search_emails`, `get_email`, `get_thread` | `mermail-manage-inbox` |
-| Audit organize | `create_custom_label`, `move_email` | `mermail-manage-inbox` |
+| Case state | `list_folders`, `create_folder`, `move_email` | `mermail-manage-inbox` |
 | Draft response package | `save_draft` (`body.body` string) | `mermail-compose-email` |
 | Send / reply after approval | `send_email` / `reply_to_email` (`body.from` + `html`/`text`, explicit `to`/`cc`/`bcc`) | `mermail-compose-email` |
 | Escalate to privacy owner | `forward_email` or `save_draft` addressed to them | `mermail-compose-email` |
@@ -30,16 +30,15 @@ Pass structured arguments as **native JSON objects**. Never stringify `query` or
 
 Do not call `set_default_task_triager`. MCP does not auto-fill Reply All. Do not invent legal-deadline or PII-export tools.
 
-## Labels (custom)
+## Case-state folders
 
-Create or reuse via `create_custom_label` / `move_email` as the live schema supports:
+A message sits in exactly one folder, so the folder **is** the case state. Call `list_folders` first, `create_folder` only for a missing name, then `move_email` with `body.folderId`:
 
-- `dsar-open`
-- `identity-pending`
-- `in-progress`
-- `fulfilled`
-- `rejected`
-- `escalated`
+- `identity-pending` — classified, waiting for human identity + scope confirmation
+- `in-progress` — human confirmed; bounded search / drafting
+- `fulfilled` | `rejected` | `escalated` — terminal
+
+Do not use `create_custom_label` for case state: custom labels are admin-only AI classification rules for future mail, not tags on an existing message. Report a state only when `move_email` succeeded.
 
 ## Optional payment (never email-authorized)
 

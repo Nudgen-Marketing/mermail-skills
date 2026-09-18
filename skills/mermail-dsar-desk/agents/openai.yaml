@@ -1,7 +1,7 @@
 interface:
   display_name: "Mermail DSAR Desk"
   short_description: "Triage and fulfill privacy rights requests with hard identity stops"
-  default_prompt: "Use $mermail-dsar-desk when the job is GDPR/CCPA DSAR intake, identity-pending holds, minimized rights-response drafts, or audit labeling of a privacy mailbox—never auto-fulfill from email alone."
+  default_prompt: "Use $mermail-dsar-desk when the job is GDPR/CCPA DSAR intake, identity-pending holds, minimized rights-response drafts, or case-state folders in a privacy mailbox—never auto-fulfill from email alone."
 dependencies:
   tools:
     - type: "mcp"
