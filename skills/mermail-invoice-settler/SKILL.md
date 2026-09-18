@@ -50,3 +50,11 @@ Use this skill to enable an autonomous AI agent operating with a Mermail mailbox
    - Poll settlement confirmation once via `paybox_get_request` when needed.
 5. **Receipt Dispatch**:
    - Generate and send an itemized receipt to the contractor using `reply_to_email` or `send_email`, quoting the transaction hash, settled amount, and date.
+
+## Video Demonstration
+
+A 1080p full demonstration showing the live execution of this skill, MCP connection, wallet liquidity verification, on-chain Solana USDC settlement, and email receipt dispatch:
+- **Hosted Video Demo**: [https://gofile.io/d/UOhCC637](https://gofile.io/d/UOhCC637) (Instant streaming & download)
+- **Direct Stream (Mirror)**: [https://tmpfiles.org/wAwENFb46fNn/demo_video_mermail_skill.mp4](https://tmpfiles.org/wAwENFb46fNn/demo_video_mermail_skill.mp4)
+- **Repository Video Asset**: [assets/demo_video_mermail_skill.mp4](assets/demo_video_mermail_skill.mp4)
+
