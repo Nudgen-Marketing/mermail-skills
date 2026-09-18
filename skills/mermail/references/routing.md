@@ -30,7 +30,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Run an xStocks trading desk: standing budget/schedule/mint allowlist, PayBox Jupiter plugin DCA, PayBox swap fallback, per-DCA invoice email, or weekly brokerage statement email | `mermail-xstocks-desk` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
-| Score a crypto bounty or opportunity against standing rules (no KYC with documents upfront, no real-money investment, Solana payout, no memecoins) and return an ATTACK / WATCH / SKIP verdict with deterministic evidence | `mermail-bounty-radar` (community skill) |
+| Reconcile crypto payout claims arriving by email against an owner-supplied expected payout list; triage matched / amount-mismatch / unknown claimant / duplicate / unverifiable sender. Never auto-pay, never auto-send | `mermail-crypto-payout-reconciler` (community skill) |
 
 Choosing or changing the default task triager is unsupported by the curated workflow. If requested, the root router must report the limitation and stop without invoking a focused skill; never call or invent `set_default_task_triager`.
 
