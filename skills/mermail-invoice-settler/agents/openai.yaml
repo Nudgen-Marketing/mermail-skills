@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice & Bounty Settler"
+  short_description: "Autonomous invoice verification, PayBox settlement, and email receipts"
+  default_prompt: "Use $mermail-invoice-settler to inspect freelance contractor invoices, verify deliverable criteria, settle on-chain USDC payments from the agent wallet, and dispatch email receipts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
