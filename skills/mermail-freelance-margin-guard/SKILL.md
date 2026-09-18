@@ -32,7 +32,7 @@ node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
   --format markdown
 ```
 
-The test run must validate 17 skills, 71 business tools, and 65 dedicated Margin Guard checks. Six named red-team regressions cover authority, provenance, chronology, deadline-classification, and duplicate-delay attacks, with a positive control for distinct evidence from one email. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. This path uses only the bundled synthetic fixture, performs no network request, sends no email, and exposes no private project data.
+The test run must validate 18 skills, 73 business tools, and 65 dedicated Margin Guard checks. Six named red-team regressions cover authority, provenance, chronology, deadline-classification, and duplicate-delay attacks, with a positive control for distinct evidence from one email. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. This path uses only the bundled synthetic fixture, performs no network request, sends no email, and exposes no private project data.
 
 ## Required Inputs
 

@@ -1,6 +1,6 @@
 ---
 name: mermail-administer-workspace
-description: Inspect Mermail API and email usage and manage workspaces, members, invitations, email domains, mailboxes, and storage. Use for workspace administration, access changes, domain verification, mailbox provisioning or settings, storage checks, plan usage, RPM, or credits. Do not use for generic inbox work, composing mail, or third-party app execution.
+description: Inspect Mermail API, email, and AI-credit usage and manage workspaces, members, invitations, email domains, mailboxes, and storage. Use for workspace administration, access changes, domain verification, mailbox provisioning or settings, storage checks, plan usage, RPM, or credits. Do not use for generic inbox work, composing mail, or third-party app execution.
 metadata:
   openclaw:
     requires:
@@ -21,7 +21,7 @@ Read [tools.md](references/tools.md) for the owned MCP tools and approval requir
 
 ## Preferred Deliverables
 
-- Workspace usage summaries with current API credits, email usage, storage, and relevant limits.
+- Workspace usage summaries with current API credits, AI-credit usage/events, email usage, storage, and relevant limits.
 - Exact member, invitation, role, domain, mailbox, or settings change proposals showing current and intended state.
 - Domain verification summaries with current status and the smallest safe next action.
 - Mailbox provisioning results stating whether an existing mailbox was reused or one new mailbox was created for 10 provision credits.
@@ -30,7 +30,7 @@ Read [tools.md](references/tools.md) for the owned MCP tools and approval requir
 ## Workflow
 
 1. Resolve the credential-bound workspace and the exact member, invitation, domain, or mailbox before reasoning about a change. Use stable IDs returned by list/get tools; never invent an ID or cross into another workspace.
-2. Read and show the relevant current state first. Use `get_api_credit_usage`, `get_email_usage`, or storage reads before a large or costly workflow when usage is material.
+2. Read and show the relevant current state first. Use `get_api_credit_usage`, `get_ai_credit_usage`, `list_ai_credit_events`, `get_email_usage`, or storage reads before a large or costly workflow when usage is material. Follow each tool's current live schema and do not infer missing periods, event fields, or units.
 3. Resolve ambiguity before writing. When multiple similarly named workspaces, members, domains, or mailboxes remain, present the smallest non-secret distinguishing metadata and ask the user to choose.
 4. Always call `list_mailboxes` or `list_workspace_mailboxes` before `create_mailbox`. Reuse a suitable exact mailbox instead of provisioning a duplicate, and do not retry an uncertain create blindly.
 5. Validate requested roles, invite recipients, domain names, mailbox addresses, and settings against the current live schema. `create_mailbox` requires `email` and `name` and costs 10 provision credits. For credential-bound MCP, `workspaceId` is optional when the live schema permits omission; pass the exact resolved workspace ID only when the transport or schema requires it.
@@ -62,7 +62,7 @@ Read [tools.md](references/tools.md) for the owned MCP tools and approval requir
 
 ## Example Requests
 
-- "Show this workspace's API credits, email usage, and storage."
+- "Show this workspace's API credits, AI-credit usage, recent AI-credit events, email usage, and storage."
 - "Invite alex@example.com to this workspace as a member."
 - "Change this member from viewer to admin after showing me the impact."
 - "Add and verify example.com as an email domain."
