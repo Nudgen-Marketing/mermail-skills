@@ -9,10 +9,11 @@
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-research-agent",
-    "mermail-scheduling-agent",
     "mermail-support-agent",
+    "mermail-scheduling-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-bookkeeper-agent"
   ],
   "domains": {
     "mermail-administer-workspace": [
