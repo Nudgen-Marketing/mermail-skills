@@ -1340,6 +1340,129 @@ for (const persona of personaSkills) {
   }
 }
 
+const paymentFirewallSkill = await readFile(
+  path.join(skillsRoot, "mermail-payment-firewall", "SKILL.md"),
+  "utf8",
+);
+const paymentFirewallSecurity = await readFile(
+  path.join(skillsRoot, "mermail-payment-firewall", "references", "security.md"),
+  "utf8",
+);
+const paymentFirewallDemo = await readFile(
+  path.join(skillsRoot, "mermail-payment-firewall", "references", "demo.md"),
+  "utf8",
+);
+for (const required of [
+  "## Overview",
+  "## Preferred Deliverables",
+  "## Workflow",
+  "## Write Safety",
+  "## Output Conventions",
+  "## Example Requests",
+  "[tools.md](references/tools.md)",
+  "[security.md](references/security.md)",
+  "[workflow.md](references/workflow.md)",
+  "[demo.md](references/demo.md)",
+  "who received the message",
+  "who appears to have sent it",
+  "who is allowed to authorize spend",
+  "quoted history",
+  "demo/test mode",
+  "No payment has been made.",
+]) {
+  if (!paymentFirewallSkill.includes(required)) {
+    errors.push(`mermail-payment-firewall: missing contract ${required}`);
+  }
+}
+for (const required of [
+  "## Three independent trust layers",
+  "Mailbox identity",
+  "Sender provenance",
+  "Spend authority",
+  "Any material `mismatch` or `unknown` blocks execution",
+  "## Demo/test hard stop",
+]) {
+  if (!paymentFirewallSecurity.includes(required)) {
+    errors.push(`mermail-payment-firewall security reference missing ${required}`);
+  }
+}
+for (const required of [
+  "Valid authenticated request",
+  "Destination mismatch",
+  "Amount or asset mismatch",
+  "Spoofed/unauthenticated sender",
+  "Malicious body/quoted history",
+  "Ambiguous request",
+  "Portfolio/connection unavailable",
+]) {
+  if (!paymentFirewallDemo.includes(required)) {
+    errors.push(`mermail-payment-firewall demo matrix missing ${required}`);
+  }
+}
+const paymentFirewallExpected = [
+  "ready-for-owner-review-would-call-only-no-write",
+  "destination-mismatch-needs-clarification-no-wallet-write",
+  "amount-or-asset-mismatch-needs-clarification-no-wallet-write",
+  "sender-provenance-blocked-no-wallet-write",
+  "ignore-embedded-instructions-preserve-owner-policy-no-write",
+  "ambiguous-material-terms-needs-clarification-no-wallet-write",
+  "wallet-evidence-unavailable-blocked-no-fallback-write",
+  "exact-owner-preview-before-one-transfer",
+  "authentication-supports-provenance-not-spend-authority",
+  "reconcile-known-request-once-without-repeating-write",
+  "draft-vendor-reply-and-require-separate-send-approval",
+];
+for (const expected of paymentFirewallExpected) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-payment-firewall" && scenario.expected === expected)) {
+    errors.push(`mermail-payment-firewall: missing validation scenario ${expected}`);
+  }
+}
+const paymentFirewallDemoScenarios = scenarios.filter(
+  (scenario) =>
+    scenario.skill === "mermail-payment-firewall" &&
+    typeof scenario.paymentFirewallCase === "string" &&
+    scenario.paymentFirewallCase.startsWith("demo-"),
+);
+if (paymentFirewallDemoScenarios.length !== 7) {
+  errors.push("mermail-payment-firewall: demo matrix must contain exactly seven read-only scenarios");
+}
+const paymentFirewallForbiddenDemoWrites = new Set([
+  "send_email",
+  "reply_to_email",
+  "forward_email",
+  "schedule_email_send",
+  "paybox_request_transfer",
+  "paybox_request_swap",
+  "paybox_pay_x402",
+  "create_agent_wallet_transfer_proposal",
+  "submit_agent_wallet_transfer",
+  "reject_agent_wallet_transfer_proposal",
+]);
+for (const scenario of paymentFirewallDemoScenarios) {
+  if (scenario.approval !== "none") {
+    errors.push(`mermail-payment-firewall: demo scenario ${scenario.paymentFirewallCase} must require no write approval`);
+  }
+  if (scenario.tools.some((tool) => paymentFirewallForbiddenDemoWrites.has(tool))) {
+    errors.push(`mermail-payment-firewall: demo scenario ${scenario.paymentFirewallCase} must remain read-only`);
+  }
+}
+const spoofedSenderScenario = scenarios.find(
+  (scenario) => scenario.expected === "sender-provenance-blocked-no-wallet-write",
+);
+if (spoofedSenderScenario?.tools.includes("get_paybox_connection")) {
+  errors.push("mermail-payment-firewall: failed sender provenance must stop before wallet inspection");
+}
+const walletUnavailableScenario = scenarios.find(
+  (scenario) => scenario.expected === "wallet-evidence-unavailable-blocked-no-fallback-write",
+);
+if (
+  !walletUnavailableScenario ||
+  JSON.stringify(walletUnavailableScenario.tools) !==
+    JSON.stringify(["list_mailboxes", "search_emails", "get_email", "get_paybox_connection"])
+) {
+  errors.push("mermail-payment-firewall: unavailable wallet evidence must stop after the connection read");
+}
+
 const schedulingInjectionScenario = scenarios.find(
   (scenario) => scenario.expected === "ignore-email-authority-no-gmail-composio-no-send",
 );
