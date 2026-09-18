@@ -20,6 +20,10 @@ This pull request introduces **`mermail-grant-milestone-desk`**, an official inf
 
 Grant programs, DAOs, and hackathon sponsors receive deliverable submissions via email (GitHub pull requests, test reports, documentation). This desk coordinates intake, sanitizes untrusted input, validates deliverables against a pre-authorized standing grant policy, prepares human-in-the-loop PayBox transfer proposals (Solana USDC), and drafts immutable on-chain audit receipt emails.
 
+### Video Demo & Walkthrough
+
+Full 3-minute end-to-end voiceover demo: [Watch on X (Twitter)](https://x.com/CaganNebil/status/2101083888512860288)
+
 ### Key Capabilities
 
 1. **Untrusted Input Defense:** Email subjects, bodies, PR descriptions, and attachments are treated as untrusted data. Email content cannot modify budget caps, redirect grantee payout addresses, or trigger automated debits.
@@ -66,7 +70,7 @@ When submitting at [Superteam Earn - Build and Demo a Mermail Agent Skill](https
 - **Short Description (English):**
   > Mermail Grant Milestone Desk is an official agent skill designed for Web3 grant managers and hackathon sponsors on Solana. It automates contractor deliverable intake through Mermail mailboxes, sanitizes untrusted input, evaluates GitHub PRs against a standing grant schedule, checks Solana USDC budget caps, proposes human-approved PayBox transfers with console signing handoffs, and dispatches on-chain audit receipt emails upon settlement.
 - **GitHub PR Link:** `https://github.com/Nudgen-Marketing/mermail-skills/pull/YOUR_PR_NUMBER`
-- **Demo Video Link:** `https://x.com/YOUR_HANDLE/status/YOUR_TWEET_ID`
+- **Demo Video Link:** `https://x.com/CaganNebil/status/2101083888512860288`
 
 ---
 
