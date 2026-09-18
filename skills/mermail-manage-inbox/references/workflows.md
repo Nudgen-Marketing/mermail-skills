@@ -24,7 +24,7 @@ For multiple emails, freeze a deduplicated id list. `bulk_mark_emails_read` appl
 
 ## Download one attachment
 
-Read the selected email metadata, match one exact attachment id, filename, MIME type, and size, and apply [security.md](security.md). If metadata already shows the file exceeds the MCP 1 MiB binary limit, report the boundary and stop before calling `download_attachment`. Otherwise call `download_attachment` at most once; if the bridge still rejects the file for size, report that result. Do not construct a storage URL or expose blob metadata.
+Read the selected email metadata, match one exact attachment id, filename, MIME type, and size, and apply [security.md](security.md). The safe `get_email` read may expose only `attachment_count`; when an attachment is required, make a second metadata-only read for the same scan-clean message with `metadata_only: true` and `require_scan_status: "clean"`, omitting `agent_safe_content`, then extract only `attachments[].{id,filename,mimetype,size}`. Never relay `raw_headers` or `provider_metadata`. If metadata already shows the file exceeds the MCP 1 MiB binary limit, report the boundary and stop before calling `download_attachment`. Otherwise call `download_attachment` at most once; if the bridge still rejects the file for size, report that result. The response may be a binary resource block or a `type: "text"` block containing the ICS payload for `text/calendar`; accept either live representation without inventing a URL or transport. Do not construct a storage URL or expose blob metadata.
 
 ## Manage folders
 
