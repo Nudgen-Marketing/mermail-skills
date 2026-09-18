@@ -6,3 +6,11 @@ node_modules/
 dist
 __pycache__/
 *.pyc
+*.mp4
+*.mp3
+demo/audio/
+demo/frames/
+demo/frames_search/
+demo/frames_exact/
+demo/final_frames/
+demo/capcut_check/
