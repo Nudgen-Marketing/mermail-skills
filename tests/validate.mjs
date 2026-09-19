@@ -1633,6 +1633,7 @@ for (const skillName of [
   "mermail-support-agent",
   "mermail-research-agent",
   "mermail-x402-agent",
+  "mermail-deal-desk",
   "mermail-xstocks-desk",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
@@ -1897,6 +1898,87 @@ for (const [securityCase, expected] of expectedSecurityScenarios) {
   }
 }
 
+const dealDeskDir = path.join(skillsRoot, "mermail-deal-desk");
+const dealDeskSkill = await readFile(path.join(dealDeskDir, "SKILL.md"), "utf8");
+const dealDeskTools = await readFile(path.join(dealDeskDir, "references", "tools.md"), "utf8");
+const dealDeskBlock = await readFile(path.join(dealDeskDir, "references", "deal-block.md"), "utf8");
+for (const required of [
+  "## Overview",
+  "## Preferred Deliverables",
+  "## Workflow",
+  "## Write Safety",
+  "## Output Conventions",
+  "## Example Requests",
+  "[tools.md](references/tools.md)",
+  "[security.md](references/security.md)",
+  "[deal-block.md](references/deal-block.md)",
+]) {
+  if (!dealDeskSkill.includes(required)) {
+    errors.push(`mermail-deal-desk: missing top-level structure ${required}`);
+  }
+}
+for (const required of [
+  "`payout_address`",
+  "pinned",
+  "`HELD`",
+  "`deal_id`",
+  "`get_paybox_connection`",
+  "`paybox_request_transfer`",
+  "`paybox_get_request`",
+  "deal-<deal_id>-release",
+  "sender_authentication.status",
+  "Pending is not paid",
+  "does not own MCP tools",
+]) {
+  if (!dealDeskSkill.includes(required)) {
+    errors.push(`mermail-deal-desk: missing safety/workflow contract ${required}`);
+  }
+}
+if (dealDeskSkill.includes("prepare_destructive_action") && !dealDeskSkill.includes("Do not call `prepare_destructive_action` for PayBox tools")) {
+  errors.push("mermail-deal-desk: PayBox writes must not be wrapped in prepare_destructive_action");
+}
+if (
+  dealDeskSkill.indexOf("Verify delivery with evidence") >
+  dealDeskSkill.indexOf("Call `paybox_request_transfer` once")
+) {
+  errors.push("mermail-deal-desk: delivery verification must precede the release transfer");
+}
+for (const required of ["=== MERMAIL-DEAL v1 ===", "RELEASED is terminal", "deal-<deal_id>-open", "deal-<deal_id>-receipt"]) {
+  if (!dealDeskBlock.includes(required)) {
+    errors.push(`mermail-deal-desk: deal block reference missing ${required}`);
+  }
+}
+if (!dealDeskTools.includes("This skill owns no MCP tools")) {
+  errors.push("mermail-deal-desk: tools reference must state that the persona owns no MCP tools");
+}
+for (const collection of [coverage.domains, walletScopedDomains]) {
+  if (Object.hasOwn(collection, "mermail-deal-desk")) {
+    errors.push("mermail-deal-desk: cross-domain persona must not claim tool ownership");
+  }
+}
+const dealDeskScenarios = scenarios.filter((scenario) => scenario.skill === "mermail-deal-desk");
+if (!dealDeskScenarios.length) errors.push("mermail-deal-desk: missing validation scenario");
+for (const scenario of dealDeskScenarios) {
+  if (
+    scenario.securityCase &&
+    scenario.tools.some((tool) => tool.startsWith("paybox_") || tool.includes("wallet"))
+  ) {
+    errors.push(`mermail-deal-desk: contested-term scenario must not reach a wallet tool: ${scenario.expected}`);
+  }
+}
+const dealDeskReleaseScenario = scenarios.find(
+  (scenario) => scenario.expected === "release-pinned-amount-to-pinned-address-after-fresh-approval",
+);
+if (!dealDeskReleaseScenario || !dealDeskReleaseScenario.tools.includes("get_paybox_connection")) {
+  errors.push("mermail-deal-desk: release scenario must probe get_paybox_connection before transferring");
+}
+const dealDeskPendingScenario = scenarios.find(
+  (scenario) => scenario.expected === "reconcile-pending-release-once-no-second-transfer",
+);
+if (!dealDeskPendingScenario || dealDeskPendingScenario.tools.includes("paybox_request_transfer")) {
+  errors.push("mermail-deal-desk: pending release must reconcile without a second transfer");
+}
+
 const mermailRootSkill = await readFile(path.join(skillsRoot, "mermail", "SKILL.md"), "utf8");
 const routing = await readFile(path.join(skillsRoot, "mermail", "references", "routing.md"), "utf8");
 const mermailRouterCorpus = `${mermailRootSkill}\n${routing}`;
@@ -1934,6 +2016,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-deal-desk",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {

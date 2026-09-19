@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deal Desk"
+  short_description: "Agree paid work by email, verify it, then release payment"
+  default_prompt: "Use $mermail-deal-desk when the job is to offer paid work to someone by email from a Mermail mailbox, track the agreement in the thread with a machine-readable deal block, verify delivery against acceptance criteria the user pinned, and release payment with Agent Wallet to the payout address pinned when the deal opened."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
