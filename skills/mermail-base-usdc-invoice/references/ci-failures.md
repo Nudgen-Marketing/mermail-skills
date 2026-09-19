@@ -37,6 +37,6 @@ Reproduce any row: apply the break, run `node tests/validate.mjs` (expect exit 1
 ## Authoring checklist before push
 
 1. `node tests/validate.mjs` → `Validated 18 skills…` (or current N ≥ 18 if more skills land).
-2. `SKILL.md` links every reference you ship (`tools`, `security`, `workflows`, `examples`, `harness`, `ci-failures`).
+2. `SKILL.md` links every reference you ship (`tools`, `security`, `workflows`, `examples`, `harness`, `harness-compat`, `ci-failures`, `discussion-triage`, `pr-salvage`, `analyzer-fixtures`).
 3. No secrets in references; no fake CI logs — only failures you can re-run locally.
 4. Do not bump `catalog.skills` without a matching `skills/` directory entry (and vice versa).

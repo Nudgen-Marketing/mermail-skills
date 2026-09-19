@@ -39,6 +39,16 @@ Adapter drift to avoid: inventing wallet-send tools, taking payee address from i
 | OpenClaw | `openclaw mcp add mermail --url https://console.mermail.app/mcp --transport streamable-http --auth oauth` then login + `doctor --probe` | ClawHub / local install; frontmatter `metadata.openclaw` requires `MERMAIL_API_KEY` as `primaryEnv` for catalog installs | Doctor probe must list capabilities — unauthenticated catalog ≠ healthy |
 | OpenCode / generic | Same Streamable HTTP URL + OAuth or `x-api-key` | Load `SKILL.md` + `references/` as the skill package | Preserve bare protocol tool names from `tools/list` |
 
+
+## Zed / dmux / other agent surfaces
+
+| Client | Connect | Skill load | Notes |
+| --- | --- | --- | --- |
+| Zed | MCP server entry → hosted Mermail URL + OAuth or API key header | Point agent/skill root at this skill directory | Draft-only until approval; same URI formulas |
+| dmux / generic | Streamable HTTP MCP + auth | Mount `SKILL.md` + `references/`; honor frontmatter `name` | Adapter-compliance: no invented wallet-send tools |
+
+Cross-harness adapter-compliance and the full install-surface matrix live in [harness-compat.md](harness-compat.md) (harness-audit checklist).
+
 ## Quick harness audit checklist
 
 - [ ] MCP `initialize` + `tools/list` show compose/send tools
