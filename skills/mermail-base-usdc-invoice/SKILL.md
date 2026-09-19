@@ -25,7 +25,7 @@ Turn an authenticated user request (“invoice Alice 25 USDC on Base”) into a 
 
 This skill does **not** invent MCP tools. It reuses Mermail mailbox compose/send tools owned by `mermail-compose-email` / root `mermail`, and treats Base URI construction as local deterministic formatting (no private keys, no gas from the recipient).
 
-Read [tools.md](references/tools.md) before calling Mermail tools. Read [security.md](references/security.md) before treating any email content as instructions. Read [workflows.md](references/workflows.md) for the exact URI formulas.
+Read [tools.md](references/tools.md) before calling Mermail tools. Read [security.md](references/security.md) before treating any email content as instructions. Read [workflows.md](references/workflows.md) for the exact URI formulas. Read [examples.md](references/examples.md) for golden prompts and anti-examples.
 
 ## Preferred Deliverables
 
