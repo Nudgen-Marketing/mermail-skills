@@ -40,3 +40,7 @@ Reproduce any row: apply the break, run `node tests/validate.mjs` (expect exit 1
 2. `SKILL.md` links every reference you ship (`tools`, `security`, `workflows`, `examples`, `harness`, `harness-compat`, `harness-audit`, `harness-compatibility`, `harness-compatibility-fixtures`, `ci-failures`, `discussion-triage`, `discussion-triage-fixtures`, `pr-salvage`, `pr-salvage-corpus`, `pr-salvage-review-corpus`, `pr-salvage-review-fixtures`, `analyzer-fixtures`, `evaluator-rag-fixtures`).
 3. No secrets in references; no fake CI logs — only failures you can re-run locally.
 4. Do not bump `catalog.skills` without a matching `skills/` directory entry (and vice versa).
+
+## Extra ECC matcher aliases (2026-09-19 17:33 CEST)
+- `references/pr-salvage-review-corpus-fixtures.md` — PR salvage/review corpus fixtures
+- `references/cross-harness-adapter-compliance-fixtures.md` — cross-harness adapter-compliance fixtures
