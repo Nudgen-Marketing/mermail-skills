@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Context Bridge"
+  short_description: "Save and resume cross-client conversation context through the agent's own Mermail mailbox with short memory codes."
+  default_prompt: "Use $mermail-context-bridge to save or resume conversation context across AI clients through the Mermail mailbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
