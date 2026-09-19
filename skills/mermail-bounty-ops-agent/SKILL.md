@@ -57,10 +57,10 @@ Report `skipped`, `qualified`, `needs_human_action`, `packaging`, `drafted`, `aw
 
 Name the mailbox, platform/listing, source thread/email, deliverable links, draft/send IDs, and the single next action. Keep private payment details, credentials, and rejected internal notes out of customer-facing replies.
 
-## Example Requests
+## Example Requests And Expected Results
 
-- "Use my Mermail bounty inbox to qualify this paid opportunity and draft a submission plan."
-- "Package the repo, test proof, and summary for this sponsor, but do not submit the form."
-- "Draft a polite follow-up for this pending bounty review using the existing thread."
-- "Check whether this payout email is enough evidence of payment and summarize what is still missing."
-- "This listing asks for a wallet signature and X post; prepare the text and stop for me."
+- "Use my Mermail bounty inbox to qualify this paid opportunity and draft a submission plan." -> `qualified` or `skipped`, with the evidence-backed gate result and one next action.
+- "Package the repo, test proof, and summary for this sponsor, but do not submit the form." -> `packaging` or `drafted`, with a reusable handoff record and no platform submission.
+- "Draft a polite follow-up for this pending bounty review using the existing thread." -> `drafted`, with the draft ID and exact recipient/body preview; nothing is sent.
+- "Check whether this payout email is enough evidence of payment and summarize what is still missing." -> `paid` only with authoritative evidence; otherwise `pending_review` or `uncertain`.
+- "This listing asks for a wallet signature and X post; prepare the text and stop for me." -> `needs_human_action`, with paste-ready text and no signature, wallet write, or social post.

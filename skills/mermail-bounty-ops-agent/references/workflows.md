@@ -35,3 +35,24 @@
 Keep the authoritative per-opportunity state in the handoff record. Suggested states are `Bounty/Qualified`, `Bounty/Drafted`, `Bounty/Submitted`, `Bounty/Pending Review`, `Bounty/Accepted`, `Bounty/Paid`, `Bounty/Rejected`, and `Bounty/Blocked`.
 
 Use folders and `move_email` only when the user wants mailbox organization. `create_custom_label` is for classifier rule definitions for future mail, not manual status updates on an existing opportunity. Mailbox organization is not an external claim that the bounty platform agrees with the state.
+
+## Reusable Handoff Record
+
+Keep one compact record per opportunity:
+
+```yaml
+status: qualified | skipped | drafted | submitted | pending_review | accepted | rejected | paid | uncertain
+platform: ""
+listing_url: ""
+deadline: ""
+payout: ""
+source_thread_id: ""
+deliverable_links: []
+test_evidence: []
+draft_or_submission_id: ""
+human_actions: []
+limitations: []
+next_action: ""
+```
+
+Leave unknown fields empty and label uncertainty. Never place credentials, private wallet material, customer data, or protected prompts in this record.
