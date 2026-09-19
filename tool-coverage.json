@@ -13,6 +13,7 @@
     "mermail-support-agent",
     "mermail-x402-agent",
     "mermail-xstocks-desk"
+    ,"mermail-opportunity-pipeline"
   ],
   "domains": {
     "mermail-administer-workspace": [
