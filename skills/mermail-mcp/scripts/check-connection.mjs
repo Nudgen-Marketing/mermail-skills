@@ -3,7 +3,7 @@ import process from "node:process";
 
 const endpoint = process.env.MERMAIL_MCP_URL || "https://console.mermail.app/mcp";
 const apiKey = process.env.MERMAIL_API_KEY;
-const currentFullCatalogBaseline = 72;
+const currentFullCatalogBaseline = 74;
 const compatibleFullCatalogFloor = 63;
 const agentInboxTools = [
   "get_api_credit_usage",
