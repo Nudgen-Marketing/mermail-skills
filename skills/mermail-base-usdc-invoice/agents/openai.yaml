@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Base USDC Invoice"
+  short_description: "Email a Base USDC EIP-681 invoice from Mermail after one approval."
+  default_prompt: "Use $mermail-base-usdc-invoice to draft and send a Base USDC invoice email safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
