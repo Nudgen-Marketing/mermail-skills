@@ -13,6 +13,7 @@ Install one focused skill:
 ```bash
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-visa-deadline-desk
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
@@ -123,7 +124,7 @@ Verify without printing the secret:
 node skills/mermail-mcp/scripts/check-connection.mjs
 ```
 
-The check initializes MCP and requires the current 63-tool full-catalog baseline while allowing future additive tools (currently 72 with Composio). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
+The check initializes MCP and requires the compatible 63-tool full-catalog floor while allowing future additive tools (currently 74 with Composio and AI-credit reads). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
 
 ## Included skills
 
@@ -140,6 +141,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party apps through Composio |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
+| `mermail-visa-deadline-desk` | Build source-grounded visa deadline/document briefs with review-gated replies and reminders |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |

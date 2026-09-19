@@ -11,11 +11,14 @@
     "mermail-research-agent",
     "mermail-scheduling-agent",
     "mermail-support-agent",
+    "mermail-visa-deadline-desk",
     "mermail-x402-agent",
     "mermail-xstocks-desk"
   ],
   "domains": {
     "mermail-administer-workspace": [
+      "get_ai_credit_usage",
+      "list_ai_credit_events",
       "get_api_credit_usage",
       "get_email_usage",
       "list_workspaces",

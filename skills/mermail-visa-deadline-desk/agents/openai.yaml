@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Visa Deadline Desk"
+  short_description: "Turn visa emails into safe deadline briefs"
+  default_prompt: "Use $mermail-visa-deadline-desk to build a source-grounded visa action brief and wait before any write."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
