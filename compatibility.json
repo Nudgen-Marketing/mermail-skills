@@ -12,7 +12,7 @@
     "cursor": "remote MCP OAuth; x-api-key header mapping is a limited fallback"
   },
   "catalog": {
-    "skills": 15,
+    "skills": 16,
     "businessTools": 71,
     "confirmationTools": 1,
     "walletScopedTools": 15
