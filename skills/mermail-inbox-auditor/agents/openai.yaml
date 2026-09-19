@@ -1,0 +1,11 @@
+interface:
+  display_name: "Audit a Mermail Inbox"
+  short_description: "Scan and classify every message in a Mermail inbox, flag subscriptions and unexpected senders"
+  default_prompt: "Use $mermail-inbox-auditor to scan a Mermail inbox, classify every message, and produce a read-only audit report."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
