@@ -13,6 +13,8 @@
     "assets",
     "README.md",
     "LICENSE",
+    "plugin.json",
+    "mcp.json",
     "openclaw.plugin.json",
     ".mcp.json",
     ".plugin",
