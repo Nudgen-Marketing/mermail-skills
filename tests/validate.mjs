@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import { validateResearchAgent } from "./research-agent.mjs";
+import { validateContinuityAgent } from "./continuity-agent.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -2031,6 +2032,7 @@ for (const content of trackedText) {
 }
 
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
+errors.push(...await validateContinuityAgent(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 

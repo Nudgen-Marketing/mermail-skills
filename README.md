@@ -163,6 +163,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
+| `mermail-continuity-agent` | Give an agent continuity across sessions: wake from a self-addressed capsule thread and its cursor, recall past decisions by quote, keep a per-correspondent dossier chain that holds at thousands of correspondents, and hand off the next capsule to the agent's own address |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Run an xStocks trading desk with a standing grant, PayBox Jupiter plugin DCA, PayBox swap fallback, a per-DCA invoice email, and weekly brokerage-style statement email |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer via `paybox_request_transfer`, swap via `paybox_request_swap`, or pay a user-selected x402 service via live `paybox_pay_x402` (same MCP paths as in-app Assistant; full-profile OAuth) |
