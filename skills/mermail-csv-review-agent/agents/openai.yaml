@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail CSV Review Agent"
+  short_description: "Review email CSV attachments with explicit data rules"
+  default_prompt: "Use $mermail-csv-review-agent to review this selected CSV attachment against my rules and save an unsent summary draft."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

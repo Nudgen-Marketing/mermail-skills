@@ -6,6 +6,7 @@
     "mermail",
     "mermail-agent-inbox",
     "mermail-cli",
+    "mermail-csv-review-agent",
     "mermail-gtm-agent",
     "mermail-mcp",
     "mermail-research-agent",

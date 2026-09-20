@@ -162,6 +162,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
+| `mermail-csv-review-agent` | Review a selected CSV attachment against explicit rules, preserve exceptions, and draft an unsent summary |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Run an xStocks trading desk with a standing grant, PayBox Jupiter plugin DCA, PayBox swap fallback, a per-DCA invoice email, and weekly brokerage-style statement email |
