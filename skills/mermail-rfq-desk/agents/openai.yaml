@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail RFQ Desk"
+  short_description: "Run an email RFQ negotiation desk: publish RFQs, score quotes, counter, award"
+  default_prompt: "Use $mermail-rfq-desk to publish a structured RFQ from my Mermail mailbox, collect and score vendor quotes against my criteria, run approved counter-rounds, and award with a full thread audit trail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
