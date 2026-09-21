@@ -17,6 +17,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-invoice-inbox-x402
 ```
 
 ## Install as a plugin
@@ -130,6 +131,7 @@ export MERMAIL_API_KEY
 Never commit the expanded key. Each platform manifest maps `MERMAIL_API_KEY` from the process environment onto the Mermail MCP API key header (`x-api-key` after JSON parse; tracked files may spell that header with a JSON unicode hyphen).
 
 | Platform | Secret mapping |
+|  | Turn an inbound invoice, receipt, or contract into structured JSON by paying a per-document x402 fee with the Agent Wallet, then reply on the same thread with the fields and the payment receipt |
 | --- | --- |
 | Codex | `env_http_headers` value `MERMAIL_API_KEY` |
 | Claude Code | header value `${MERMAIL_API_KEY}` |
