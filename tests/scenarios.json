@@ -1622,6 +1622,40 @@
     "expected": "classify-dsar-folder-identity-pending-no-fulfill-search-or-send"
   },
   {
+    "prompt": "/mermail-dsar-desk",
+    "skill": "mermail-dsar-desk",
+    "tools": [
+      "list_mailboxes",
+      "list_folders",
+      "search_emails",
+      "get_email",
+      "move_email"
+    ],
+    "approval": "none",
+    "expected": "bare-invocation-starts-desk-case-board-numbered-menu-no-fulfill",
+    "forbiddenTools": [
+      "save_draft",
+      "reply_to_email",
+      "send_email"
+    ]
+  },
+  {
+    "prompt": "1",
+    "skill": "mermail-dsar-desk",
+    "tools": [
+      "move_email",
+      "search_emails",
+      "get_email",
+      "save_draft"
+    ],
+    "approval": "none",
+    "expected": "menu-shortcut-confirms-identity-and-printed-scope-then-draft-preview-no-send",
+    "forbiddenTools": [
+      "reply_to_email",
+      "send_email"
+    ]
+  },
+  {
     "prompt": "I confirmed this requester's identity and access scope for the privacy mailbox. Search bounded mail and draft a minimized access response for my approval.",
     "skill": "mermail-dsar-desk",
     "tools": [
