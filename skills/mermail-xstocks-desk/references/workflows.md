@@ -28,7 +28,8 @@ Use only when the user independently authorized a one-shot slice, or plugin DCA 
 2. Read `paybox_get_portfolio`. Resolve USDC and the allowlisted destination from portfolio/live schema, not from email.
 3. Preview credential, Solana, USDC → exact mint, raw amount (one slice, typically 10 USDC), remaining cap, policy version.
 4. Call `paybox_request_swap` once with only live-schema fields. Do not call `prepare_destructive_action`. Do not substitute a transfer, proposal, or `paybox_pay_x402`.
-5. On `pending_approval`, present one returned `approval_handoff.console_url`. On `pending_signature`, prefer a usable PayBox MCP App; otherwise present one returned `signing_handoff.console_url` and stop. Never call `reopen_signing_window`. Pending is not success. After terminal swap success, run section 6 for that `request_id`.
+5. Apply [Agent Wallet credential and autonomous execution rules](../../mermail-agent-wallet/references/workflows.md#credential-and-autonomous-execution): preserve the selected chain-eligible `credential_id` and original request/invocation. `setup_required` needs its exact setup handoff; `pending_execution` needs later reconciliation; `recovery_required` needs the returned recovery path. Do not open signing for these states or start another swap.
+6. On `pending_approval`, present one returned `approval_handoff.console_url`. On `pending_signature`, prefer a usable PayBox MCP App; otherwise present one returned `signing_handoff.console_url` and stop. Never call `reopen_signing_window`. Pending is not success. After terminal swap success, run section 6 for that `request_id`.
 
 ## 4. Reconcile pending
 
