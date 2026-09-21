@@ -86,6 +86,26 @@ ln -sfn /path/to/mermail-skills ~/.cursor/plugins/local/mermail
 
 Or import this repo as a **Cursor team marketplace**. Reload Cursor, then inspect Mermail under MCP tools.
 
+### Hermes Agent
+
+Portable Agent Plugins v1 package (`plugin.json` + `mcp.json` + `skills/`). After the [Hermes plugin catalog](https://hermes-agent.nousresearch.com/docs/user-guide/features/plugin-catalog) listing is merged:
+
+```bash
+hermes plugins install mermail
+hermes plugins enable mermail
+hermes mcp login mermail
+```
+
+Until then, install the reviewed git URL (not a catalog pin):
+
+```bash
+hermes plugins install https://github.com/Nudgen-Marketing/mermail-skills
+hermes plugins enable mermail
+hermes mcp login mermail
+```
+
+Authenticate with OAuth. Do not put a Mermail API key in `mcp.json`.
+
 ## ClawHub (OpenClaw)
 
 Mermail skills are published to [ClawHub](https://clawhub.ai/) under the **`mermail`** owner. See [CLAWHUB.md](./CLAWHUB.md) for publish and install steps (`clawhub install mermail/<skill-slug>`).

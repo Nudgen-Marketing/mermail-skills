@@ -66,7 +66,7 @@ The repo now has two ClawHub workflows:
 - [`.github/workflows/clawhub-skill-publish.yml`](./.github/workflows/clawhub-skill-publish.yml) publishes the individual `skills/*` folders.
 - [`.github/workflows/clawhub-package-publish.yml`](./.github/workflows/clawhub-package-publish.yml) publishes the repo as an OpenClaw bundle plugin package.
 
-The package workflow follows OpenClaw's official reusable `package-publish.yml` path, pinned to the audited `v0.12.0` commit. Pull requests run a dry-run only; tag pushes and manual dispatches are the trusted release events. Before calling the reusable publish job, CI runs `clawhub package validate . --json` locally, only allows manual dispatches from `main` or a `vX.Y.Z` tag, and requires any `vX.Y.Z` tag to match `package.json` exactly.
+The package workflow follows OpenClaw's official reusable `package-publish.yml` path, pinned to a commit that supports the `bundle-plugin` family. Pull requests run a dry-run only; tag pushes and manual dispatches are the trusted release events. Before calling the reusable publish job, CI runs `clawhub package validate . --json` locally, only allows manual dispatches from `main` or a `vX.Y.Z` tag, and requires any `vX.Y.Z` tag to match `package.json` exactly.
 
 ### Package publish setup
 
