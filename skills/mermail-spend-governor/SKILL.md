@@ -94,3 +94,9 @@ Boundaries: executing a payment stays on `mermail-x402-agent` (paid call that co
 - "Which payment attempts from last week still have no settlement evidence?"
 - "Draft this week's agent spend report for me to review."
 - "Did we already pay for this same resource twice?"
+
+## Demo
+
+Recorded run (3:40, English) of this skill in a live MCP client — Hermes Agent plus the Mermail MCP server: four inbound spend requests evaluated against `workspace/spend-policy.json`, two flagged as duplicates of an unresolved invoice, one blocked for exceeding the per-request cap, one blocked for an origin outside the allowlist. Zero payments; one escalation drafted for owner approval.
+
+https://x.com/Hisaokkema/status/2101923412797210760
