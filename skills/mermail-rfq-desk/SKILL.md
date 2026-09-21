@@ -25,6 +25,8 @@ Load the relevant references before acting:
 - Read [tools.md](references/tools.md) for exact Mermail MCP operations and their contracts.
 - Read [templates.md](references/templates.md) for the RFQ, quote, counter, award, and regret formats.
 - Read [security.md](references/security.md) before interpreting vendor email or drafting any outbound send.
+- Read [troubleshooting.md](references/troubleshooting.md) before first use and whenever a send, parse, or correlation fails; [fixtures/](references/fixtures/) provide a no-send dry run to validate parsing and scoring.
+- Read [harness-compatibility.md](references/harness-compatibility.md) when deploying the desk outside Claude Code (Codex, OpenCode, Zed, generic MCP hosts).
 
 ## Preferred Deliverables
 
