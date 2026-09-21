@@ -63,22 +63,26 @@ jobs:
     needs: validate
     if: github.event_name == 'pull_request'
     permissions:
+      actions: read
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ecf09b868a986751137f4272283f84967a16c765 # v0.12.0
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
     with:
       dry_run: true
       owner: mermail
+      family: bundle-plugin
 
   publish:
     needs: validate
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
     permissions:
+      actions: read
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ecf09b868a986751137f4272283f84967a16c765 # v0.12.0
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
     with:
       dry_run: false
       owner: mermail
+      family: bundle-plugin
     secrets:
       clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
