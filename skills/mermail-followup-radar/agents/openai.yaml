@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Follow-up Radar"
+  short_description: "Scan a Mermail inbox for threads where you owe a reply or promised deliverable, then save approval-gated follow-up drafts"
+  default_prompt: "Use $mermail-followup-radar when the job is finding every Mermail inbox thread where you owe someone a reply or a promised deliverable, extracting commitments with quoted evidence, and saving follow-up drafts for approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
