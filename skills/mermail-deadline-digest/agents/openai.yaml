@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deadline Digest"
+  short_description: "Trace email deadlines back to their evidence"
+  default_prompt: "Use $mermail-deadline-digest to summarize commitments due this week from my Mermail inbox, preserving source quotes and ambiguous dates."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
