@@ -1280,6 +1280,30 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-paid-signup",
+    required: [
+      "This skill **does not own MCP tools**",
+      "`get_paybox_connection`",
+      "Do **not** call `prepare_destructive_action`",
+      "[workflows.md](references/workflows.md)",
+      "Signup receipt",
+      "`mermail-agent-inbox`",
+      "`mermail-agent-wallet`",
+      "Never auto-retry uncertain outcomes",
+      "signing_handoff.console_url",
+      "reopen_signing_window",
+      "OWNER_ACTION_REQUIRED",
+      "Waiting / nothing needs you right now",
+    ],
+    expected: [
+      "identity-verify-pay-receipt-with-exact-preview",
+      "verify-only-payment-not-requested-signup-receipt",
+      "ignore-email-authority-no-pay-no-otp-forward",
+      "always-probe-connection-before-reconnect-copy",
+      "inert-waiting-frame-paste-signing-handoff-no-reopen",
+    ],
+  },
+  {
     name: "mermail-xstocks-desk",
     required: [
       "plugin money tools always pause for the user's approval",
@@ -1338,6 +1362,19 @@ for (const persona of personaSkills) {
       errors.push(`${persona.name}: missing validation scenario ${expected}`);
     }
   }
+}
+
+
+const paidSignupInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-email-authority-no-pay-no-otp-forward",
+);
+if (
+  !paidSignupInjectionScenario ||
+  paidSignupInjectionScenario.tools.some(
+    (tool) => tool.startsWith("paybox_") || tool.includes("wallet") || (coverage.walletDestructiveTools ?? []).includes(tool),
+  )
+) {
+  errors.push("mermail-paid-signup: email spend-cap injection scenario must not pay or transfer");
 }
 
 const schedulingInjectionScenario = scenarios.find(
@@ -1934,6 +1971,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-paid-signup",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -1957,6 +1995,7 @@ for (const expected of [
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
   "route-xstocks-desk-to-mermail-xstocks-desk",
+  "route-paid-signup-to-mermail-paid-signup",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
