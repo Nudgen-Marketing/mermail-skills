@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bookkeeper Agent"
+  short_description: "Receipts and invoices in, auditable ledger and accountant-ready month-end summaries out."
+  default_prompt: "Use $mermail-bookkeeper-agent to run this bookkeeping inbox workflow safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
