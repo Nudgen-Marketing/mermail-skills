@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Paid Signup"
+  short_description: "Agent inbox signup + optional Agent Wallet payment and receipt"
+  default_prompt: "Use $mermail-paid-signup to provision a Mermail inbox for this signup, verify safely, and only pay with Agent Wallet after I approve an exact preview."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
