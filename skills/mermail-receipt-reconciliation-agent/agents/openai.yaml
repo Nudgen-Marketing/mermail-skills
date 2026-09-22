@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipt Reconciliation Agent"
+  short_description: "Match PayBox payments to emailed receipts safely"
+  default_prompt: "Use $mermail-receipt-reconciliation-agent to reconcile one known PayBox payment with its Mermail receipt and report any mismatch."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

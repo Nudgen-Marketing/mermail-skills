@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / Receipt Reconciliation / x402 / xStocks agent personas.
 
 ## Install portable skills
 
@@ -143,7 +143,7 @@ Verify without printing the secret:
 node skills/mermail-mcp/scripts/check-connection.mjs
 ```
 
-The check initializes MCP and requires the current 63-tool full-catalog baseline while allowing future additive tools (currently 72 with Composio). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
+The check initializes MCP and requires the 63-tool full-catalog compatibility floor while allowing future additive tools (currently 74 with Composio). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
 
 ## Included skills
 
@@ -162,6 +162,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
+| `mermail-receipt-reconciliation-agent` | Match one known PayBox payment to one emailed receipt and flag missing, duplicate, ambiguous, or mismatched evidence |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Run an xStocks trading desk with a standing grant, PayBox Jupiter plugin DCA, PayBox swap fallback, a per-DCA invoice email, and weekly brokerage-style statement email |
