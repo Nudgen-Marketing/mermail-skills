@@ -84,6 +84,8 @@ When recommending a fund amount: no user amount → at least `max(quote shortfal
 
 ## Pay then continue
 
+Apply [Agent Wallet credential and autonomous execution rules](../../mermail-agent-wallet/references/workflows.md#credential-and-autonomous-execution) to the same selected request: preserve an explicit chain-eligible `credential_id`; an autonomous grant covers only the user's frozen payment terms. On `setup_required`, `pending_execution`, or `recovery_required`, preserve the original request/invocation and follow its returned handoff or reconciliation path. These states are not proof-ready and do not authorize another `paybox_pay_x402`.
+
 1. Preview origin, resource/action, method, asset/chain, live quote, vendor prepaid floor (with source citation when resolved), required_charge, maximum spend, and intended outcome only when the user has not already authorized a sufficient current-task maximum spend. A direct instruction to buy/pay this selected service for or up to the named amount is sufficient when the frozen terms fit; do not ask for duplicate approval.
 2. Call `paybox_pay_x402` once with required_charge on any live-schema amount field. This creates a `pay_x402` origin PayBox signing can continue and ultimately returns a payment proof. It does not fetch the resource and does not by itself prove a wallet debit or settlement. Do **not** use `paybox_use_service` as the pay call (`use_service` is not a signing-continuation origin).
 3. If the live schema can only send the atomic 402 quote and that quote is below the resolved vendor prepaid floor, stop. Do not call pay with quote dust.
