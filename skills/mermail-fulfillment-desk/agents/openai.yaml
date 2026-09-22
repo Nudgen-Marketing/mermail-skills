@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Fulfillment Desk"
+  short_description: "Verify digital-product orders by email, deliver catalog SKUs under approval, archive receipts, and send a daily sales digest"
+  default_prompt: "Use $mermail-fulfillment-desk to fulfill today's digital-product orders in my sales mailbox against my catalog and ledger: verify payment evidence, draft delivery replies for approval, archive receipts, and prepare the daily digest."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
