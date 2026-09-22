@@ -1,0 +1,11 @@
+interface:
+  display_name: "Astra Risk Gate (Mermail)"
+  short_description: "Screen Solana CAs from Mermail inbox with PASS/CAUTION/FAIL"
+  default_prompt: "Use $mermail-astra-risk-gate to screen Solana mint/CA messages from Mermail inbox. Separate FACTS from INTERPRETATION. Never auto-trade or ask for seed phrases."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
