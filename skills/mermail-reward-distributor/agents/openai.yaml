@@ -1,0 +1,15 @@
+interface:
+  display_name: "Mermail Reward Distributor"
+  short_description: "Safely email and track recipient rewards"
+  default_prompt: "Use $mermail-reward-distributor to validate this reward list and prepare an approval-ready email batch."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail MCP connection with focused official skills"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+
+policy:
+  allow_implicit_invocation: true
