@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail xStocks Desk"
+  short_description: "DCA xStocks on Solana and email per-DCA invoices plus weekly statements"
+  default_prompt: "Use $mermail-xstocks-desk to run my standing xStocks grant with PayBox Jupiter plugin DCA, PayBox swap fallback, a per-DCA invoice email after each confirmed buy, and weekly brokerage-style statement email under my exact authorization."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
