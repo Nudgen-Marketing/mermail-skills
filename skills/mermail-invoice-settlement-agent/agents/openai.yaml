@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settlement Agent"
+  short_description: "Verify and settle inbound invoices with Mermail mailbox and Agent Wallet"
+  default_prompt: "Use $mermail-invoice-settlement-agent when the job is verifying inbound invoices, checking vendor payment requests, proposing Agent Wallet settlements, or sending payment confirmations through Mermail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
