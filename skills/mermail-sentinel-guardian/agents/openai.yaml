@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Sentinel Guardian"
+  short_description: "On-chain threat detection, verified email escalation, and defensive wallet mitigation"
+  default_prompt: "Use $mermail-sentinel-guardian when an on-chain security anomaly, zero-value transfer poisoning, or treasury invariant violation is detected, requiring structured incident notification via Mermail MCP, explicit operator authorization, and protective Agent Wallet execution."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
