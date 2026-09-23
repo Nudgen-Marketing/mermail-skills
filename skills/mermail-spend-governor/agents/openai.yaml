@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Spend Governor"
+  short_description: "Enforce an owner spend policy, keep a receipts ledger, reconcile proof versus settlement, and report agent spend."
+  default_prompt: "Use $mermail-spend-governor to check this payment against my spend policy, then record it in the receipts ledger."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
