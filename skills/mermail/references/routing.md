@@ -18,6 +18,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | --- | --- |
 | Reuse or provision a service-scoped mailbox and correlate expected mail for an active third-party verification, sign-in, onboarding, purchase, receipt, or order flow | `mermail-agent-inbox` |
 | Read, search, move, organize, download, manage folders or custom-label definitions, or delete ordinary/historical mail outside an active third-party identity flow | `mermail-manage-inbox` |
+| Reconcile payment, receipt, refund, invoice, or settlement evidence into a read-only cash report | `mermail-payment-reconciliation` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |
 | Inspect API, email, or AI-credit usage, or manage workspaces, members, invitations, domains, mailboxes, admin-only `agentAutoResponse.mode` settings, or storage | `mermail-administer-workspace` |
 | Explicitly create, inspect, update, debug, or delete task triagers, inspect recent runs, or open a triager-linked conversation | `mermail-automate-triage` |
