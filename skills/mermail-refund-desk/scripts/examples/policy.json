@@ -1,0 +1,13 @@
+{
+  "policy_version": "2026-09-1",
+  "currency_unit": "USDC",
+  "max_refund_per_claim": 50.0,
+  "max_refunds_per_run": 5,
+  "allowed_assets": ["USDC"],
+  "allowed_chains": ["solana"],
+  "allowed_customer_domains": ["example.com"],
+  "require_amount_not_above_duplicate": true,
+  "approval_mode": "exact_preview_required",
+  "hold_on_claim_amount_mismatch": false,
+  "hold_on_modification_attempt": true
+}
