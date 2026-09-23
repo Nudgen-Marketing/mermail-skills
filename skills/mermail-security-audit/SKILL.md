@@ -30,6 +30,8 @@ This skill does not own MCP tools. It composes read-only mailbox discovery with 
 - An optional `save_draft` escalation summary to the workspace owner; never a send.
 - A final audit report: counts per verdict, evidence used, actions taken, actions skipped, and remaining approvals.
 
+A worked report that follows these conventions is in [example-audit.md](references/example-audit.md).
+
 ## Workflow
 
 1. Resolve the exact mailbox with `list_mailboxes`; prefer its `public_id` as `mailboxId`. Reject disabled, cross-workspace, or ambiguous mailboxes.
