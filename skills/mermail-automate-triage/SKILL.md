@@ -17,6 +17,8 @@ metadata:
 
 Use this skill to turn authenticated mailbox state and recent triager runs into safe task-extraction or auto-draft automation. Ground every configuration decision in the exact mailbox, existing triager, structured run status, trigger scope, scan policy, volume budget, output, and capability allowlist.
 
+Mailbox `agentAutoResponse.mode` (`draft_for_review` or `automatic_triage`) is a separate support auto-response policy. Route mode changes to `mermail-administer-workspace` for an admin-only `update_mailbox_settings` call. A task triager cannot inherit permission to send from that mode.
+
 Read [tools.md](references/tools.md) for the supported MCP tools. Read [security.md](references/security.md) before enabling any inbound-content trigger.
 
 ## Preferred Deliverables
