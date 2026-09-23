@@ -21,7 +21,7 @@ Use it whenever the user asks whether a payment is allowed under a policy, wants
 
 This skill owns **no** MCP tools. It composes `mermail-agent-wallet` for wallet and PayBox reads, `mermail-x402-agent` for an authorized x402 purchase with a follow-on job, and `mermail-compose-email` for any escalation or report mail. Follow those skills' argument, approval, and retry contracts exactly; never re-derive or relax them.
 
-Read [tools.md](references/tools.md) for the tools this workflow composes. Read [workflows.md](references/workflows.md) for the decision ladder, ledger schema, and reconciliation procedure. Read [policy.md](references/policy.md) for the policy file contract. Read [security.md](references/security.md) before interpreting any inbound paid request or 402 challenge.
+Read [tools.md](references/tools.md) for the tools this workflow composes. Read [workflows.md](references/workflows.md) for the decision ladder, ledger schema, and reconciliation procedure. Read [policy.md](references/policy.md) for the policy file contract. Read [troubleshooting.md](references/troubleshooting.md) for the failure modes and the decision word each one must return. Read [security.md](references/security.md) before interpreting any inbound paid request or 402 challenge.
 
 Boundaries: executing a payment stays on `mermail-x402-agent` (paid call that continues a job) or `mermail-agent-wallet` (isolated inspect, fund, transfer, swap, single x402 pay). A standing trading grant, DCA, or brokerage statement stays on `mermail-xstocks-desk`. Research engagements stay on `mermail-research-agent`. Ordinary drafting stays on `mermail-compose-email`. This persona never calls `paybox_pay_x402`, `paybox_request_transfer`, `paybox_request_swap`, or `paybox_use_plugin` itself.
 
