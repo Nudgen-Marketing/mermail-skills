@@ -15,7 +15,7 @@ Four sequences. Every sequence starts from a resolved mailbox (`list_mailboxes`,
 1. `list_custom_labels`; create only what is missing.
 2. `create_custom_label` `Security event`, with `rules` matching password resets, new sign-in or device alerts, MFA/two-factor changes, lockouts, and breach or incident notifications.
 3. `create_custom_label` `Suspicious sender`, with `rules` matching security-shaped mail whose sender does not belong to an enrolled service's expected domains.
-4. `list_task_triagers` and read the mailbox's `settings.agentAutoResponse.requireApproval`. The default triager auto-drafts replies to inbound senders; report it, and report loudly if approval is not required. Never `set_default_task_triager`.
+4. `list_task_triagers` for the default triager's `email.auto_draft_response` task `config.requireApproval`, and `get_mailbox` for `settings.agentAutoResponse.mode`. The default triager auto-drafts replies to inbound senders; report it, and report loudly if approval is not required or the mode is `automatic_triage`. Never `set_default_task_triager` or `update_mailbox_settings`.
 5. Optional, on explicit automation intent: `create_task_triager` with classify-and-draft instructions - label the event, draft (never send) an owner alert. Verify with `list_recent_triager_runs` after the first arrivals.
 
 ## 3. Event handling (per security email)

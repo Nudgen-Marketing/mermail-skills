@@ -6,14 +6,14 @@ This skill owns no MCP tools. It composes tools owned by `mermail-administer-wor
 
 | Phase | Tools | Owner |
 | --- | --- | --- |
-| Mailbox resolution | `list_mailboxes` | mermail-administer-workspace |
+| Mailbox resolution and response-mode read | `list_mailboxes`, `get_mailbox` | mermail-administer-workspace |
 | Registry build and event reads | `search_emails`, `list_emails`, `get_email`, `get_thread` | mermail-manage-inbox |
 | Classifier definitions | `list_custom_labels`, `create_custom_label`, `update_custom_label` | mermail-manage-inbox |
 | Registry persistence and alert drafts | `save_draft` | mermail-compose-email |
 | Approved owner alert | `send_email`, `forward_email` | mermail-compose-email |
 | Between-session classification | `list_task_triagers`, `create_task_triager`, `update_task_triager`, `list_recent_triager_runs` | mermail-automate-triage |
 
-Not used, ever, from this workflow: `delete_email` and other destructive tools, `reply_to_email` (never answer security mail), `download_attachment`, `set_default_task_triager`, any `paybox_*` or Agent Wallet tool, any Gmail/Outlook Composio tool.
+Not used, ever, from this workflow: `delete_email` and other destructive tools, `reply_to_email` (never answer security mail), `download_attachment`, `set_default_task_triager`, `update_mailbox_settings` (the response mode is an admin change owned by `mermail-administer-workspace`), any `paybox_*` or Agent Wallet tool, any Gmail/Outlook Composio tool.
 
 ## Argument notes
 
@@ -64,7 +64,7 @@ Owner alert (`send_email`): explicit `to` from user-supplied owner address, `bod
 
 Triager (`create_task_triager`): instructions must be classify-and-draft only. A triager may label and draft an alert; delivery always returns to a human-approved send.
 
-Default triager, present without being created: every mailbox ships with a system triager (`systemKey: default.email_response`, `isDefault: true`, `priority: 10000`, `deletable: false`) whose `email.auto_draft_response` task fires on every inbound message and writes a customer-service reply draft addressed to the sender. `list_task_triagers` shows it; `list_recent_triager_runs` shows what it did. It is gated by `requireApproval: true` on the task config and `settings.agentAutoResponse.requireApproval` on the mailbox, so it drafts but does not send. See `security.md` for the handling rule.
+Default triager, present without being created: every mailbox ships with a system triager (`systemKey: default.email_response`, `isDefault: true`, `priority: 10000`, `deletable: false`) whose `email.auto_draft_response` task fires on every inbound message and writes a customer-service reply draft addressed to the sender. `list_task_triagers` shows it, with `requireApproval` in the task's `config`; `list_recent_triager_runs` shows what it did. Since Mermail 1.5.6 the mailbox also has a response mode, `settings.agentAutoResponse.mode`, read with `get_mailbox`: `draft_for_review` keeps replies as reviewable drafts, and `automatic_triage` lets the mailbox send them under an admin-configured policy. On the mailbox re-verified 2026-09-23, `settings` held no `agentAutoResponse` key at all (only `fromName` and `undoSendSeconds`) and the task carried `requireApproval: true`, so the task setting was the gate. The mode is admin-only and changes through `mermail-administer-workspace`, never from this skill. See `security.md` for the handling rule.
 
 ## Plan and credit caveats
 
