@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mermail Crypto Invoice Agent"
+  description: "Automate cryptographic invoicing, USDC payment requests, and receipt confirmations over Mermail."
+  default_prompt: "Draft an itemized invoice for 250 USDC for client services and send it via Mermail."
