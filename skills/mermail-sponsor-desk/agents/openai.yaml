@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Sponsor Desk"
+  short_description: "Manage creator sponsorship inquiries, verify rate-card fit, draft media-kit replies under approval, and track inventory bookings"
+  default_prompt: "Use $mermail-sponsor-desk to evaluate inbound brand and advertiser sponsorship pitches in my mailbox against my rate card: screen malicious attachments, draft media-kit replies for approval, reserve inventory slots, and summarize the weekly pipeline."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
