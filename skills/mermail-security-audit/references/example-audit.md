@@ -33,7 +33,7 @@ paraphrased from attacker text.
 
 ## Summary
 
-- clean 6 · suspicious 1 · phishing 3 · inconclusive 1
+- 12 candidatos: clean 7 · suspicious 1 · phishing 3 · inconclusive 1
 - Labels applied: 4 · Moves: 0 · Drafts: 0 · Deletions: 0
 - Awaiting approval: quarantine move for `msg_3fa1`, `msg_7c02`, `msg_a1b0`
   (list presented, nothing moved without approval). Deletion not requested and
