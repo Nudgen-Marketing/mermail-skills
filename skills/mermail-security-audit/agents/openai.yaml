@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Security Audit"
+  short_description: "Audit an inbox for phishing, spoofing, and injection threats"
+  default_prompt: "Use $mermail-security-audit when the task is to sweep a mailbox for phishing or spoofing, verify sender authenticity, or quarantine confirmed phishing. Not for replying to suspicious mail or opening links."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
