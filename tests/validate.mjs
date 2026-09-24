@@ -2015,12 +2015,19 @@ for (const required of [
   "without signed webhooks",
   "endpoint limit is a plan constraint",
   "prepare_destructive_action",
+  "idempotencyKey",
+  "message.received",
+  "allInboxes",
+  "write-only",
 ]) {
   if (!manageWebhooksCorpus.includes(required)) {
     errors.push(`mermail-manage-webhooks: missing safety contract ${required}`);
   }
 }
-for (const tool of ["delete_webhook", "rotate_webhook_secret"]) {
+// The production catalog declares "Requires explicit user approval using prepare_destructive_action"
+// on every write in this domain, creation included, and rejects a call without confirmationToken.
+for (const tool of ["create_webhook", "update_webhook", "test_webhook", "retry_webhook_delivery",
+                    "delete_webhook", "rotate_webhook_secret"]) {
   if (!coverage.destructiveTools.includes(tool)) {
     errors.push(`mermail-manage-webhooks: ${tool} must be classified destructive`);
   }

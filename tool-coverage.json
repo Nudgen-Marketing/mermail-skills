@@ -146,6 +146,10 @@
     "delete_agent_conversation",
     "delete_task_triager",
     "disconnect_composio_toolkit",
+    "create_webhook",
+    "update_webhook",
+    "test_webhook",
+    "retry_webhook_delivery",
     "delete_webhook",
     "rotate_webhook_secret"
   ],
