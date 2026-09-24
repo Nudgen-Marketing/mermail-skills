@@ -1,6 +1,6 @@
 {
   "name": "mermail-skills",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "Official Mermail skills and plugin bundle for Codex, Claude Code, Cursor, and OpenClaw.",
   "license": "MIT",
   "repository": {
