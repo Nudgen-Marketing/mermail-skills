@@ -59,8 +59,18 @@ jobs:
           MERMAIL_LIVE_SEND_APPROVED: "1"
           MERMAIL_LIVE_RUN_TAG: probe-${{ github.run_id }}
         run: npm run probe:live-roundtrip
-      - name: Resume live Margin Guard proof without another send
-        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'resume_and_prove' }}
+  prove_margin_guard:
+    if: github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'resume_and_prove'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Read existing synthetic messages and build Margin Packet
         env:
           MERMAIL_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
           MERMAIL_LIVE_RESUME: "1"
