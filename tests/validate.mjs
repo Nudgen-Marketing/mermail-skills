@@ -2188,8 +2188,8 @@ async function validateRemote() {
   if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 83) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 83`);
+  if (remoteNames.length !== localTools.length) {
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected ${localTools.length}`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
