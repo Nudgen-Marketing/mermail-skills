@@ -13,7 +13,8 @@
     "mermail-scheduling-agent",
     "mermail-x402-agent",
     "mermail-xstocks-desk",
-    "mermail-bookkeeper-agent"
+    "mermail-bookkeeper-agent",
+    "mermail-verification-mail"
   ],
   "domains": {
     "mermail-administer-workspace": [
