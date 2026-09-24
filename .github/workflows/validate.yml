@@ -60,7 +60,7 @@ jobs:
           MERMAIL_LIVE_RUN_TAG: probe-${{ github.run_id }}
         run: npm run probe:live-roundtrip
       - name: Resume live Margin Guard proof without another send
-        if: github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'resume_and_prove'
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.live_margin_guard == 'resume_and_prove' }}
         env:
           MERMAIL_API_KEY: ${{ secrets.MERMAIL_MCP_TEST_API_KEY }}
           MERMAIL_LIVE_RESUME: "1"
