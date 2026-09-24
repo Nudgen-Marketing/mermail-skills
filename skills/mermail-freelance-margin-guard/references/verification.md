@@ -22,6 +22,8 @@ node skills/mermail-freelance-margin-guard/scripts/verify-margin-packet.mjs \
 
 The verifier exits non-zero after an evidence or result change and reports the evidence and complete-packet layers separately.
 
+The repository test command also runs 57 Funding Gate checks, including a deterministic batch of 1,000 rehashed covenant/receipt substitution attempts. They exercise deterministic covenant construction, semantic and digest validation, owner-approved digest binding, required replay state, live-versus-recorded evidence separation, exact atomic amounts, direct mocked Base ERC-20 and finalized Solana SPL and native SOL reads, replay-only public Base Sepolia and Solana Devnet transaction corpora, receipt-block token metadata, required sender-bound Transfer events, removed-event and fee-on-transfer rejection, Solana net recipient balance checks, approval-time and expiry bounds, chain/token/destination mismatches, partial settlement, overpayment, finality, provider-request substitution, failed settlement, IPv4/IPv6 RPC endpoint hardening, Solana integer/address validation, privacy minimization, live re-authentication of saved receipts, rehashed public-receipt forgeries, and replay blocking.
+
 The fixture must produce all of these results:
 
 - state `scope_change_detected`;
@@ -50,6 +52,37 @@ Also verify these adversarial cases:
 - an unchanged saved packet verifies successfully;
 - a fee-only edit invalidates the packet digest but not the evidence digest; and
 - an evidence edit invalidates both integrity layers.
+
+## Public Funding Gate proof
+
+Build an intact packet first, then create owner-selected funding terms as documented in [funding-gate.md](funding-gate.md):
+
+```bash
+node skills/mermail-freelance-margin-guard/scripts/funding-gate.mjs \
+  covenant --packet packet.json --terms funding-terms.json > covenant.json
+```
+
+For a real public proof, verify the selected transaction directly through an HTTPS RPC:
+
+```bash
+node skills/mermail-freelance-margin-guard/scripts/funding-gate.mjs \
+  verify --packet packet.json --covenant covenant.json \
+  --approved-covenant-digest OWNER_APPROVED_SHA256 \
+  --used-proofs consumed-proof-ids.json \
+  --tx TRANSACTION_HASH --rpc-url HTTPS_RPC_URL
+```
+
+Do not describe the bundled mocked responses or the captured public compatibility corpora as a live change-order settlement. The public transactions are independently inspectable at [BaseScan](https://sepolia.basescan.org/tx/0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83) and [Solana Explorer](https://explorer.solana.com/tx/Z1Yv5x3b5SvWjSJPq9Y4erBzTSTKfHgjJLkTKZUU5kYupxJ4tJFCCftE27Ax2CKn7iUNw7YEdB6JXWRrPgx87FW?cluster=devnet), but neither is a Mermail payment or owner approval. The Solana fixture captured the transaction without its prior token balances; the test reconstructs the balance before the single transfer for deterministic replay, and a real RPC read must supply both balance arrays. A live proof is complete only when a trusted RPC freshly returns the exact successful post-approval transaction and the gate emits `FUNDED` plus a public receipt and explorer URL. Publishing the business-to-transaction link remains a separate owner decision.
+
+Adversarially confirm that:
+
+- a matching transaction from before `ownerApprovedAt` is rejected;
+- wrong chain, token address/mint, decimals, destination, or transaction hash is rejected;
+- pending or under-confirmed evidence stays `PENDING`;
+- one atomic unit below is `PARTIALLY_FUNDED` and one atomic unit above is `OVERFUNDED_REVIEW`;
+- the same proof id is `REPLAY_BLOCKED` after first use;
+- an invocation log, email, screenshot, ticker, or wallet balance cannot substitute for a public receipt; and
+- a `FUNDED` result still returns no authority to work, send, sign, or transfer.
 
 ## Live Mermail proof
 

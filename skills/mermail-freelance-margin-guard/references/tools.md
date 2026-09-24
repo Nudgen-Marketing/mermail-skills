@@ -15,7 +15,9 @@ Pass `query` and `body` as native JSON objects, never stringified JSON. Use the 
 | `save_draft` | `mermail-compose-email` | Save a reviewable negotiation reply; internal write only |
 | `reply_to_email` | `mermail-compose-email` | Send one exact approved reply |
 
-This skill does not use task triagers, Composio, PayBox, or Agent Wallet tools.
+The default Funding Gate uses no Mermail wallet tool: it reads one owner-selected transaction from a supplied HTTPS Base or Solana RPC and performs no chain write. Optional `provider_request` binding may compose the read-only `get_paybox_connection` and `paybox_get_request` contract from `mermail-agent-wallet`; call the connection probe first and use only the exact precommitted request id. `get_paybox_invocation` is not settlement evidence. This skill never calls `paybox_request_transfer`, `paybox_request_swap`, `paybox_pay_x402`, legacy proposal writes, or any signing/connect handoff.
+
+This skill does not use task triagers or Composio.
 
 ## Bounded discovery
 
@@ -85,3 +87,12 @@ A saved draft is not sent and does not approve its commercial terms.
 ```
 
 MCP does not infer Reply All recipients. Preview exact To/Cc/Bcc and the entire commercial proposal, obtain fresh approval, call once, and never retry an uncertain send with a new idempotency key.
+
+## Read a public funding receipt
+
+Use `scripts/funding-gate.mjs` only after the owner has selected a priced option and supplied exact settlement terms. The live path accepts an HTTPS RPC URL and a transaction hash, then calls only read methods:
+
+- Base: `eth_chainId`, `eth_getTransactionByHash`, `eth_getTransactionReceipt`, `eth_blockNumber`, `eth_getBlockByNumber`, and receipt-block `eth_call` for token decimals;
+- Solana: `getTransaction` with `jsonParsed` encoding and `finalized` commitment.
+
+Base token verification requires the exact direct transfer calldata and one non-removed token `Transfer` log with the same sender, destination, and atomic amount. Solana verification also requires the recipient's exact net balance increase. RPC URLs are HTTPS-only, reject redirects, local hostnames and private/reserved IP literals, and use a bounded timeout. The operator must trust the chosen RPC and its DNS. Do not construct, sign, simulate, broadcast, or retry a transaction. Do not treat a block-explorer screenshot, client email, ticker match, wallet balance, pending transaction, recorded observation, receipt checksum without a fresh chain read, or `get_paybox_invocation` record as settlement. See [funding-gate.md](funding-gate.md).

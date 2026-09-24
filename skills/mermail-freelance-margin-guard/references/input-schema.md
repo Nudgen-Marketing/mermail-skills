@@ -1,6 +1,6 @@
 # Margin packet input schema
 
-Use this reference only when preparing input for `scripts/build-margin-packet.mjs`.
+Use this reference only when preparing input for `scripts/build-margin-packet.mjs`. After a packet is built and the owner selects a priced option, use [funding-gate.md](funding-gate.md) for the separate public-settlement covenant.
 
 ## Top-level shape
 

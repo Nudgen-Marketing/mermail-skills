@@ -56,6 +56,20 @@ Make clear which option preserves the original fee and deadline, which adds time
 
 If a material item is `unknown`, return `clarification_needed` and withhold binding options until the owner resolves the evidence. Do not let a known scope change hide an unresolved material item.
 
+## Gate prepaid added work with a public receipt
+
+Use this optional path only when the owner explicitly wants a selected change order funded before work starts.
+
+1. Verify the saved Margin Packet again. Stop after any evidence or packet digest change.
+2. Let the owner select one fully priced option and an exact packet-currency amount inside its fee range.
+3. Collect the exact settlement chain, token contract or mint, decimals, amount string, destination, owner approval reference/time, optional expiry, and confirmation threshold. If price currency and settlement asset differ, require an explicit `owner_fixed` conversion source; never assume parity.
+4. Build the covenant with `funding-gate.mjs covenant`. Preview every term and obtain approval for its exact `covenantDigest`; pass that separate digest back to verification so editing and rehashing the covenant cannot substitute new terms.
+5. Create the consumed-proof ledger as `[]` before the first verification. After the owner supplies one transaction hash, call `funding-gate.mjs verify` with the approved digest, ledger, and a user-selected HTTPS RPC. This is a read only; do not connect, construct, sign, broadcast, or retry a transaction.
+6. Store a successful `proofId` in the consumed-proof ledger. On later checks, pass all prior ids so the same transaction cannot fund another change order. A missing ledger fails closed, and a recorded observation can only return `RECORDED_MATCH`.
+7. Report the exact verdict. Only `FUNDED` means the funding evidence matches. If a saved receipt is checked later, use `receipt-verify` with the approved covenant digest and a fresh RPC read; its unkeyed checksum alone establishes only structural consistency. Even after live verification, obtain separate owner approval before starting added work or sending a message.
+
+Use optional `provider_request` binding only when the owner has already selected one exact PayBox request id. Probe connection once, read that id with `paybox_get_request`, and require its terminal transaction hash to equal the independent chain observation. Never use `get_paybox_invocation`, and never start or retry a PayBox write from this skill.
+
 ## Draft and send
 
 1. Save a negotiation reply with `save_draft` when the owner requests a draft.

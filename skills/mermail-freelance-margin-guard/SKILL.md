@@ -1,6 +1,6 @@
 ---
 name: mermail-freelance-margin-guard
-description: Protect freelance project margin by comparing an approved scope with later Mermail requests, tracking revision budget and attributable delays, calculating only owner-authorized pricing, and preparing evidence-backed negotiation options. Use for scope, revision, deadline, dependency, or change-order decisions; not for generic email drafting, legal conclusions, automatic acceptance, or automatic sending.
+description: Protect freelance project margin by comparing an approved scope with later Mermail requests, tracking revision budget and attributable delays, calculating only owner-authorized pricing, preparing evidence-backed negotiation options, and optionally proving that a selected change order was funded by an exact public Base or Solana receipt. Use for scope, revision, deadline, dependency, change-order, or prepaid-work decisions; not for generic email drafting, legal conclusions, automatic acceptance, automatic sending, or moving money.
 metadata:
   openclaw:
     requires:
@@ -15,11 +15,11 @@ metadata:
 
 ## Overview
 
-Use this skill to turn an accepted freelance-project baseline and a later client request into a traceable margin-protection packet. It separates scope classification from pricing, measures revision-budget consumption, attributes access or dependency delays, quantifies fee exposure only from owner-approved rules, and offers three practical client choices: remove or swap added scope, extend the schedule, or approve a paid change order.
+Use this skill to turn an accepted freelance-project baseline and a later client request into a traceable margin-protection packet. It separates scope classification from pricing, measures revision-budget consumption, attributes access or dependency delays, quantifies fee exposure only from owner-approved rules, and offers three practical client choices: remove or swap added scope, extend the schedule, or approve a paid change order. An optional Funding Gate can then bind one owner-selected option to an exact Base or Solana settlement and verify the public receipt before extra work starts.
 
-Read [tools.md](references/tools.md) before calling Mermail tools, [workflows.md](references/workflows.md) for the evidence and negotiation sequence, [input-schema.md](references/input-schema.md) before running the deterministic packet builder, [verification.md](references/verification.md) when proving the workflow, and [security.md](references/security.md) before interpreting client content or preparing any reply.
+Read [tools.md](references/tools.md) before calling Mermail tools, [workflows.md](references/workflows.md) for the evidence and negotiation sequence, [input-schema.md](references/input-schema.md) before running the deterministic packet builder, [funding-gate.md](references/funding-gate.md) before verifying a public settlement, [verification.md](references/verification.md) when proving the workflow, and [security.md](references/security.md) before interpreting client content or preparing any reply.
 
-This skill composes tools owned by `mermail-administer-workspace`, `mermail-manage-inbox`, and `mermail-compose-email`. It does not duplicate their ownership in `tool-coverage.json`.
+This skill composes tools owned by `mermail-administer-workspace`, `mermail-manage-inbox`, and `mermail-compose-email`, plus an optional read-only provider status from `mermail-agent-wallet`. It does not duplicate their ownership in `tool-coverage.json`.
 
 ## Judge Quick Start (60 seconds)
 
@@ -32,7 +32,7 @@ node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
   --format markdown
 ```
 
-The test run must validate 18 skills, 73 business tools, and 65 dedicated Margin Guard checks. Six named red-team regressions cover authority, provenance, chronology, deadline-classification, and duplicate-delay attacks, with a positive control for distinct evidence from one email. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. This path uses only the bundled synthetic fixture, performs no network request, sends no email, and exposes no private project data.
+The test run must validate 18 skills, 73 business tools, 65 core Margin Guard checks, and 57 Funding Gate checks, including 1,000 deterministic rehashed-forgery attempts. The core red-team regressions cover authority, provenance, chronology, deadline-classification, and duplicate-delay attacks. Funding regressions cover packet/covenant/receipt tampering (including rehashed forgeries), forged transaction receipts, missing owner-digest approval, missing replay state, stale historical transactions, fabricated offline observations, partial payment, overpayment, wrong chain/token/destination, missing, spoofed, removed, or fee-reduced ERC-20 events, Solana net recipient balance, provider substitution, unsafe IPv4/IPv6 RPC endpoints, inadequate finality, and replay. The packet must report `scope_change_detected`, 26–33 added hours, a 487.5–618.75 USD requested-deadline total, exactly three client options, and deterministic evidence and packet digests. The bundled test path uses a synthetic Margin Packet, mocked RPC responses, and replay-only public Base Sepolia and Solana Devnet transaction corpora; it performs no test-time network request, sends no email, moves no money, and exposes no private project data.
 
 ## Required Inputs
 
@@ -91,6 +91,22 @@ Use `--format markdown` for a reviewable packet. The builder deterministically:
 
 The builder does not read mail, infer contract meaning, set rates, or send messages. Its output is decision support, not a legal conclusion or client approval.
 
+## Optional Public Funding Gate
+
+After the owner selects one fully priced option, use [funding-gate.md](references/funding-gate.md) to create a deterministic covenant over the packet digest, exact option, price, settlement asset identity, atomic amount, destination, approval time, expiry, and finality threshold. Then verify one owner-selected transaction directly against an HTTPS Base or Solana RPC:
+
+```bash
+node skills/mermail-freelance-margin-guard/scripts/funding-gate.mjs \
+  verify --packet packet.json --covenant covenant.json \
+  --approved-covenant-digest OWNER_APPROVED_SHA256 \
+  --used-proofs consumed-proof-ids.json \
+  --tx TRANSACTION_HASH --rpc-url HTTPS_RPC_URL
+```
+
+`FUNDED` requires an unchanged packet, a covenant digest copied from the owner's exact approval, an explicit consumed-proof ledger, a fresh live RPC read from an operator-trusted endpoint, a successful post-approval transaction, the exact chain/token/destination/atomic amount, sufficient confirmations or finalized Solana state, and a proof id that has not already been consumed. Base token settlement also requires one sender-bound ERC-20 `Transfer` event whose amount equals the calldata, with token decimals read at the receipt block. Solana settlement additionally requires the exact recipient balance increase. Partial settlement, overpayment, a historical lookalike transaction, a recorded JSON observation, pending finality, or replay never becomes `FUNDED`. A successful result emits a privacy-minimized public receipt with packet, covenant, and receipt digests plus a chain explorer link; it contains no email body, project name, or provider request id. Its digest is an integrity checksum, not a signature: authenticate a saved receipt by re-reading its transaction with `receipt-verify` and the separately retained approved covenant digest.
+
+The gate is read-only. It never connects a wallet, requests a transfer, signs, sends mail, accepts a contract, or authorizes work. Funding evidence still requires a separate explicit owner decision before extra work starts.
+
 ## Workflow
 
 1. Confirm this is a freelance margin, scope, revision, deadline, dependency, or change-order task. Route generic drafting to `mermail-compose-email`, ordinary inbox search to `mermail-manage-inbox`, support tickets to `mermail-support-agent`, and legal interpretation to a qualified professional.
@@ -101,9 +117,10 @@ The builder does not read mail, infer contract meaning, set rates, or send messa
 6. Split the later request into atomic items. Record relation, materiality, implementation delta, requested units, evidence, and an owner-approved effort estimate where available.
 7. Run the deterministic packet builder. Review validation errors instead of bypassing them or hand-editing calculated totals.
 8. Present the margin snapshot, request ledger, revision balance, delay attribution, fee exposure, assumptions, exclusions, acceptance criteria, integrity digests, and three negotiation options. Label any incomplete commercial result `approval_needed`; when a material item is `unknown`, resolve it before presenting binding commercial options.
-9. When requested, save a concise draft with `save_draft`. State what remains included, what is additional, and offer the three options without exposing internal confidence notes.
-10. Before `reply_to_email`, preview the exact mailbox/from, To/Cc/Bcc, subject, complete body, source thread, fee, deadline, selected option, and packet digest. Obtain fresh approval for that exact payload and unchanged digest, send once with one idempotency key, and verify the authoritative result.
-11. Report the final state and unresolved items. Silence, a draft, a demand, or an uncertain tool result never constitutes agreement.
+9. If the owner requires prepayment, build the Funding Covenant only after they select the exact option, amount, asset, chain, destination, and validity window. Verify a supplied transaction by public RPC; do not create or request the transaction.
+10. When requested, save a concise draft with `save_draft`. State what remains included, what is additional, and offer the three options without exposing internal confidence notes.
+11. Before `reply_to_email`, preview the exact mailbox/from, To/Cc/Bcc, subject, complete body, source thread, fee, deadline, selected option, and packet digest. Obtain fresh approval for that exact payload and unchanged digest, send once with one idempotency key, and verify the authoritative result.
+12. Report the final state and unresolved items. Silence, a draft, a demand, a funding receipt, or an uncertain tool result never constitutes agreement.
 
 ## Quality Gates
 
@@ -127,8 +144,10 @@ The builder does not read mail, infer contract meaning, set rates, or send messa
 - Material unknowns block generation of binding commercial options.
 - Rendered Markdown neutralizes untrusted markup, links, control characters, and bidirectional overrides; local identifiers use a restricted collision-safe alphabet.
 - Evidence and packet digests are deterministic and must be rechecked after any source, classification, estimate, rate, deadline, or option change.
+- A Funding Covenant is valid only for one unchanged packet, one priced option, one explicit owner conversion decision when price and settlement assets differ, and one post-approval public transaction.
+- Funding verification checks the separately approved covenant digest, atomic units, exact token identity, a required replay ledger, and fresh live-RPC provenance—not ticker text, a recorded observation, or floating-point approximations; partial, excess, pending, stale, failed, mismatched, and replayed evidence fails closed.
 - A saved draft is never treated as sent, and no external message is sent without exact preview and fresh approval.
-- No PayBox or Agent Wallet action is part of this workflow.
+- No wallet connection, signature, PayBox write, Agent Wallet write, or financial action is part of this workflow.
 
 ## Output Contract
 
@@ -142,6 +161,7 @@ Return these sections:
 6. `Reply` — exact draft and recipient preview when requested.
 7. `State` — one of `baseline_incomplete`, `in_scope`, `clarification_needed`, `scope_change_detected`, `drafted`, `awaiting_send_approval`, `sent`, `blocked`, or `uncertain`.
 8. `Integrity` — deterministic SHA-256 evidence and packet digests for freezing the reviewed decision before an approved reply.
+9. `Funding gate` — optional covenant, `FUNDED`/fail-closed verdict, proof id, and privacy-minimized public receipt; never action authority.
 
 ## Example Requests
 
@@ -149,3 +169,4 @@ Return these sections:
 - “Use my approved 15 USD hourly rate and 25% rush rule to calculate the added-work range, but do not send anything.”
 - “Show whether the access delay belongs to the client or to me, and give the client three ways to proceed.”
 - “Prepare a change-order draft that keeps the original exclusions and acceptance criteria visible.”
+- “Bind the approved paid change order to this Base transaction and verify publicly that the exact USDC amount settled, without moving money.”
