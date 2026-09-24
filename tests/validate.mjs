@@ -2057,6 +2057,69 @@ for (const content of trackedText) {
   if (leaked.length) errors.push("repository contains an API-key-shaped secret");
 }
 
+const phishingShieldDir = path.join(skillsRoot, "mermail-phishing-shield");
+const phishingShieldSkill = await readFile(path.join(phishingShieldDir, "SKILL.md"), "utf8");
+const phishingShieldSecurity = await readFile(
+  path.join(phishingShieldDir, "references", "security.md"),
+  "utf8",
+);
+for (const required of [
+  "## Overview",
+  "## Preferred Deliverables",
+  "## Workflow",
+  "## Write Safety",
+  "## Output Conventions",
+  "## Example Requests",
+  "[tools.md](references/tools.md)",
+  "[signals.md](references/signals.md)",
+  "[security.md](references/security.md)",
+  "`scan_status`",
+  "`sender_authentication`",
+  "unknown` is not `pass",
+  "never deletes",
+  "preflight",
+  "Defang",
+  "`auto_draft_reply_to_phish`",
+]) {
+  if (!phishingShieldSkill.includes(required)) {
+    errors.push(`mermail-phishing-shield: missing contract ${required}`);
+  }
+}
+for (const required of ["untrusted data", "`flagged`", "Do not call `download_attachment`", "`prepare_destructive_action`"]) {
+  if (!phishingShieldSecurity.includes(required)) {
+    errors.push(`mermail-phishing-shield: security reference missing ${required}`);
+  }
+}
+const phishingShieldForbidden = [
+  ...coverage.destructiveTools,
+  ...coverage.externalEffectTools,
+  ...Object.values(walletScopedDomains).flat(),
+  "download_attachment",
+];
+for (const scenario of scenarios.filter((candidate) => candidate.skill === "mermail-phishing-shield")) {
+  const forbidden = scenario.tools.filter((tool) => phishingShieldForbidden.includes(tool));
+  if (forbidden.length) {
+    errors.push(`mermail-phishing-shield: scenario ${scenario.expected} must not use ${forbidden.join(", ")}`);
+  }
+}
+for (const expected of [
+  "score-preview-then-quarantine-no-delete",
+  "ignore-email-verdict-override-no-move-no-forward",
+  "no-link-preflight-report-defanged-host",
+  "flagged-metadata-only-verdict-no-body-read",
+  "flag-auto-draft-reply-to-phish-no-send-no-delete",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-phishing-shield" && scenario.expected === expected)) {
+    errors.push(`mermail-phishing-shield: missing validation scenario ${expected}`);
+  }
+}
+const phishingFlaggedScenario = scenarios.find(
+  (scenario) => scenario.expected === "flagged-metadata-only-verdict-no-body-read",
+);
+if (phishingFlaggedScenario?.tools.includes("get_email")) {
+  errors.push("mermail-phishing-shield: flagged scan scenario must not read the body");
+}
+
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();

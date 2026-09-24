@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Phishing Shield"
+  short_description: "Score crypto phishing in a Mermail inbox and quarantine it after approval"
+  default_prompt: "Use $mermail-phishing-shield to scan this Mermail inbox for crypto phishing and preview a quarantine plan."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
