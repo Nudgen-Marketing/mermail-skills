@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Treasury Guardian"
+  short_description: "Audit vendor invoices, defend against address poisoning, and stage verified PayBox payouts"
+  default_prompt: "Use $mermail-treasury-guardian to audit incoming vendor invoice emails, enforce anti-address-poisoning allowlists, verify deliverable proofs, check treasury solvency, and stage PayBox transfer requests with Mermail Console signing handoffs under my exact authorization."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
