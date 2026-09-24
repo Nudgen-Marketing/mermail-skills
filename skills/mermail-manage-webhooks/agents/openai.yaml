@@ -1,0 +1,11 @@
+interface:
+  display_name: "Manage Mermail Webhooks"
+  short_description: "Register, diagnose, and repair event delivery endpoints"
+  default_prompt: "Use $mermail-manage-webhooks when the task is to register, inspect, test, repair, or rotate a Mermail workspace webhook endpoint, not to read mail or configure triagers."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
