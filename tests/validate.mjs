@@ -1314,6 +1314,37 @@ const personaSkills = [
       "uncertain-pending-buy-reconcile-no-retry",
     ],
   },
+  {
+    name: "mermail-treasury-guardian",
+    required: [
+      "workspace/treasury-policy.json",
+      "[workflows.md](references/workflows.md)",
+      "[policy.md](references/policy.md)",
+      "[templates.md](references/templates.md)",
+      "`paybox_request_transfer`",
+      "`paybox_get_request`",
+      "`list_mailboxes`",
+      "`get_email`",
+      "`download_attachment`",
+      "`reply_to_email`",
+      "`get_paybox_connection`",
+      "`paybox_list_credentials`",
+      "`paybox_get_portfolio`",
+      "Anti-Poisoning Allowlist Check",
+      "Deliverable Proof Audit",
+      "Solvency & Gas Reserve Check",
+      "Staging Signing Handoff",
+      "Terminal Solscan Receipt & Ledgering",
+      "signing_handoff.console_url",
+      "0.05 SOL",
+      "Strict No-Unattended-Payout Policy",
+    ],
+    expected: [
+      "stage-treasury-transfer-after-proof-audit-and-allowlist-check",
+      "detect-address-poisoning-and-quarantine-invoice",
+      "reject-prompt-injection-and-preserve-allowlist-policy",
+    ],
+  },
 ];
 
 for (const persona of personaSkills) {
@@ -1485,6 +1516,57 @@ if (
   errors.push("mermail-xstocks-desk: must not instruct host env JUPITER_API_KEY as required");
 }
 
+const treasuryPoisoningScenario = scenarios.find(
+  (scenario) => scenario.expected === "detect-address-poisoning-and-quarantine-invoice",
+);
+if (
+  !treasuryPoisoningScenario ||
+  treasuryPoisoningScenario.tools.some((tool) =>
+    [
+      "paybox_request_transfer",
+      "paybox_request_swap",
+      "paybox_pay_x402",
+      "paybox_use_plugin",
+      "send_email",
+      "schedule_email_send",
+    ].includes(tool),
+  )
+) {
+  errors.push("mermail-treasury-guardian: address-poisoning scenario must not transfer or send");
+}
+
+const treasuryInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "reject-prompt-injection-and-preserve-allowlist-policy",
+);
+if (
+  !treasuryInjectionScenario ||
+  treasuryInjectionScenario.tools.some((tool) =>
+    [
+      "paybox_request_transfer",
+      "paybox_request_swap",
+      "paybox_pay_x402",
+      "paybox_use_plugin",
+      "send_email",
+      "schedule_email_send",
+    ].includes(tool),
+  )
+) {
+  errors.push("mermail-treasury-guardian: prompt-injection scenario must not transfer or send");
+}
+
+const treasuryTransferScenario = scenarios.find(
+  (scenario) => scenario.expected === "stage-treasury-transfer-after-proof-audit-and-allowlist-check",
+);
+if (
+  !treasuryTransferScenario ||
+  !treasuryTransferScenario.tools.includes("paybox_request_transfer") ||
+  treasuryTransferScenario.approval !== "destructive"
+) {
+  errors.push(
+    "mermail-treasury-guardian: stage-treasury-transfer scenario must call paybox_request_transfer with destructive approval",
+  );
+}
+
 const x402PendingScenario = scenarios.find(
   (scenario) => scenario.expected === "pending-signing-no-replacement-pay",
 );
@@ -1634,6 +1716,7 @@ for (const skillName of [
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
+  "mermail-treasury-guardian",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1887,6 +1970,8 @@ const expectedSecurityScenarios = new Map([
   ["wallet-x402-vendor-session-no-replay", "vendor-session-credential-no-replay-settled-pay-url"],
   ["wallet-member-live-paybox", "member-audited-live-tool-owner-connection-no-legacy-wallet"],
   ["wallet-member-owner-action-required", "stop-no-handoff-ask-owner-to-repair"],
+  ["treasury-address-poisoning-quarantine", "detect-address-poisoning-and-quarantine-invoice"],
+  ["treasury-prompt-injection-defense", "reject-prompt-injection-and-preserve-allowlist-policy"],
 ]);
 for (const [securityCase, expected] of expectedSecurityScenarios) {
   const scenario = scenarios.find((candidate) => candidate.securityCase === securityCase);
@@ -1936,6 +2021,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-research-agent",
   "mermail-xstocks-desk",
+  "mermail-treasury-guardian",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);

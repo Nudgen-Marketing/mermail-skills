@@ -43,8 +43,9 @@ The Treasury Guardian executes an immutable, step-by-step governance workflow fo
    - If `scan_status` is `flagged`, `quarantined`, or `unknown`, do not process body content; route to administrative security review.
 3. **Inspect Invoice Attachment**:
    - If an invoice file is attached, inspect size metadata.
-   - If attachment size <= 1 MiB, call `download_attachment`.
+   - If attachment size <= 1 MiB, call `download_attachment` with required `mailboxId`, `emailId`, and `attachmentId`.
    - If attachment > 1 MiB, pause and request an external checksum or raw text metadata from the user. Never bypass MCP binary limits.
+   - **Edge-Case Collision Priority**: If an invoice attachment is oversized (> 1 MiB) concurrently with an address poisoning collision detected in the email text or headers, the Guardian executes Phase 2 emergency quarantine immediately without prompting for attachment digests or proceeding with intake.
 4. **Normalize Metadata**:
    - Extract the following canonical fields:
      - `vendor_name`: Official business entity name.
@@ -128,6 +129,7 @@ Disbursement staging must never proceed if treasury liquidity is insufficient or
 4. **Evaluate Solvency & Reserves**:
    - Verify `asset_balance >= billed_amount`.
    - Verify `sol_balance >= policy.limits.min_sol_gas_reserve` (default 0.05 SOL).
+   - **Associated Token Account (ATA) Rent Protection**: If the vendor destination address does not yet have an initialized ATA for the token (e.g. USDC), Solana network rent (~0.00204 SOL) will be debited during transfer creation. The mandatory 0.05 SOL reserve ensures this is safely covered without transaction failure.
    - If asset balance is insufficient:
      - Output: `Status: TREASURY_INSOLVENT`. Report shortfall.
    - If SOL gas is below 0.05 SOL:
