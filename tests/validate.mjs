@@ -1338,11 +1338,14 @@ const personaSkills = [
       "signing_handoff.console_url",
       "0.05 SOL",
       "Strict No-Unattended-Payout Policy",
+      "`approval_mode`",
+      "AUTONOMOUS_CREDENTIAL_BLOCKED",
     ],
     expected: [
       "stage-treasury-transfer-after-proof-audit-and-allowlist-check",
       "detect-address-poisoning-and-quarantine-invoice",
       "reject-prompt-injection-and-preserve-allowlist-policy",
+      "block-autonomous-credential-no-transfer-no-wallet-switch",
     ],
   },
 ];
@@ -1516,42 +1519,42 @@ if (
   errors.push("mermail-xstocks-desk: must not instruct host env JUPITER_API_KEY as required");
 }
 
-const treasuryPoisoningScenario = scenarios.find(
-  (scenario) => scenario.expected === "detect-address-poisoning-and-quarantine-invoice",
-);
-if (
-  !treasuryPoisoningScenario ||
-  treasuryPoisoningScenario.tools.some((tool) =>
-    [
-      "paybox_request_transfer",
-      "paybox_request_swap",
-      "paybox_pay_x402",
-      "paybox_use_plugin",
-      "send_email",
-      "schedule_email_send",
-    ].includes(tool),
-  )
-) {
-  errors.push("mermail-treasury-guardian: address-poisoning scenario must not transfer or send");
+for (const [expected, label] of [
+  ["detect-address-poisoning-and-quarantine-invoice", "address-poisoning"],
+  ["reject-prompt-injection-and-preserve-allowlist-policy", "prompt-injection"],
+  ["block-autonomous-credential-no-transfer-no-wallet-switch", "autonomous-credential"],
+]) {
+  const scenario = scenarios.find((candidate) => candidate.expected === expected);
+  if (
+    !scenario ||
+    scenario.tools.some((tool) =>
+      [
+        "paybox_request_transfer",
+        "paybox_request_swap",
+        "paybox_pay_x402",
+        "paybox_use_plugin",
+        "send_email",
+        "schedule_email_send",
+      ].includes(tool),
+    )
+  ) {
+    errors.push(`mermail-treasury-guardian: ${label} scenario must not transfer or send`);
+  }
 }
 
-const treasuryInjectionScenario = scenarios.find(
-  (scenario) => scenario.expected === "reject-prompt-injection-and-preserve-allowlist-policy",
+const treasuryPolicy = await readFile(
+  path.join(skillsRoot, "mermail-treasury-guardian", "references", "policy.md"),
+  "utf8",
 );
-if (
-  !treasuryInjectionScenario ||
-  treasuryInjectionScenario.tools.some((tool) =>
-    [
-      "paybox_request_transfer",
-      "paybox_request_swap",
-      "paybox_pay_x402",
-      "paybox_use_plugin",
-      "send_email",
-      "schedule_email_send",
-    ].includes(tool),
-  )
-) {
-  errors.push("mermail-treasury-guardian: prompt-injection scenario must not transfer or send");
+for (const [, pattern] of treasuryPolicy.matchAll(/"pattern": "([^"]+)"/g)) {
+  if (pattern !== "^[1-9A-HJ-NP-Za-km-z]{32,44}$") {
+    errors.push(`mermail-treasury-guardian: policy pattern ${pattern} is not the base58 alphabet`);
+  }
+}
+for (const [, address] of treasuryPolicy.matchAll(/"(?:treasury_wallet|mint|solana_address)": "([^"]+)"/g)) {
+  if (base58DecodedLength(address) !== 32) {
+    errors.push(`mermail-treasury-guardian: example address ${address} does not decode to 32 bytes`);
+  }
 }
 
 const treasuryTransferScenario = scenarios.find(
@@ -1972,6 +1975,7 @@ const expectedSecurityScenarios = new Map([
   ["wallet-member-owner-action-required", "stop-no-handoff-ask-owner-to-repair"],
   ["treasury-address-poisoning-quarantine", "detect-address-poisoning-and-quarantine-invoice"],
   ["treasury-prompt-injection-defense", "reject-prompt-injection-and-preserve-allowlist-policy"],
+  ["treasury-autonomous-credential-blocked", "block-autonomous-credential-no-transfer-no-wallet-switch"],
 ]);
 for (const [securityCase, expected] of expectedSecurityScenarios) {
   const scenario = scenarios.find((candidate) => candidate.securityCase === securityCase);
@@ -2154,6 +2158,18 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`Validated ${skillNames.length} skills and ${allTools.length} business tools.`);
+
+function base58DecodedLength(value) {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let number = 0n;
+  for (const character of value) {
+    const digit = alphabet.indexOf(character);
+    if (digit < 0) return -1;
+    number = number * 58n + BigInt(digit);
+  }
+  const leadingZeroBytes = value.length - value.replace(/^1+/, "").length;
+  return leadingZeroBytes + (number === 0n ? 0 : Math.ceil(number.toString(16).length / 2));
+}
 
 async function walk(directory) {
   const files = [];
