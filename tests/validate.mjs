@@ -2012,7 +2012,7 @@ for (const required of [
   "A signing secret is a credential",
   "Rotation is irreversible",
   "Replay once.",
-  "without signed webhooks",
+  "webhook-signature",
   "endpoint limit is a plan constraint",
   "prepare_destructive_action",
   "idempotencyKey",

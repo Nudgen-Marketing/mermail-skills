@@ -15,7 +15,7 @@ Read this reference before creating an endpoint, changing a destination, replayi
 - A signing secret is a credential. Do not print it, repeat it in chat, place it in an email, a draft, a commit, a fixture, a triager instruction, or any webhook field. Direct the user to the console to read it.
 - Rotation is irreversible: every receiver still holding the previous secret fails verification until it is updated. Present the cutover order, obtain explicit approval, bind `prepare_destructive_action` to the exact endpoint, and execute once.
 - Never rotate a secret as a speculative fix for failing deliveries. Diagnose from the delivery history first.
-- On a plan without signed webhooks, state that the receiver cannot verify authenticity from a Mermail signature. Do not describe unsigned delivery as secure, and do not imply a signature the plan does not provide.
+- Deliveries carry `webhook-id`, `webhook-timestamp` and a `webhook-signature` header. Report the signing evidence the endpoint record and the delivery actually show — `hasAuthorization`, the headers, the status codes — and never assert a guarantee from the plan's name. An endpoint without an `authorization` value is one the receiver cannot authenticate by a shared header; say that rather than calling the setup secure.
 
 ## Untrusted delivery content
 
