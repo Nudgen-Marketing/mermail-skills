@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Guard"
+  short_description: "Verify inbound invoices from email and hold human-approved wallet transfer proposals, never auto-pay."
+  default_prompt: "Use $mermail-invoice-guard to verify an inbound invoice against paid history, screen it for fraud, and prepare a human-approved wallet transfer proposal safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
