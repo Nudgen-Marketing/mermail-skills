@@ -6,7 +6,6 @@ metadata:
     requires:
       env:
         - MERMAIL_API_KEY
-        - XSTOCKS_CATALOG_API_URL
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
     emoji: "📈"
@@ -28,7 +27,7 @@ Read [tools.md](references/tools.md), [workflows.md](references/workflows.md), a
 
 ## Workflow
 
-1. Query `${XSTOCKS_CATALOG_API_URL}/api/v1/products` with only the user's text/category filters plus `network=Solana&addressStatus=matched&isTradingHalted=false`. Treat a category as usable only when `verified=true`, its evidence URL is present, and `provenance` includes a source type, policy version, evidence hash, and identity fingerprint.
+1. Use the fixed catalog base URL `https://xstock.mermail.app` for all catalog and verification requests; no catalog environment variable is required. Query `https://xstock.mermail.app/api/v1/products` with only the user's text/category filters plus `network=Solana&addressStatus=matched&isTradingHalted=false`. Treat a category as usable only when `verified=true`, its evidence URL is present, and `provenance` includes a source type, policy version, evidence hash, and identity fingerprint.
 2. Continue automatically only when the complete filtered response says `meta.selection=single` and the user already supplied an exact USDC amount. If it says `multiple`, show a short evidence-backed list and ask the user to choose. Never rank products as investment advice.
 3. Query `/api/v1/products/{id}/verification?network=Solana`. Continue only for a current `verified` result with exactly one mint. Product identity verification is independent of sector/theme coverage; an exact product may continue when those optional categories are unclassified.
 4. Call `get_paybox_connection`, then read live `paybox_*` schemas. If no usable connection, present the returned Mermail handoff. Do not invent a connector URL.

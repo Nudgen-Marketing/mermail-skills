@@ -1284,7 +1284,7 @@ const personaSkills = [
     required: [
       "`paybox_request_swap`",
       "`paybox_get_request`",
-      "XSTOCKS_CATALOG_API_URL",
+      "https://xstock.mermail.app/api/v1/products",
       "PayBox provides explicit approval",
       "Do not use this skill for DCA",
       "[workflows.md](references/workflows.md)",
