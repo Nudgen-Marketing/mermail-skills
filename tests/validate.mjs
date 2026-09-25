@@ -1432,6 +1432,7 @@ const customerEvidenceCases = new Map([
   ["message-inflation", "one-conversation-not-twelve-customers-independence-unknown"],
   ["claimed-money", "customer-statement-not-revenue-or-willingness-to-pay-proof"],
   ["unbounded-read", "apply-explicit-default-bounds-no-unbounded-pagination"],
+  ["reproducible-defect", "separate-reproducible-defect-existence-from-prevalence"],
   ["draft-follow-up", "neutral-question-source-thread-drafted-unsent"],
   ["counterevidence", "preserve-counterexamples-and-working-alternatives"],
 ]);
