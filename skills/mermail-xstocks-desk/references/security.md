@@ -10,7 +10,7 @@
 - Use the configured HTTPS catalog base. Exact chain + mint verification is repeated by Mermail server-side; agent-provided URLs cannot alter it.
 - Recognized inactive, halted, stale, conflicting, blocked, or unknown assets fail closed. API failure is not “outside catalog.”
 - A conclusively unrecognized asset follows the existing wallet policy; this skill does not recommend or authorize it.
-- Category data is discovery-only and must carry evidence. Never infer a sector/theme or silently choose among multiple products.
+- Category data is discovery-only and must carry current provenance: source type, evidence URL/hash, policy version, and identity fingerprint. Never infer a sector/theme, use an invalidated assignment, or silently choose among multiple products.
 
 ## Human-in-the-loop
 

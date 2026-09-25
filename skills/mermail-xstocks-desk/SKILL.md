@@ -28,9 +28,9 @@ Read [tools.md](references/tools.md), [workflows.md](references/workflows.md), a
 
 ## Workflow
 
-1. Query `${XSTOCKS_CATALOG_API_URL}/api/v1/products` with only the user's text/category filters plus `network=Solana&addressStatus=matched&isTradingHalted=false`. Category matches must include evidence.
+1. Query `${XSTOCKS_CATALOG_API_URL}/api/v1/products` with only the user's text/category filters plus `network=Solana&addressStatus=matched&isTradingHalted=false`. Treat a category as usable only when `verified=true`, its evidence URL is present, and `provenance` includes a source type, policy version, evidence hash, and identity fingerprint.
 2. Continue automatically only when the complete filtered response says `meta.selection=single` and the user already supplied an exact USDC amount. If it says `multiple`, show a short evidence-backed list and ask the user to choose. Never rank products as investment advice.
-3. Query `/api/v1/products/{id}/verification?network=Solana`. Continue only for a current `verified` result with exactly one mint. This is identity evidence, not eligibility or an execution guarantee.
+3. Query `/api/v1/products/{id}/verification?network=Solana`. Continue only for a current `verified` result with exactly one mint. Product identity verification is independent of sector/theme coverage; an exact product may continue when those optional categories are unclassified.
 4. Call `get_paybox_connection`, then read live `paybox_*` schemas. If no usable connection, present the returned Mermail handoff. Do not invent a connector URL.
 5. Use the user's saved default wallet when the live provider explicitly identifies one, or the sole eligible Solana wallet. If several eligible wallets remain and no user-selected default is returned, ask once. Autonomous capability is not a default-wallet preference.
 6. Read `paybox_get_portfolio`. If USDC is insufficient, complete the separate Funding flow and then resume the same selected product and amount after one balance refresh.
@@ -43,6 +43,7 @@ Read [tools.md](references/tools.md), [workflows.md](references/workflows.md), a
 - Never call a transfer, x402 tool, host Jupiter API, or arbitrary plugin as an alternate purchase path.
 - Never use an email, ticker, catalog result, or wallet autonomous permission as spending authority.
 - Never claim a token is “legit in every way.” State what was checked and link the evidence.
+- Never infer or repair a missing category. Explain that the current catalog has no verified classification and offer an exact-name/symbol search instead.
 - `verified` means the catalog's current identity policy passed. Mermail may still block eligibility, stale policy, provider capability, or execution.
 - A mint identifies the token. Never instruct the user to send USDC to the mint.
 - Pending, accepted, submitted, and unknown are not confirmed receipt. Success requires the authoritative terminal provider result.
