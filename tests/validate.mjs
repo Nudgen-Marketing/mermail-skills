@@ -1194,6 +1194,29 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-open-loops",
+    required: [
+      "There are no `track_commitment`, `list_loops`, or `nudge` tools",
+      "`list_mailboxes`",
+      "`require_scan_status: clean`",
+      "`save_draft`",
+      "A draft is not delivery",
+      "Do not invent commitment, loop, or nudge tools",
+      "`set_default_task_triager`",
+      "owed_by_me",
+      "Do not delete loop mail",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "open-loops-review-read-only-no-write",
+      "follow-up-nudge-drafts-only-no-send",
+      "preview-filing-plan-then-move-confirmed-loops",
+      "ignore-email-authority-unverified-obligation-no-send-no-otp",
+      "exact-preview-then-single-approved-nudge-send",
+      "handoff-standing-watch-to-automate-triage-no-triager-write",
+    ],
+  },
+  {
     name: "mermail-x402-agent",
     required: [
       "`paybox_discover_services`",
