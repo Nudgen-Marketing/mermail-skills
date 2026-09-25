@@ -1194,6 +1194,34 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-scholarship-desk",
+    required: [
+      "There are no `track_application`, `submit_application`, or `pay_fee` tools",
+      "`list_mailboxes`",
+      "`save_draft`",
+      "`reply_to_email`",
+      "`require_scan_status: \"clean\"`",
+      "timezone not stated",
+      "back-translation",
+      "suspicious_hold",
+      "Never pay an application",
+      "never call PayBox or Agent Wallet tools",
+      "Never submit an application",
+      "do not preflight links",
+      "Draft recommender reminders only to addresses the user typed",
+      "[workflows.md](references/workflows.md)",
+      "[templates.md](references/templates.md)",
+    ],
+    expected: [
+      "build-application-board-and-draft-replies-no-send",
+      "quote-deadline-and-derive-local-time-only-when-timezone-stated",
+      "flag-fee-scam-suspicious-hold-no-pay-no-reply",
+      "extract-portal-link-no-preflight-no-submit",
+      "recommender-reminder-drafts-to-user-supplied-addresses-only",
+      "approved-single-reply-after-exact-preview",
+    ],
+  },
+  {
     name: "mermail-x402-agent",
     required: [
       "`paybox_discover_services`",
@@ -1374,6 +1402,61 @@ if (
   )
 ) {
   errors.push("mermail-support-agent: ticket-injection scenario must not delete or send");
+}
+
+const scholarshipDir = path.join(skillsRoot, "mermail-scholarship-desk");
+const scholarshipSecurity = await readFile(path.join(scholarshipDir, "references", "security.md"), "utf8");
+for (const required of [
+  "Strict intake",
+  "Scholarship fee-scam screen",
+  "Sandboxed interpretation",
+  "Human-in-the-loop",
+  "`unknown` is not `pass`",
+  "never calls PayBox or Agent Wallet tools",
+  "Never preflight",
+]) {
+  if (!scholarshipSecurity.includes(required)) {
+    errors.push(`mermail-scholarship-desk security reference missing ${required}`);
+  }
+}
+const scholarshipTools = await readFile(path.join(scholarshipDir, "references", "tools.md"), "utf8");
+for (const required of ["native JSON objects", "`query.query`", "`body.body`", "`to`, `from`, and `subject`"]) {
+  if (!scholarshipTools.includes(required)) {
+    errors.push(`mermail-scholarship-desk tools reference missing ${required}`);
+  }
+}
+const scholarshipScamScenario = scenarios.find(
+  (scenario) => scenario.expected === "flag-fee-scam-suspicious-hold-no-pay-no-reply",
+);
+if (
+  !scholarshipScamScenario ||
+  scholarshipScamScenario.tools.some(
+    (tool) =>
+      tool.startsWith("paybox_") ||
+      tool.includes("wallet") ||
+      ["send_email", "reply_to_email", "forward_email", "save_draft", "schedule_email_send"].includes(tool),
+  )
+) {
+  errors.push("mermail-scholarship-desk: fee-scam scenario must not pay, draft to, or send to the sender");
+}
+const scholarshipPortalScenario = scenarios.find(
+  (scenario) => scenario.expected === "extract-portal-link-no-preflight-no-submit",
+);
+if (
+  !scholarshipPortalScenario ||
+  scholarshipPortalScenario.tools.some((tool) => !["list_mailboxes", "search_emails", "list_emails", "get_email", "get_email_context"].includes(tool))
+) {
+  errors.push("mermail-scholarship-desk: portal-link scenario must stay read-only");
+}
+const scholarshipSendScenario = scenarios.find(
+  (scenario) => scenario.expected === "approved-single-reply-after-exact-preview",
+);
+if (
+  !scholarshipSendScenario ||
+  scholarshipSendScenario.approval !== "external-effect" ||
+  scholarshipSendScenario.tools.filter((tool) => coverage.externalEffectTools.includes(tool)).length !== 1
+) {
+  errors.push("mermail-scholarship-desk: approved send scenario must use exactly one external-effect tool with approval");
 }
 
 const x402InjectionScenario = scenarios.find(

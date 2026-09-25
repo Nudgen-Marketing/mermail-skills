@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Scholarship Desk"
+  short_description: "Track scholarship and admissions email, explain it, and draft replies"
+  default_prompt: "Use $mermail-scholarship-desk to build my application board from my Mermail application inbox, explain each item in my language, and draft replies for review without sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
