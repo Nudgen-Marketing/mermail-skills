@@ -952,7 +952,7 @@ for (const required of [
   "`x-api-key`",
   "full profile",
   "`agent-inbox`",
-  "74 tools",
+  "83 tools",
   "63-tool",
   "exactly 12 tools",
   "`initialize`",
@@ -1977,7 +1977,7 @@ for (const expected of [
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
 const duplicates = knownTools.filter((tool, index) => knownTools.indexOf(tool) !== index);
-if (allTools.length !== 73) errors.push(`expected 73 business tools, found ${allTools.length}`);
+if (allTools.length !== 82) errors.push(`expected 82 business tools, found ${allTools.length}`);
 if (walletScopedTools.length !== 19) {
   errors.push(`expected 19 wallet-scoped tool canaries, found ${walletScopedTools.length}`);
 }
@@ -2071,8 +2071,8 @@ async function validateRemote() {
   if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 74) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 74`);
+  if (remoteNames.length !== 83) {
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 83`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
