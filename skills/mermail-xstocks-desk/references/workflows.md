@@ -11,7 +11,9 @@
 
 ## Category request
 
-Query only evidence-backed category slugs. Show a compact list with product, ticker, classification evidence, and verification availability. Ask the user to choose; a category is never authority to select an investment.
+Query only evidence-backed category slugs. Show a compact list with product, ticker, evidence URL, source type, and verification availability. Ignore assignments where `verified=false`, provenance is absent, or `invalidatedReason` is present. Ask the user to choose; a category is never authority to select an investment.
+
+If no verified product matches, say the category is currently unclassified or unsupported. Do not broaden the category, infer it from product names, or turn an invalidated assignment into a result. Offer an exact product-name or symbol search. Missing sector/theme does not block an exact product whose mint verification succeeds.
 
 ## Changed or expired terms
 
