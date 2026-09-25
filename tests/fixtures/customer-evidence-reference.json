@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "notice": "Synthetic evidence only. These cases validate the written evidence rules; the reference set does not execute a model or establish live customer findings.",
+  "cases": [
+    {
+      "id": "message-inflation",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "repeated-thread",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_id": "unverified-key",
+          "account_mapping_verified": false,
+          "concrete": false,
+          "reproducible": false,
+          "material_counterevidence": false,
+          "message_ids": [
+            "message-01",
+            "message-02",
+            "message-03",
+            "message-04",
+            "message-05",
+            "message-06",
+            "message-07",
+            "message-08",
+            "message-09",
+            "message-10",
+            "message-11",
+            "message-12"
+          ]
+        }
+      ],
+      "expected": {
+        "message_count": 12,
+        "thread_count": 1,
+        "verified_account_count": 0,
+        "existence_band": "weak",
+        "prevalence_band": "weak",
+        "revenue_status": "not_verified_from_mailbox_evidence"
+      }
+    },
+    {
+      "id": "independent-accounts",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "account-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "observed_behavior",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "account-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "observed_behavior",
+          "account_id": "account-b",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "account-c",
+          "message_id": "message-c",
+          "thread_id": "thread-c",
+          "source_kind": "customer_statement",
+          "account_id": "account-c",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        }
+      ],
+      "expected": {
+        "message_count": 3,
+        "thread_count": 3,
+        "verified_account_count": 3,
+        "existence_band": "strong",
+        "prevalence_band": "strong",
+        "revenue_status": "not_verified_from_mailbox_evidence"
+      }
+    },
+    {
+      "id": "counterevidence",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "account-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "observed_behavior",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "account-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "observed_behavior",
+          "account_id": "account-b",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": true
+        },
+        {
+          "evidence_id": "account-c",
+          "message_id": "message-c",
+          "thread_id": "thread-c",
+          "source_kind": "customer_statement",
+          "account_id": "account-c",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        }
+      ],
+      "expected": {
+        "message_count": 3,
+        "thread_count": 3,
+        "verified_account_count": 3,
+        "existence_band": "moderate",
+        "prevalence_band": "moderate",
+        "revenue_status": "not_verified_from_mailbox_evidence"
+      }
+    },
+    {
+      "id": "reproducible-defect",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "observation",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "observed_behavior",
+          "account_mapping_verified": false,
+          "concrete": true,
+          "reproducible": true,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "owner-check",
+          "source_kind": "owner_record",
+          "account_mapping_verified": false,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        }
+      ],
+      "expected": {
+        "message_count": 1,
+        "thread_count": 1,
+        "verified_account_count": 0,
+        "existence_band": "moderate",
+        "prevalence_band": "weak",
+        "revenue_status": "not_verified_from_mailbox_evidence"
+      }
+    },
+    {
+      "id": "revenue-claim",
+      "source_safe": true,
+      "claim_type": "revenue",
+      "items": [
+        {
+          "evidence_id": "paid-claim",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_mapping_verified": false,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        }
+      ],
+      "expected": {
+        "message_count": 1,
+        "thread_count": 1,
+        "verified_account_count": 0,
+        "existence_band": "weak",
+        "prevalence_band": "weak",
+        "revenue_status": "not_verified_from_mailbox_evidence"
+      }
+    },
+    {
+      "id": "unsafe-source",
+      "source_safe": false,
+      "items": [
+        {
+          "evidence_id": "held-message",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_mapping_verified": false,
+          "concrete": true,
+          "reproducible": false,
+          "material_counterevidence": false
+        }
+      ],
+      "expected": {
+        "message_count": 1,
+        "thread_count": 1,
+        "verified_account_count": 0,
+        "existence_band": "insufficient",
+        "prevalence_band": "insufficient",
+        "revenue_status": "not_verified_from_mailbox_evidence"
+      }
+    }
+  ]
+}
