@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Security Bounty Desk"
+  short_description: "Triage vulnerability disclosures, verify against bug bounty policy, check treasury, and propose wallet rewards"
+  default_prompt: "Use $mermail-security-bounty-desk when the job is security disclosure triage, bug bounty policy verification, treasury balance checking, or preparing agent wallet bounty payout proposals."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
