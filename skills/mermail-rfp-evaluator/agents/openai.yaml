@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail RFP Evaluator"
+  short_description: "Evidence-linked vendor proposal comparison"
+  default_prompt: "Use $mermail-rfp-evaluator to compare these vendor proposals against one approved rubric and prepare a human-review decision packet."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
