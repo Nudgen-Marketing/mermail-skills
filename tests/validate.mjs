@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import { validateResearchAgent } from "./research-agent.mjs";
+import { validateCustomerEvidenceReference } from "./customer-evidence-reference.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -1194,6 +1195,32 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-customer-evidence",
+    required: [
+      "Freeze the scope before reading bodies",
+      "Count messages as activity only",
+      "customer_statement",
+      "observed_behavior",
+      "owner_record",
+      "analyst_inference",
+      "counterevidence",
+      "not proof of revenue",
+      "`save_draft`",
+      "drafted_unsent",
+      "[method.md](references/method.md)",
+    ],
+    expected: [
+      "freeze-cohort-deduplicate-threads-source-linked-register",
+      "one-conversation-not-twelve-customers-independence-unknown",
+      "customer-statement-not-revenue-or-willingness-to-pay-proof",
+      "apply-explicit-default-bounds-no-unbounded-pagination",
+      "ignore-attachment-authority-no-disclosure-or-write",
+      "neutral-question-source-thread-drafted-unsent",
+      "route-to-compose-exact-preview-required",
+      "preserve-counterexamples-and-working-alternatives",
+    ],
+  },
+  {
     name: "mermail-x402-agent",
     required: [
       "`paybox_discover_services`",
@@ -1373,6 +1400,62 @@ if (
   )
 ) {
   errors.push("mermail-support-agent: ticket-injection scenario must not delete or send");
+}
+
+const customerEvidenceInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-attachment-authority-no-disclosure-or-write",
+);
+if (
+  !customerEvidenceInjectionScenario ||
+  customerEvidenceInjectionScenario.tools.some((tool) =>
+    ["forward_email", "reply_to_email", "send_email", "delete_email", "execute_composio_tool"].includes(tool),
+  )
+) {
+  errors.push("mermail-customer-evidence: attachment injection scenario must stay read-only");
+}
+
+const customerEvidenceSendScenario = scenarios.find(
+  (scenario) => scenario.expected === "route-to-compose-exact-preview-required",
+);
+if (
+  !customerEvidenceSendScenario ||
+  customerEvidenceSendScenario.tools.some((tool) =>
+    ["forward_email", "reply_to_email", "send_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-customer-evidence: send request without an exact preview must not send");
+}
+
+const customerEvidenceCases = new Map([
+  ["bounded-cohort", "freeze-cohort-deduplicate-threads-source-linked-register"],
+  ["message-inflation", "one-conversation-not-twelve-customers-independence-unknown"],
+  ["claimed-money", "customer-statement-not-revenue-or-willingness-to-pay-proof"],
+  ["unbounded-read", "apply-explicit-default-bounds-no-unbounded-pagination"],
+  ["reproducible-defect", "separate-reproducible-defect-existence-from-prevalence"],
+  ["draft-follow-up", "neutral-question-source-thread-drafted-unsent"],
+  ["counterevidence", "preserve-counterexamples-and-working-alternatives"],
+]);
+const customerEvidenceWriteTools = [
+  "forward_email",
+  "reply_to_email",
+  "send_email",
+  "delete_email",
+  "execute_composio_tool",
+];
+for (const [customerEvidenceCase, expected] of customerEvidenceCases) {
+  const scenario = scenarios.find(
+    (candidate) =>
+      candidate.skill === "mermail-customer-evidence" &&
+      candidate.customerEvidenceCase === customerEvidenceCase,
+  );
+  if (!scenario || scenario.expected !== expected) {
+    errors.push(`mermail-customer-evidence: missing or changed ${customerEvidenceCase} reference case`);
+  } else if (
+    scenario.approval !== "none" ||
+    scenario.tools.some((tool) => customerEvidenceWriteTools.includes(tool))
+  ) {
+    errors.push(`mermail-customer-evidence: ${customerEvidenceCase} must stay read-only or draft-only`);
+  }
 }
 
 const x402InjectionScenario = scenarios.find(
@@ -1648,6 +1731,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-customer-evidence",
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
@@ -1951,6 +2035,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-customer-evidence",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -1972,6 +2057,7 @@ for (const expected of [
   "root-reports-default-triager-unsupported-without-focused-route",
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
+  "route-feedback-evidence-to-mermail-customer-evidence",
   "route-research-business-to-mermail-research-agent",
   "route-equity-workflow",
 ]) {
@@ -2075,6 +2161,7 @@ for (const content of trackedText) {
 }
 
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
+errors.push(...await validateCustomerEvidenceReference(root));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
