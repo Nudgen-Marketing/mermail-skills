@@ -29,13 +29,10 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    outputs:
-      already_published: ${{ steps.existing-publication.outputs.already_published }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -62,82 +59,26 @@ jobs:
       - name: Validate ClawHub package metadata
         run: clawhub package validate . --json > /dev/null
 
-      - name: Verify an existing exact publication
-        id: existing-publication
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
-        env:
-          EXPECTED_COMMIT: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          VERSION="$(node -p "require('./package.json').version")"
-          if ! clawhub package inspect mermail-skills --version "$VERSION" --json > "$RUNNER_TEMP/existing-package.json"; then
-            echo "already_published=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          python3 - <<'PY'
-          import json
-          import os
-          import subprocess
-          from pathlib import Path
-
-          result = json.loads((Path(os.environ["RUNNER_TEMP"]) / "existing-package.json").read_text())
-          package = result.get("package") or {}
-          version = result.get("version") or {}
-          verification = version.get("verification") or {}
-          expected_version = json.loads(Path("package.json").read_text())["version"]
-          source_commit = verification.get("sourceCommit")
-          packaged_paths = [
-              "skills", "assets", "README.md", "LICENSE", "plugin.json", "mcp.json",
-              "openclaw.plugin.json", ".mcp.json", ".plugin", ".codex-plugin",
-              ".claude-plugin", ".cursor-plugin", "compatibility.json", "tool-coverage.json",
-          ]
-          source_compatible = source_commit == os.environ["EXPECTED_COMMIT"]
-          if source_commit and not source_compatible:
-              ancestor = subprocess.run(
-                  ["git", "merge-base", "--is-ancestor", source_commit, os.environ["EXPECTED_COMMIT"]],
-                  check=False,
-              ).returncode == 0
-              payload_unchanged = subprocess.run(
-                  ["git", "diff", "--quiet", source_commit, os.environ["EXPECTED_COMMIT"], "--", *packaged_paths],
-                  check=False,
-              ).returncode == 0
-              source_compatible = ancestor and payload_unchanged
-          exact = (
-              version.get("version") == expected_version
-              and verification.get("sourceRepo") == os.environ["GITHUB_REPOSITORY"]
-              and source_compatible
-              and verification.get("scanStatus") == "clean"
-              and package.get("scanStatus") == "clean"
-          )
-          output = Path(os.environ["GITHUB_OUTPUT"])
-          with output.open("a") as handle:
-              handle.write(f"already_published={'true' if exact else 'false'}\n")
-          PY
-
   dry-run:
     needs: validate
     if: github.event_name == 'pull_request'
     permissions:
-      actions: read
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ecf09b868a986751137f4272283f84967a16c765 # v0.12.0
     with:
       dry_run: true
       owner: mermail
-      family: bundle-plugin
 
   publish:
     needs: validate
-    if: (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && needs.validate.outputs.already_published != 'true'
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
     permissions:
-      actions: read
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ecf09b868a986751137f4272283f84967a16c765 # v0.12.0
     with:
       dry_run: false
       owner: mermail
-      family: bundle-plugin
     secrets:
       clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
