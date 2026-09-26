@@ -1,0 +1,20 @@
+{
+  "emails": [
+    {
+      "id": "draft-reply-1",
+      "folder": "draft",
+      "subject": "Re: Your Notion trial ends Sep 4",
+      "received_at": "2026-08-26T16:00:00Z",
+      "from": "Default email response triager <trial-killswitch@mermail.app>",
+      "body_file": "draft_reply_no_amount.txt"
+    },
+    {
+      "id": "inbox-original-1",
+      "folder": "inbox",
+      "subject": "Your Notion trial ends Sep 4",
+      "received_at": "2026-08-26T15:02:00Z",
+      "from": "billing@notion.so",
+      "body_file": "trial_ending.txt"
+    }
+  ]
+}
