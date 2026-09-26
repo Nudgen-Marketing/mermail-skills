@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "kind": "funding-gate-public-rpc-fixture",
+  "network": "solana-devnet",
+  "source": {
+    "rpc": "https://api.devnet.solana.com",
+    "explorer": "https://explorer.solana.com/tx/Z1Yv5x3b5SvWjSJPq9Y4erBzTSTKfHgjJLkTKZUU5kYupxJ4tJFCCftE27Ax2CKn7iUNw7YEdB6JXWRrPgx87FW?cluster=devnet",
+    "recordedAt": "2026-09-23T17:19:07.025Z",
+    "purpose": "Public-chain compatibility corpus only; not a Mermail payment or owner funding approval."
+  },
+  "transaction": {
+    "blockTime": 1790183905,
+    "slot": 503050658,
+    "meta": {
+      "err": null,
+      "innerInstructions": [
+        {
+          "index": 0,
+          "instructions": [
+            {
+              "parsed": {
+                "info": {
+                  "authority": "DSAWwDwfqiDx9r8cxUV1rnDdV4BFZiW1KeJwvPLVtbVZ",
+                  "destination": "2Z6c36wn9ZkLTp4cEjzDy2Lx3HzKXSEgnUjAfuShF26m",
+                  "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+                  "source": "HtMrtD2LjTKX2Bq3nqkzxV1C6La6UaodYZZzEMBLRZr2",
+                  "tokenAmount": {
+                    "amount": "10000000",
+                    "decimals": 6,
+                    "uiAmount": 10,
+                    "uiAmountString": "10"
+                  }
+                },
+                "type": "transferChecked"
+              },
+              "program": "spl-token",
+              "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+              "stackHeight": 2
+            }
+          ]
+        }
+      ],
+      "postTokenBalances": [
+        {
+          "accountIndex": 1,
+          "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+          "owner": "4hTFt8Bt4MP7dyHoMLzLTeuY7GqT4QA9iTqrywMTF6V4",
+          "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "uiTokenAmount": {
+            "amount": "63261679",
+            "decimals": 6,
+            "uiAmount": 63.261679,
+            "uiAmountString": "63.261679"
+          }
+        },
+        {
+          "accountIndex": 3,
+          "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+          "owner": "DSAWwDwfqiDx9r8cxUV1rnDdV4BFZiW1KeJwvPLVtbVZ",
+          "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "uiTokenAmount": {
+            "amount": "0",
+            "decimals": 6,
+            "uiAmount": null,
+            "uiAmountString": "0"
+          }
+        }
+      ]
+    },
+    "transaction": {
+      "signatures": [
+        "Z1Yv5x3b5SvWjSJPq9Y4erBzTSTKfHgjJLkTKZUU5kYupxJ4tJFCCftE27Ax2CKn7iUNw7YEdB6JXWRrPgx87FW"
+      ],
+      "message": {
+        "accountKeys": [
+          { "pubkey": "2KaAY9vdCvZPvRQS2UPx53GJyRWXay5bXtsWtnTgP6bd", "signer": true, "source": "transaction", "writable": true },
+          { "pubkey": "2Z6c36wn9ZkLTp4cEjzDy2Lx3HzKXSEgnUjAfuShF26m", "signer": false, "source": "transaction", "writable": true },
+          { "pubkey": "DSAWwDwfqiDx9r8cxUV1rnDdV4BFZiW1KeJwvPLVtbVZ", "signer": false, "source": "transaction", "writable": true },
+          { "pubkey": "HtMrtD2LjTKX2Bq3nqkzxV1C6La6UaodYZZzEMBLRZr2", "signer": false, "source": "transaction", "writable": true },
+          { "pubkey": "11111111111111111111111111111111", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "4hTFt8Bt4MP7dyHoMLzLTeuY7GqT4QA9iTqrywMTF6V4", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "7GBebN5fGxYkrVsVMQatEsqA3tpSS9eUkZoQJZbMJbWc", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "Cu9BcK14DDHEoHjgvXoDChqTTBWQXxMCiQyu7uD79o3e", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "DviwZCVUuyZnVyfvhzFNDkWTJ5BWbvG9V4VoV8N8PTJM", "signer": false, "source": "transaction", "writable": false },
+          { "pubkey": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "signer": false, "source": "transaction", "writable": false }
+        ],
+        "instructions": [
+          {
+            "accounts": [
+              "DviwZCVUuyZnVyfvhzFNDkWTJ5BWbvG9V4VoV8N8PTJM",
+              "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+              "2KaAY9vdCvZPvRQS2UPx53GJyRWXay5bXtsWtnTgP6bd",
+              "11111111111111111111111111111111",
+              "DSAWwDwfqiDx9r8cxUV1rnDdV4BFZiW1KeJwvPLVtbVZ",
+              "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+              "HtMrtD2LjTKX2Bq3nqkzxV1C6La6UaodYZZzEMBLRZr2",
+              "4hTFt8Bt4MP7dyHoMLzLTeuY7GqT4QA9iTqrywMTF6V4",
+              "2Z6c36wn9ZkLTp4cEjzDy2Lx3HzKXSEgnUjAfuShF26m",
+              "Cu9BcK14DDHEoHjgvXoDChqTTBWQXxMCiQyu7uD79o3e",
+              "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+              "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+              "11111111111111111111111111111111",
+              "2KaAY9vdCvZPvRQS2UPx53GJyRWXay5bXtsWtnTgP6bd"
+            ],
+            "data": "VmWkU8XkPR26wNW7onivZzJ5eDtiochCLz9Qrb6QZmHJyvshvE8XAouKFK6fLDwWYsEsB2Qhu7u21tXzpBgJ48Dcd37VrU27phuhRuA1kVvHtKQwFeM3ZF3EJAtCCikK2uMcLVRZNvWLviHnmhDN5bFC7piWZqmpYFS251KoxoxjQDuLy9p3Y5DPnDx5myjaD1kFBrSh5XdW7GGxh5DJuWtKFSqdZ8aB",
+            "programId": "7GBebN5fGxYkrVsVMQatEsqA3tpSS9eUkZoQJZbMJbWc",
+            "stackHeight": 1
+          }
+        ]
+      }
+    }
+  }
+}

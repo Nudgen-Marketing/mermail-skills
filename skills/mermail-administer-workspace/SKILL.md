@@ -30,7 +30,7 @@ Read [tools.md](references/tools.md) for the owned MCP tools and approval requir
 ## Workflow
 
 1. Resolve the credential-bound workspace and the exact member, invitation, domain, or mailbox before reasoning about a change. Use stable IDs returned by list/get tools; never invent an ID or cross into another workspace.
-2. Read and show the relevant current state first. Use `get_ai_credit_usage`, `list_ai_credit_events`, `get_api_credit_usage`, `get_email_usage`, or storage reads before a large or costly workflow when usage is material. Keep AI credits separate from API and mailbox provision credits.
+2. Read and show the relevant current state first. Use `get_ai_credit_usage`, `list_ai_credit_events`, `get_api_credit_usage`, `get_email_usage`, or storage reads before a large or costly workflow when usage is material. Keep AI credits separate from API and mailbox provision credits. Follow each tool's current live schema and do not infer missing periods, event fields, or units.
 3. Resolve ambiguity before writing. When multiple similarly named workspaces, members, domains, or mailboxes remain, present the smallest non-secret distinguishing metadata and ask the user to choose.
 4. Always call `list_mailboxes` or `list_workspace_mailboxes` before `create_mailbox`. Reuse a suitable exact mailbox instead of provisioning a duplicate, and do not retry an uncertain create blindly.
 5. Validate requested roles, invite recipients, domain names, mailbox addresses, and settings against the current live schema. `create_mailbox` requires `email` and `name` and costs 10 provision credits. For credential-bound MCP, `workspaceId` is optional when the live schema permits omission; pass the exact resolved workspace ID only when the transport or schema requires it.

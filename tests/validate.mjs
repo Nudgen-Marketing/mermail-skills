@@ -111,6 +111,8 @@ if (
 }
 for (const required of [
   "10 provision credits",
+  "`get_ai_credit_usage`",
+  "`list_ai_credit_events`",
   "`prepare_destructive_action`",
   "single-use token",
   "`remove_workspace_member`",
@@ -1597,6 +1599,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-freelance-margin-guard",
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
@@ -1900,6 +1903,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-freelance-margin-guard",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -1921,6 +1925,7 @@ for (const expected of [
   "root-reports-default-triager-unsupported-without-focused-route",
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
+  "route-freelance-margin-work-to-mermail-freelance-margin-guard",
   "route-research-business-to-mermail-research-agent",
   "route-equity-workflow",
 ]) {
@@ -2046,6 +2051,7 @@ async function walk(directory) {
 }
 
 async function validateRemote() {
+  const errorsBeforeRemote = errors.length;
   const response = await fetch(coverage.discoveryEndpoint);
   if (!response.ok) {
     errors.push(`server card returned HTTP ${response.status}`);
@@ -2066,15 +2072,32 @@ async function validateRemote() {
   if (unauthenticated.status !== 401) errors.push(`unauthenticated MCP request returned HTTP ${unauthenticated.status}, expected 401`);
 
   const apiKey = process.env.MERMAIL_MCP_TEST_API_KEY;
-  if (!apiKey) return;
+  const apiKeyRequired = process.env.MERMAIL_REQUIRE_TEST_API_KEY === "1";
+  if (!apiKey) {
+    if (apiKeyRequired) {
+      errors.push("manual authenticated Mermail validation requires MERMAIL_MCP_TEST_API_KEY");
+    }
+    return;
+  }
+
+  let authenticatedProofPassed = true;
   const initialized = await authenticatedMcpRequest(apiKey, initializePayload(1));
-  if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
+  if (!initialized?.result?.serverInfo) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated MCP initialize did not return serverInfo");
+  }
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 74) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 74`);
+  if (remoteNames.length !== localTools.length) {
+    authenticatedProofPassed = false;
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected ${localTools.length}`);
+  }
+  if (JSON.stringify([...remoteNames].sort()) !== JSON.stringify(localTools)) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated tools/list differs from tool-coverage.json");
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
+    authenticatedProofPassed = false;
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
   }
 
@@ -2085,11 +2108,37 @@ async function validateRemote() {
     params: { name: "list_workspaces", arguments: {} },
   });
   if (!workspaces) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces tools/call failed");
   } else if (workspaces.result?.isError) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces returned isError");
   } else if (!workspaces.result?.structuredContent && !workspaces.result?.content) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces returned empty content");
+  }
+
+  const mailboxes = await authenticatedMcpRequest(apiKey, {
+    jsonrpc: "2.0",
+    id: 4,
+    method: "tools/call",
+    params: { name: "list_mailboxes", arguments: {} },
+  });
+  if (!mailboxes) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes tools/call failed");
+  } else if (mailboxes.result?.isError) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes returned isError");
+  } else if (!mailboxes.result?.structuredContent && !mailboxes.result?.content) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes returned empty content");
+  }
+
+  if (authenticatedProofPassed && errors.length === errorsBeforeRemote) {
+    console.log(
+      `Authenticated Mermail proof passed: initialize; ${remoteNames.length}-tool catalog; list_workspaces; list_mailboxes (read-only).`,
+    );
   }
 }
 

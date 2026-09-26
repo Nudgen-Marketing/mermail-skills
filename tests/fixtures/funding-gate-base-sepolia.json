@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "kind": "funding-gate-public-rpc-fixture",
+  "network": "base-sepolia",
+  "source": {
+    "rpc": "https://sepolia.base.org",
+    "explorer": "https://sepolia.basescan.org/tx/0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
+    "recordedAt": "2026-09-23T17:04:48.557Z",
+    "purpose": "Public-chain compatibility corpus only; not a Mermail payment or owner funding approval."
+  },
+  "transaction": {
+    "hash": "0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
+    "blockNumber": "0x2d053c3",
+    "from": "0x5bc954e1be03b915ce078fee66bda2ae0e2bb67f",
+    "to": "0xb2000000000000000000009a3da9fa0a0b61cb72",
+    "value": "0x0",
+    "input": "0xa9059cbb0000000000000000000000006a9feb52b2a1cdb15bcbe2be69586053cbce135100000000000000000000000000000000000000000000000000000000000009df"
+  },
+  "receipt": {
+    "transactionHash": "0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
+    "blockNumber": "0x2d053c3",
+    "status": "0x1",
+    "to": "0xb2000000000000000000009a3da9fa0a0b61cb72",
+    "logs": [
+      {
+        "address": "0xb2000000000000000000009a3da9fa0a0b61cb72",
+        "topics": [
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          "0x0000000000000000000000005bc954e1be03b915ce078fee66bda2ae0e2bb67f",
+          "0x0000000000000000000000006a9feb52b2a1cdb15bcbe2be69586053cbce1351"
+        ],
+        "data": "0x00000000000000000000000000000000000000000000000000000000000009df"
+      }
+    ]
+  },
+  "latestBlock": "0x2d053e0",
+  "block": {
+    "timestamp": "0x6ab40666"
+  },
+  "decimals": "0x0000000000000000000000000000000000000000000000000000000000000006"
+}
