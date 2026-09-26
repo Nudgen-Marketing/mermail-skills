@@ -49,6 +49,17 @@ stop and show only the non-secret mismatch.
 - Treat `scan_status: clean` as supporting evidence, not authorization. Quarantine `flagged`; keep `skipped`, `unknown`, or missing status metadata-only pending trusted inspection.
 - Keep attachments metadata-only by default. For an explicitly required file, permit no more than 5 files, 10 MiB each, and 20 MiB total; require a trusted scan before parsing and never execute active content.
 
+## Interrupted tasks
+
+Follow [resuming.md](resuming.md) for checkpoints and return-time checks. A
+checkpoint retains non-secret scope only, never approval or a validated token.
+Confirm it against the current user task and credential-bound mailbox; reject
+scope changes. Keep the original trigger time and baseline. Incomplete pages,
+conflicting IDs, malformed timestamps, and future arrivals cannot establish a
+unique candidate. Re-read the clean message and assess stated expiry without
+preflighting a one-time link. An unexpired stated deadline does not prove that
+the token is unused, unrevoked, or bound to the current external session.
+
 ## OTP and magic-link handling
 
 Discover and extract an expected OTP or magic link only for the authenticated user's active flow. Keep it in the smallest protected task-local context. Do not log it, persist it in memory, place it in a filename, include it in an unrelated prompt, expose it to another recipient, or copy it to another tool.
