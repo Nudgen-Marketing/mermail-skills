@@ -9,11 +9,25 @@
 5. Show the exact proposed pair and amount, then call `paybox_request_swap` once. Let its MCP App show current quote, fee, minimum received, approval, and signing.
 6. Stop on pending. After the user finishes or asks for status, call `paybox_get_request` once using the same request ID.
 
-## Category request
+## Recommendation with category: “Gợi ý xStocks ngành công nghệ”
 
-Query only evidence-backed category slugs. Show a compact list with product, ticker, evidence URL, source type, and verification availability. Ignore assignments where `verified=false`, provenance is absent, or `invalidatedReason` is present. Ask the user to choose; a category is never authority to select an investment.
+1. Fetch `/api/v1/categories` and match “công nghệ” against returned Vietnamese/English-equivalent labels or slugs. Preserve the returned category kind. If several real categories plausibly match, show them and ask the user to disambiguate.
+2. Query the matching `assetType`, `sector`, or `theme` slug with the common Solana, matched-address, non-halted, active, and website-present filters. Do not derive a category from a product name or ticker.
+3. Validate the exact category assignment on every product. Exclude it when verification, evidence URL, provenance, or invalidation state does not satisfy the contract.
+4. Present at most five products in API order with xStock name, ticker, verified category, and evidence link. If `meta.total` exceeds the displayed count, state how many additional matches exist and offer to fetch the next page.
+5. Stop with `recommendations_ready`. Do not verify for execution, inspect wallets, or request a swap until the user selects one exact product and gives an exact USDC purchase amount.
 
-If no verified product matches, say the category is currently unclassified or unsupported. Do not broaden the category, infer it from product names, or turn an invalidated assignment into a result. Offer an exact product-name or symbol search. Missing sector/theme does not block an exact product whose mint verification succeeds.
+If the category is unsupported or yields no eligible product, say so and present returned categories whose `verifiedProductCount` is greater than zero, excluding `unknown` and `unclassified`. Do not silently use the familiar-product list, broaden the category, or revive an invalidated assignment. Missing sector/theme does not block a later exact-product purchase whose mint verification succeeds.
+
+## Recommendation without category: “Gợi ý vài token stock”
+
+Search the catalog separately in this fixed order: Apple, NVIDIA, Microsoft, Amazon, Alphabet, Meta, Tesla. Every search uses the common discovery filters. Accept only a unique exact match for the intended product/underlying identity; skip missing brands and surface duplicate ambiguity without choosing. Return the first five accepted products, or fewer when fewer qualify.
+
+Describe the order as a familiar-name discovery list, never as popularity, performance, suitability, or a live market ranking. Show only verified categories and their evidence links. On any catalog API failure, report that live recommendations could not be loaded; do not fill gaps from memory. Stop with `recommendations_ready` and make no PayBox call.
+
+## Recommendation mentions an amount but no product is selected
+
+“Gợi ý token stock để mua với 100 USDC” remains a recommendation request. Preserve `100 USDC` in conversation state, return the appropriate category or familiar-name list, and ask the user to choose. Do not treat the amount, list order, a single remaining candidate, or `meta.selection=single` as authorization to verify for execution or open PayBox. After the user explicitly selects a product, continue the exact-purchase workflow with the preserved amount.
 
 ## Changed or expired terms
 

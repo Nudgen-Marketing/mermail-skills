@@ -11,6 +11,9 @@
 - Recognized inactive, halted, stale, conflicting, blocked, or unknown assets fail closed. API failure is not “outside catalog.” Retry only a response explicitly marked `retryable`, once, before any swap request, and never wait more than two seconds.
 - A conclusively unrecognized asset follows the existing wallet policy; this skill does not recommend or authorize it.
 - Category data is discovery-only and must carry current provenance: source type, evidence URL/hash, policy version, and identity fingerprint. Never infer a sector/theme, use an invalidated assignment, or silently choose among multiple products.
+- Recommendation-only requests never cross into execution. An amount mentioned during discovery, one remaining result, familiar-list position, or `meta.selection=single` is not authority to inspect a wallet or create a swap.
+- Unsupported or empty category results must stay in the category flow: show API-provided category choices and never substitute the familiar-product list. The fixed familiar order is not market data, performance, popularity, suitability, or investment advice.
+- A catalog timeout, malformed response, or partial brand search must not be filled from model memory. Report live discovery as unavailable and create no execution request.
 
 ## Human-in-the-loop
 
