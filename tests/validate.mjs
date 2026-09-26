@@ -2095,7 +2095,7 @@ async function validateRemote() {
   const remoteTools = [...(card.capabilities?.tools?.list ?? [])].sort();
   const localTools = [coverage.confirmationTool, ...allTools].sort();
   if (JSON.stringify(remoteTools) !== JSON.stringify(localTools)) {
-    errors.push("production MCP tool catalog differs from tool-coverage.json");
+    errors.push(`production MCP tool catalog differs from tool-coverage.json: ${describeCatalogDiff(localTools, remoteTools)}`);
   }
 
   const unauthenticated = await fetch(coverage.mcpEndpoint, {
@@ -2128,7 +2128,7 @@ async function validateRemote() {
   }
   if (JSON.stringify([...remoteNames].sort()) !== JSON.stringify(localTools)) {
     authenticatedProofPassed = false;
-    errors.push("authenticated tools/list differs from tool-coverage.json");
+    errors.push(`authenticated tools/list differs from tool-coverage.json: ${describeCatalogDiff(localTools, remoteNames)}`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
     authenticatedProofPassed = false;
@@ -2174,6 +2174,15 @@ async function validateRemote() {
       `Authenticated Mermail proof passed: initialize; ${remoteNames.length}-tool catalog; list_workspaces; list_mailboxes (read-only).`,
     );
   }
+}
+
+function describeCatalogDiff(expected, actual) {
+  const expectedSet = new Set(expected);
+  const actualSet = new Set(actual);
+  const missing = [...actualSet].filter((name) => !expectedSet.has(name)).sort();
+  const stale = [...expectedSet].filter((name) => !actualSet.has(name)).sort();
+  const duplicates = [...actualSet].filter((name) => actual.filter((item) => item === name).length > 1);
+  return `uncovered: ${missing.join(", ") || "none"}; absent on server: ${stale.join(", ") || "none"}; duplicate server entries: ${duplicates.join(", ") || "none"}`;
 }
 
 function initializePayload(id) {

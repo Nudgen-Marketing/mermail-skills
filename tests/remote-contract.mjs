@@ -54,6 +54,7 @@ test("remote proof rejects a substituted tool even when the count is unchanged",
   const result = validate({ names: [coverage.confirmationTool, "unexpected_fixture_tool", ...catalog.slice(2)] });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /authenticated tools\/list differs from tool-coverage\.json/);
+  assert.match(result.stderr, /uncovered: unexpected_fixture_tool; absent on server: /);
   assert.ok(!result.stdout.includes(success));
 });
 
@@ -65,9 +66,9 @@ test("remote proof rejects a truncated authenticated catalog", () => {
 });
 
 test("remote proof never reports success after a discovery mismatch", () => {
-  const result = validate({ discovery: catalog.slice(1) });
+  const result = validate({ discovery: [...catalog.slice(1), "new_public_webhook_tool"] });
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /production MCP tool catalog differs/);
+  assert.match(result.stderr, /production MCP tool catalog differs.*uncovered: new_public_webhook_tool; absent on server: prepare_destructive_action/);
   assert.ok(!result.stdout.includes(success));
 });
 
