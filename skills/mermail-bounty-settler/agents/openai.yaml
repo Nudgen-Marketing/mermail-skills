@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty & Milestone Settler"
+  short_description: "Autonomous bounty disbursement, milestone verification, and proof-of-work receipt ledger"
+  default_prompt: "Use $mermail-bounty-settler to verify milestone deliverables, formulate a bounded payout preview, and issue receipts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
