@@ -144,7 +144,7 @@ Verify without printing the secret:
 node skills/mermail-mcp/scripts/check-connection.mjs
 ```
 
-The check initializes MCP and requires the current 63-tool full-catalog baseline while allowing future additive tools (currently 74 with Composio and AI-credit observability). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
+The check initializes MCP and requires the compatible 63-tool full-catalog floor while allowing future additive tools (currently 83, including workspace webhooks). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
 
 ## Included skills
 

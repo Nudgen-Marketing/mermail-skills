@@ -90,6 +90,10 @@ const administerWorkspaceTools = await readFile(
   path.join(administerWorkspaceDir, "references", "tools.md"),
   "utf8",
 );
+const administerWorkspaceWebhooks = await readFile(
+  path.join(administerWorkspaceDir, "references", "webhooks.md"),
+  "utf8",
+);
 for (const required of [
   "## Overview",
   "## Preferred Deliverables",
@@ -139,6 +143,29 @@ for (const [label, content] of [
       errors.push(`${label}: missing scoped mailbox-provision contract ${required}`);
     }
   }
+}
+const webhookReadTools = ["list_webhooks", "get_webhook", "list_webhook_deliveries"];
+const webhookEffectTools = ["create_webhook", "update_webhook", "test_webhook", "retry_webhook_delivery"];
+const webhookDestructiveTools = ["delete_webhook", "rotate_webhook_secret"];
+for (const name of [...webhookReadTools, ...webhookEffectTools, ...webhookDestructiveTools]) {
+  if (!coverage.domains["mermail-administer-workspace"].includes(name)) {
+    errors.push(`webhook tool ${name} must be owned by workspace administration`);
+  }
+  if (!administerWorkspaceWebhooks.includes(`\`${name}\``) || !administerWorkspaceTools.includes(`\`${name}\``)) {
+    errors.push(`workspace webhook references must describe ${name}`);
+  }
+}
+for (const name of webhookEffectTools) {
+  if (!coverage.externalEffectTools.includes(name)) errors.push(`webhook external effect ${name} must be classified`);
+}
+for (const name of webhookDestructiveTools) {
+  if (!coverage.destructiveTools.includes(name)) errors.push(`webhook destructive tool ${name} must be classified`);
+}
+for (const token of ["prepare_destructive_action", "idempotencyKey", "allInboxes", "signingSecret", "event_id", "untrusted data", "agent-inbox"]) {
+  if (!administerWorkspaceWebhooks.includes(token)) errors.push(`workspace webhook safety reference missing ${token}`);
+}
+if (!administerWorkspaceSkill.includes("[webhooks.md](references/webhooks.md)")) {
+  errors.push("workspace administration skill must link webhook reference");
 }
 for (const required of [
   "## Overview",
@@ -954,7 +981,7 @@ for (const required of [
   "`x-api-key`",
   "full profile",
   "`agent-inbox`",
-  "74 tools",
+  "83 tools",
   "63-tool",
   "exactly 12 tools",
   "`initialize`",
@@ -1017,7 +1044,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  "currentFullCatalogBaseline = 83",
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1960,6 +1987,7 @@ for (const expected of [
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-freelance-margin-work-to-mermail-freelance-margin-guard",
+  "route-workspace-webhooks-to-admin",
   "route-research-business-to-mermail-research-agent",
   "route-equity-workflow",
 ]) {
@@ -1983,6 +2011,14 @@ const mermailDefaultTriagerScenario = scenarios.find(
 );
 if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length !== 0) {
   errors.push("mermail routing must stop unsupported default-triager selection without tool calls");
+}
+for (const token of ["workspace webhook", "mermail-administer-workspace", "inbound email"]) {
+  if (!mermailRouterCorpus.includes(token)) errors.push(`mermail routing missing webhook boundary ${token}`);
+}
+for (const name of [...webhookReadTools, ...webhookEffectTools, ...webhookDestructiveTools]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-administer-workspace" && scenario.tools.includes(name))) {
+    errors.push(`workspace administration missing webhook scenario ${name}`);
+  }
 }
 
 const allTools = Object.values(coverage.domains).flat();
@@ -2016,7 +2052,7 @@ for (const expected of [
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
 const duplicates = knownTools.filter((tool, index) => knownTools.indexOf(tool) !== index);
-if (allTools.length !== 73) errors.push(`expected 73 business tools, found ${allTools.length}`);
+if (allTools.length !== 82) errors.push(`expected 82 business tools, found ${allTools.length}`);
 if (walletScopedTools.length !== 19) {
   errors.push(`expected 19 wallet-scoped Agent Wallet tool canaries, found ${walletScopedTools.length}`);
 }

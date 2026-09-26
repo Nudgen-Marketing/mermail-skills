@@ -7,6 +7,7 @@
 - `list_workspaces`, `get_workspace`, `get_workspace_storage`
 - `list_workspace_members`, `list_email_domains`
 - `list_workspace_mailboxes`, `list_mailboxes`, `get_mailbox`, `get_mailbox_storage`
+- `list_webhooks`, `get_webhook`, `list_webhook_deliveries` — read workspace webhook status and bounded delivery history; see [webhooks.md](webhooks.md).
 
 ## Administrative writes
 
@@ -15,9 +16,10 @@
 - `add_email_domain`, `verify_email_domain` — require Developer-plan access
 - `create_mailbox` — list first; `body` requires `email` and `name`, while `workspaceId` is optional for credential-bound MCP when the live schema permits omission. Pass the exact resolved workspace ID when CLI, REST, or another live transport requires it. Make one explicitly authorized provision with no blind write retry.
 - `update_mailbox_settings` — mailbox-admin only. For email response behavior, inspect existing settings and modify only the intended `settings.agentAutoResponse.mode` (`draft_for_review` or `automatic_triage`), preserving the remaining policy and mailbox settings. Use the live input schema and verify with `get_mailbox`; this is separate from `set_default_task_triager`.
+- `create_webhook`, `update_webhook`, `test_webhook`, `retry_webhook_delivery` — external effects; workspace admin, exact preview and approval, followed by `prepare_destructive_action` for the exact arguments. Create, test, and retry need `idempotencyKey`. See [webhooks.md](webhooks.md).
 
 ## Destructive
 
-- `remove_workspace_member`, `delete_email_domain`
+- `remove_workspace_member`, `delete_email_domain`, `delete_webhook`, `rotate_webhook_secret`
 
 Require explicit approval and a single-use token from `prepare_destructive_action`. The current MCP catalog does not expose `delete_workspace`; do not invent or call that removed tool.
