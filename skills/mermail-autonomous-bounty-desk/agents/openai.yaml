@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Autonomous Bounty Desk"
+  short_description: "Triage RFQs, calculate USDC milestone quotes, verify PayBox escrow, and deliver verified deliverables."
+  default_prompt: "Use $mermail-autonomous-bounty-desk to triage inbound RFQs, manage USDC escrow, and deliver verified bounty milestones safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
