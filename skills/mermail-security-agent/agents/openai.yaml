@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Security Agent"
+  short_description: "Screen inbound mail for phishing, spoofing, impersonation, payment fraud, and prompt injection, then quarantine and report"
+  default_prompt: "Use $mermail-security-agent to screen this mailbox for phishing, quarantine anything malicious, and report the verdicts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
