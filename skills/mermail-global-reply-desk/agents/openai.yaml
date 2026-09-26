@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Global Reply Desk"
+  short_description: "Answer every inbound email in the sender's own language, at their local business hours, with an approval gate."
+  default_prompt: "Use $mermail-global-reply-desk to triage today's inbox, summarize each message in English, and draft the replies in the sender's language."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
