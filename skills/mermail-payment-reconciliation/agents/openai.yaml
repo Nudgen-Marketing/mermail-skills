@@ -1,0 +1,11 @@
+interface:
+  display_name: "Payment Reconciliation"
+  short_description: "Reconcile paid, refunded, and pending transactions from Mermail evidence"
+  default_prompt: "Use $mermail-payment-reconciliation to reconcile payment and receipt messages safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
