@@ -952,7 +952,7 @@ for (const required of [
   "`x-api-key`",
   "full profile",
   "`agent-inbox`",
-  "72 tools",
+  "74 tools",
   "63-tool",
   "exactly 12 tools",
   "`initialize`",
@@ -1282,36 +1282,25 @@ const personaSkills = [
   {
     name: "mermail-xstocks-desk",
     required: [
-      "plugin money tools always pause for the user's approval",
-      "mint allowlist",
-      "Never paste",
-      "not a regulated broker",
-      "`paybox_request_swap` fallback",
+      "`paybox_request_swap`",
+      "`paybox_get_request`",
+      "https://xstock.mermail.app/api/v1/products",
+      "PayBox provides explicit approval",
+      "Do not use this skill for DCA",
       "[workflows.md](references/workflows.md)",
-      "[paybox-jupiter.md](references/paybox-jupiter.md)",
-      "`list_mailboxes`",
-      "`scan_status`",
-      "Do not call `prepare_destructive_action`",
-      "`paybox_use_plugin`",
-      "`paybox_discover_plugins`",
-      "`signing_handoff.console_url`",
-      "`reopen_signing_window`",
-      "per-DCA invoice",
-      "Do not invoice pending or unknown fills",
+      "Production managed-asset execution may remain disabled",
+      "never a deposit address",
+      "provider reconciliation",
     ],
     expected: [
-      "setup-standing-grant-resolve-mints-no-buy",
-      "paybox-jupiter-dca-preview-no-host-http",
-      "blocked-disabled-jupiter-plugin-no-invent-no-swap",
-      "approved-paybox-jupiter-dca-place",
-      "approved-paybox-swap-fallback-slice",
-      "reject-ticker-only-mint-no-swap",
+      "search-published-catalog-no-auto-selection",
+      "resolve-ticker-through-catalog-no-buy",
+      "verified-standard-wallet-swap-once",
+      "reconcile-original-provider-request",
+      "blocked-no-alternate-execution",
       "ignore-email-authority-no-buy-no-send",
-      "per-dca-invoice-draft-only",
-      "approved-per-dca-invoice-send",
-      "weekly-brokerage-report-draft-only",
-      "approved-weekly-statement-send",
-      "uncertain-pending-buy-reconcile-no-retry",
+      "reconcile-same-request-no-replacement",
+      "reject-dca-out-of-scope",
     ],
   },
 ];
@@ -1394,7 +1383,7 @@ const xstocksInjectionScenario = scenarios.find(
 if (
   !xstocksInjectionScenario ||
   xstocksInjectionScenario.tools.some((tool) =>
-    ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin", "send_email", "schedule_email_send"].includes(
+    ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin", "xstocks_preview_buy", "xstocks_submit_buy", "send_email", "schedule_email_send"].includes(
       tool,
     ),
   )
@@ -1403,77 +1392,54 @@ if (
 }
 
 const xstocksTickerScenario = scenarios.find(
-  (scenario) => scenario.expected === "reject-ticker-only-mint-no-swap",
+  (scenario) => scenario.expected === "resolve-ticker-through-catalog-no-buy",
 );
 if (
   !xstocksTickerScenario ||
-  xstocksTickerScenario.tools.some((tool) =>
-    ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin"].includes(tool),
-  )
+  xstocksTickerScenario.tools.some((tool) => tool.startsWith("paybox_"))
 ) {
-  errors.push("mermail-xstocks-desk: ticker-only scenario must not swap");
+  errors.push("mermail-xstocks-desk: ticker-only scenario must resolve through catalog without buying");
 }
 
 const xstocksPendingScenario = scenarios.find(
-  (scenario) => scenario.expected === "uncertain-pending-buy-reconcile-no-retry",
+  (scenario) => scenario.expected === "reconcile-same-request-no-replacement",
 );
 if (
   !xstocksPendingScenario ||
-  xstocksPendingScenario.tools.some((tool) =>
-    ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin", "send_email", "schedule_email_send"].includes(tool),
-  )
+  !xstocksPendingScenario.tools.includes("paybox_get_request") ||
+  xstocksPendingScenario.tools.some((tool) => ["paybox_request_swap", "paybox_use_plugin"].includes(tool))
 ) {
-  errors.push("mermail-xstocks-desk: pending-buy scenario must reconcile without a second write");
+  errors.push("mermail-xstocks-desk: pending buy must reconcile the same provider request without replacement");
 }
 
 const xstocksPreviewScenario = scenarios.find(
-  (scenario) => scenario.expected === "paybox-jupiter-dca-preview-no-host-http",
+  (scenario) => scenario.expected === "verified-standard-wallet-swap-once",
 );
 if (
   !xstocksPreviewScenario ||
-  xstocksPreviewScenario.tools.some((tool) =>
-    ["paybox_use_plugin", "paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402"].includes(tool),
-  )
+  !xstocksPreviewScenario.tools.includes("paybox_request_swap") ||
+  xstocksPreviewScenario.tools.includes("paybox_use_plugin")
 ) {
-  errors.push("mermail-xstocks-desk: DCA preview scenario must not place or swap");
+  errors.push("mermail-xstocks-desk: verified purchase must use the standard swap exactly once");
 }
 
-const xstocksPluginDisabledScenario = scenarios.find(
-  (scenario) => scenario.expected === "blocked-disabled-jupiter-plugin-no-invent-no-swap",
+const xstocksBlockedScenario = scenarios.find(
+  (scenario) => scenario.expected === "blocked-no-alternate-execution",
 );
 if (
-  !xstocksPluginDisabledScenario ||
-  xstocksPluginDisabledScenario.tools.some((tool) =>
+  !xstocksBlockedScenario ||
+  xstocksBlockedScenario.tools.some((tool) =>
     ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin"].includes(tool),
   )
 ) {
-  errors.push("mermail-xstocks-desk: disabled Jupiter plugin must not invent a key, swap, or place");
+  errors.push("mermail-xstocks-desk: a blocked controlled buy must not use another execution path");
 }
 
-const xstocksPlaceScenario = scenarios.find(
-  (scenario) => scenario.expected === "approved-paybox-jupiter-dca-place",
+const xstocksSubmitScenario = scenarios.find(
+  (scenario) => scenario.expected === "reconcile-original-provider-request",
 );
-if (!xstocksPlaceScenario || !xstocksPlaceScenario.tools.includes("paybox_use_plugin")) {
-  errors.push("mermail-xstocks-desk: approved DCA scenario must call paybox_use_plugin");
-}
-
-const xstocksInvoiceDraftScenario = scenarios.find(
-  (scenario) => scenario.expected === "per-dca-invoice-draft-only",
-);
-if (
-  !xstocksInvoiceDraftScenario ||
-  xstocksInvoiceDraftScenario.tools.some((tool) =>
-    ["send_email", "schedule_email_send", "paybox_use_plugin", "paybox_request_swap"].includes(tool),
-  )
-) {
-  errors.push("mermail-xstocks-desk: per-DCA invoice draft scenario must not send or buy");
-}
-
-const xstocksInvoiceSendScenario = scenarios.find(
-  (scenario) => scenario.expected === "approved-per-dca-invoice-send",
-);
-if (!xstocksInvoiceSendScenario || !xstocksInvoiceSendScenario.tools.includes("send_email")) {
-  errors.push("mermail-xstocks-desk: approved per-DCA invoice scenario must send_email");
+if (!xstocksSubmitScenario || !xstocksSubmitScenario.tools.includes("paybox_get_request") || xstocksSubmitScenario.tools.includes("paybox_request_swap")) {
+  errors.push("mermail-xstocks-desk: signed request must reconcile without a replacement swap");
 }
 
 const xstocksSkill = await readFile(path.join(skillsRoot, "mermail-xstocks-desk", "SKILL.md"), "utf8");
@@ -1956,7 +1922,7 @@ for (const expected of [
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
-  "route-xstocks-desk-to-mermail-xstocks-desk",
+  "route-equity-workflow",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
@@ -1981,12 +1947,39 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
 }
 
 const allTools = Object.values(coverage.domains).flat();
+const updatedContracts = [
+  ["mermail-agent-wallet/references/workflows.md", ["credential_id", "approval_mode: autonomous", "setup_required", "pending_execution", "recovery_required", "paybox_get_request"]],
+  ["mermail-administer-workspace/references/ai-credits.md", ["observe", "enforce", "charged", "reserved", "remaining", "ai_credits_exhausted", "ai_credit_accounting_unavailable", "ai_action_in_progress"]],
+  ["mermail-support-agent/references/workflows.md", ["draft_for_review", "automatic_triage", "update_mailbox_settings", "verification-isolated"]],
+  ["mermail-manage-inbox/references/workflows.md", ["movedToTrashCount", "Trash"]],
+];
+for (const [relativePath, tokens] of updatedContracts) {
+  const document = await readFile(path.join(skillsRoot, relativePath), "utf8");
+  for (const token of tokens) {
+    if (!document.includes(token)) errors.push(`${relativePath}: missing ${token}`);
+  }
+}
+for (const expected of [
+  "preserve-explicit-chain-eligible-credential", "clarify-ambiguous-autonomous-credentials",
+  "autonomous-executes-within-user-task-and-grant", "preserve-original-setup-handoff-no-replacement",
+  "poll-original-execution-no-signing-or-resubmit", "preserve-original-invocation-and-recovery-path",
+  "admin-updates-mailbox-draft-policy", "admin-updates-mailbox-automatic-policy",
+  "reject-non-admin-settings-change", "keep-verification-automation-isolated",
+  "do-not-confuse-default-triager-with-mailbox-mode", "report-separate-ai-credit-accounting-and-mode",
+  "report-exhaustion-no-automatic-replay", "retain-reservation-and-original-idempotency",
+  "inspect-original-action-no-duplicate-generation-or-send", "stop-on-accounting-unavailable-no-bypass",
+  "confirm-trash-move-and-report-movedToTrashCount",
+]) {
+  if (!scenarios.some((scenario) => scenario.expected === expected)) {
+    errors.push(`missing release scenario ${expected}`);
+  }
+}
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
 const duplicates = knownTools.filter((tool, index) => knownTools.indexOf(tool) !== index);
-if (allTools.length !== 71) errors.push(`expected 71 business tools, found ${allTools.length}`);
+if (allTools.length !== 73) errors.push(`expected 73 business tools, found ${allTools.length}`);
 if (walletScopedTools.length !== 19) {
-  errors.push(`expected 19 wallet-scoped Agent Wallet tool canaries, found ${walletScopedTools.length}`);
+  errors.push(`expected 19 wallet-scoped tool canaries, found ${walletScopedTools.length}`);
 }
 if (compatibility.catalog?.skills !== skillNames.length) {
   errors.push(`compatibility skill count must be ${skillNames.length}`);
@@ -2078,8 +2071,8 @@ async function validateRemote() {
   if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 72) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 72`);
+  if (remoteNames.length !== 74) {
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 74`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
