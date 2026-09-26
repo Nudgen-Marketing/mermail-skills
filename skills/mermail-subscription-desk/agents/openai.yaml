@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Subscription Desk"
+  short_description: "Track agent subscriptions, renewals and cancellation windows"
+  default_prompt: "Use $mermail-subscription-desk to turn this mailbox's invoices and renewal notices into a renewal register and a charge watchlist, then prepare — never send — the cancellation drafts I approve."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
