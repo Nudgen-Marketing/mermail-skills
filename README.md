@@ -160,6 +160,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party apps through Composio |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
+| `mermail-digest-agent` | Monitor an inbox, cluster incoming messages, and compile/deliver a structured intelligence briefing with optional paid x402 delivery |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
