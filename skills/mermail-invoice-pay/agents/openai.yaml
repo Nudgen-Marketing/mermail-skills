@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Pay"
+  short_description: "Pay vendor invoices from Mermail email via Agent Wallet with human approval."
+  default_prompt: "Use $mermail-invoice-pay to find an invoice in my Mermail inbox, show an exact payment preview, and pay only after I approve the amount, asset, chain, and destination."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server (full profile required for PayBox)"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / invoice-payment / x402 / xStocks agent personas.
 
 ## Install portable skills
 
@@ -163,6 +163,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
+| `mermail-invoice-pay` | Find invoice emails, require exact user-approved preview, pay once via Agent Wallet `paybox_request_transfer`, optional receipt reply (full-profile OAuth) |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer via `paybox_request_transfer`, swap via `paybox_request_swap`, or pay a user-selected x402 service via live `paybox_pay_x402` (same MCP paths as in-app Assistant; full-profile OAuth) |
