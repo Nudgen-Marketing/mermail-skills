@@ -135,6 +135,209 @@
       }
     },
     {
+      "id": "one-support-one-counterexample",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "support-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "counterexample-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "observed_behavior",
+          "account_id": "account-b",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "material_counterevidence": true
+        }
+      ],
+      "expected": {
+        "message_count": 2,
+        "thread_count": 2,
+        "verified_account_count": 2,
+        "existence_band": "weak",
+        "prevalence_band": "weak"
+      }
+    },
+    {
+      "id": "counterexamples-only",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "counterexample-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "observed_behavior",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "material_counterevidence": true
+        },
+        {
+          "evidence_id": "counterexample-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "customer_statement",
+          "account_id": "account-b",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "material_counterevidence": true
+        }
+      ],
+      "expected": {
+        "message_count": 2,
+        "thread_count": 2,
+        "verified_account_count": 2,
+        "existence_band": "weak",
+        "prevalence_band": "weak"
+      }
+    },
+    {
+      "id": "reproducible-counterexample",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "counterexample-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "observed_behavior",
+          "account_mapping_verified": false,
+          "concrete": true,
+          "reproducible": true,
+          "material_counterevidence": true
+        }
+      ],
+      "expected": {
+        "message_count": 1,
+        "thread_count": 1,
+        "verified_account_count": 0,
+        "existence_band": "weak",
+        "prevalence_band": "weak"
+      }
+    },
+    {
+      "id": "one-concrete-two-vague-accounts",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "support-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "vague-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "customer_statement",
+          "account_id": "account-b",
+          "account_mapping_verified": true,
+          "concrete": false,
+          "material_counterevidence": false
+        },
+        {
+          "evidence_id": "vague-c",
+          "message_id": "message-c",
+          "thread_id": "thread-c",
+          "source_kind": "customer_statement",
+          "account_id": "account-c",
+          "account_mapping_verified": true,
+          "concrete": false,
+          "material_counterevidence": false
+        }
+      ],
+      "expected": {
+        "message_count": 3,
+        "thread_count": 3,
+        "verified_account_count": 3,
+        "existence_band": "weak",
+        "prevalence_band": "weak"
+      }
+    },
+    {
+      "id": "two-supporting-accounts",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "support-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true
+        },
+        {
+          "evidence_id": "support-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "customer_statement",
+          "account_id": "account-b",
+          "account_mapping_verified": true,
+          "concrete": true
+        }
+      ],
+      "expected": {
+        "message_count": 2,
+        "thread_count": 2,
+        "verified_account_count": 2,
+        "existence_band": "moderate",
+        "prevalence_band": "moderate"
+      }
+    },
+    {
+      "id": "same-account-multiple-threads",
+      "source_safe": true,
+      "items": [
+        {
+          "evidence_id": "support-a",
+          "message_id": "message-a",
+          "thread_id": "thread-a",
+          "source_kind": "customer_statement",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true
+        },
+        {
+          "evidence_id": "support-b",
+          "message_id": "message-b",
+          "thread_id": "thread-b",
+          "source_kind": "customer_statement",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true
+        },
+        {
+          "evidence_id": "support-c",
+          "message_id": "message-c",
+          "thread_id": "thread-c",
+          "source_kind": "customer_statement",
+          "account_id": "account-a",
+          "account_mapping_verified": true,
+          "concrete": true
+        }
+      ],
+      "expected": {
+        "message_count": 3,
+        "thread_count": 3,
+        "verified_account_count": 1,
+        "existence_band": "weak",
+        "prevalence_band": "weak"
+      }
+    },
+    {
       "id": "reproducible-defect",
       "source_safe": true,
       "items": [

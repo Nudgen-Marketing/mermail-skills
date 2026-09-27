@@ -30,8 +30,18 @@ export function evaluateCustomerEvidenceCase(referenceCase) {
       .flatMap((item) => item.message_ids ?? [item.message_id]),
   ).size;
   const threadCount = distinct(items.map((item) => item.thread_id)).size;
-  const supportedPoint = items.some((item) => item.concrete === true || item.reproducible === true);
-  const reproducibleBehavior = items.some(
+  // Each case represents one point. Cohort membership is not support for it:
+  // counterexamples and vague sources still count above, but cannot raise a band.
+  const supportingItems = items.filter(
+    (item) => item.material_counterevidence !== true &&
+      (item.concrete === true || item.reproducible === true),
+  );
+  const supportingAccounts = distinct(
+    supportingItems
+      .filter((item) => item.account_mapping_verified === true)
+      .map((item) => item.account_id),
+  );
+  const reproducibleBehavior = supportingItems.some(
     (item) => item.source_kind === "observed_behavior" && item.reproducible === true,
   );
   const materialCounterevidence = items.some((item) => item.material_counterevidence === true);
@@ -42,18 +52,15 @@ export function evaluateCustomerEvidenceCase(referenceCase) {
     existenceBand = "insufficient";
     prevalenceBand = "insufficient";
   } else {
-    const canBeStrong = verifiedAccounts.size >= 3 && supportedPoint && !materialCounterevidence;
+    const canBeStrong = supportingAccounts.size >= 3 && !materialCounterevidence;
     if (canBeStrong) {
       existenceBand = "strong";
       prevalenceBand = "strong";
     } else {
-      if (
-        (verifiedAccounts.size >= 2 && supportedPoint) ||
-        reproducibleBehavior
-      ) {
+      if (supportingAccounts.size >= 2 || reproducibleBehavior) {
         existenceBand = "moderate";
       }
-      if (verifiedAccounts.size >= 2 && supportedPoint) prevalenceBand = "moderate";
+      if (supportingAccounts.size >= 2) prevalenceBand = "moderate";
     }
   }
 
@@ -124,6 +131,12 @@ export async function validateCustomerEvidenceReference(root) {
     "message-inflation",
     "independent-accounts",
     "counterevidence",
+    "one-support-one-counterexample",
+    "counterexamples-only",
+    "reproducible-counterexample",
+    "one-concrete-two-vague-accounts",
+    "two-supporting-accounts",
+    "same-account-multiple-threads",
     "reproducible-defect",
     "revenue-claim",
     "unsafe-source",
