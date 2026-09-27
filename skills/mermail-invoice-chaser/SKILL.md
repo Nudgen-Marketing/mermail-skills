@@ -1,9 +1,6 @@
 ---
 name: mermail-invoice-chaser
 description: Scan a Mermail mailbox for invoices and payment reminders, build an accounts-receivable aging ledger (current / 7-day / 30+ day overdue), draft polite escalating follow-up emails per aging tier, and send or save them as drafts with labels applied. Use when the job is chasing unpaid invoices, building an AR aging report, or drafting payment follow-ups.
-version: 1.0.0
-author: Sandeep
-license: MIT
 metadata:
   openclaw:
     requires:
