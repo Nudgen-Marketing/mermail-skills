@@ -2,19 +2,19 @@
   "mcpEndpoint": "https://console.mermail.app/mcp",
   "discoveryEndpoint": "https://console.mermail.app/.well-known/mcp/server-card.json",
   "confirmationTool": "prepare_destructive_action",
-  "infrastructureSkills": [
-    "mermail",
-    "mermail-agent-inbox",
-    "mermail-cli",
-    "mermail-gtm-agent",
-    "mermail-mcp",
-    "mermail-research-agent",
-    "mermail-scheduling-agent",
-    "mermail-support-agent",
-    "mermail-x402-agent",
-    "mermail-xstocks-desk"
-  ],
-  "domains": {
+ "infrastructureSkills": [
+  "mermail",
+  "mermail-agent-inbox",
+  "mermail-cli",
+  "mermail-gtm-agent",
+  "mermail-mcp",
+  "mermail-renewal-guardian",
+  "mermail-research-agent",
+  "mermail-scheduling-agent",
+  "mermail-support-agent",
+  "mermail-x402-agent",
+  "mermail-xstocks-desk"
+],  "domains": {
     "mermail-administer-workspace": [
       "get_ai_credit_usage",
       "list_ai_credit_events",
