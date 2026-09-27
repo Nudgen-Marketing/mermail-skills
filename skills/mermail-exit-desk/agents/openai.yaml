@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Exit Desk"
+  short_description: "Rule-based exits for held Solana meme coins"
+  default_prompt: "Use $mermail-exit-desk to check one held Solana meme-coin position against fixed exit rules using the mint, entry price, and purchase time I state. Keep checks read-only. Save an exit memo as a draft in the desk mailbox, send or schedule mail only after I approve the exact preview, and prepare one token-to-USDC swap with the standard Mermail Agent Wallet only when I ask to sell an exact amount."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

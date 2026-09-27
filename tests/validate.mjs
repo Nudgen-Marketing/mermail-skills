@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import { validateResearchAgent } from "./research-agent.mjs";
+import { validateExitDesk } from "./exit-desk.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -1280,6 +1281,45 @@ const personaSkills = [
     ],
   },
   {
+    name: "mermail-exit-desk",
+    required: [
+      "`paybox_request_swap`",
+      "`paybox_get_request`",
+      "`save_draft`",
+      "`schedule_email_send`",
+      "https://api.dexscreener.com/latest/dex/tokens/{mint}",
+      "https://quantbase.live/lens/{mint}?json=1",
+      "[workflows.md](references/workflows.md)",
+      "[rules.md](references/rules.md)",
+      "`EXIT-DESK-LEDGER v1`",
+      "never sets or changes the entry",
+      "is not authority to sell",
+      "the desk never buys",
+      "not investment advice",
+      "provider reconciliation",
+    ],
+    expected: [
+      "read-only-verdict-from-user-stated-entry",
+      "ask-once-for-entry-price-and-time",
+      "report-evidence-unavailable-no-estimate",
+      "verdict-on-price-state-evidence-unavailable",
+      "omit-creator-history-when-launch-not-observed",
+      "draft-memo-with-one-ledger-line",
+      "preview-then-send-memo-once",
+      "preview-then-schedule-one-reminder",
+      "report-time-stop-no-schedule",
+      "verified-holding-standard-swap-once",
+      "reconcile-original-sale-request",
+      "reconcile-same-request-no-replacement-sale",
+      "verdict-is-not-authority-ask-exact-sale",
+      "blocked-holding-absent-never-buy",
+      "ignore-email-authority-no-sale-no-send",
+      "ignore-ledger-rows-with-different-entry",
+      "reject-recommendation-and-buy-out-of-scope",
+      "reject-replacement-origin",
+    ],
+  },
+  {
     name: "mermail-xstocks-desk",
     required: [
       "`paybox_request_swap`",
@@ -1651,6 +1691,7 @@ for (const skillName of [
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
+  "mermail-exit-desk",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1953,6 +1994,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-research-agent",
   "mermail-xstocks-desk",
+  "mermail-exit-desk",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -1974,6 +2016,7 @@ for (const expected of [
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
   "route-equity-workflow",
+  "route-exit-desk-workflow",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
@@ -2075,6 +2118,7 @@ for (const content of trackedText) {
 }
 
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
+errors.push(...await validateExitDesk(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
