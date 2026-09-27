@@ -1294,6 +1294,16 @@ const personaSkills = [
     ],
     expected: [
       "search-published-catalog-no-auto-selection",
+      "resolve-vietnamese-category-from-live-catalog-read-only",
+      "resolve-english-category-from-live-catalog-read-only",
+      "clarify-ambiguous-live-category-no-fallback",
+      "show-live-supported-categories-no-popular-fallback",
+      "exclude-incomplete-category-provenance",
+      "show-five-preserve-api-order-disclose-more",
+      "fixed-familiar-order-skip-missing-return-fewer",
+      "do-not-choose-ambiguous-familiar-product",
+      "report-live-catalog-unavailable-no-invented-list",
+      "preserve-amount-list-only-no-wallet-or-swap",
       "resolve-ticker-through-catalog-no-buy",
       "verified-standard-wallet-swap-once",
       "reconcile-original-provider-request",
@@ -1401,6 +1411,36 @@ if (
   errors.push("mermail-xstocks-desk: ticker-only scenario must resolve through catalog without buying");
 }
 
+const xstocksRecommendationScenarios = scenarios.filter(
+  (scenario) => scenario.skill === "mermail-xstocks-desk" && scenario.recommendationCase,
+);
+const expectedXstocksRecommendationCases = [
+  "category-vi",
+  "category-en",
+  "category-ambiguous",
+  "category-unsupported",
+  "category-provenance",
+  "category-pagination",
+  "familiar-missing",
+  "familiar-duplicate",
+  "api-error",
+  "amount-no-selection",
+];
+for (const recommendationCase of expectedXstocksRecommendationCases) {
+  const scenario = xstocksRecommendationScenarios.find(
+    (candidate) => candidate.recommendationCase === recommendationCase,
+  );
+  if (
+    !scenario ||
+    scenario.approval !== "none" ||
+    scenario.tools.some((tool) => tool.startsWith("paybox_") || tool === "get_paybox_connection")
+  ) {
+    errors.push(
+      `mermail-xstocks-desk: recommendation case ${recommendationCase} must remain read-only and avoid wallet tools`,
+    );
+  }
+}
+
 const xstocksPendingScenario = scenarios.find(
   (scenario) => scenario.expected === "reconcile-same-request-no-replacement",
 );
@@ -1443,6 +1483,17 @@ if (!xstocksSubmitScenario || !xstocksSubmitScenario.tools.includes("paybox_get_
 }
 
 const xstocksSkill = await readFile(path.join(skillsRoot, "mermail-xstocks-desk", "SKILL.md"), "utf8");
+for (const required of [
+  "Apple, NVIDIA, Microsoft, Amazon, Alphabet, Meta, and Tesla",
+  "A recommendation-only request stops after the list",
+  "`meta.total`, `meta.page`, and `meta.totalPages`",
+  "do not fall back to the familiar-product list",
+  "`recommendations_ready`",
+]) {
+  if (!xstocksSkill.includes(required)) {
+    errors.push(`mermail-xstocks-desk: missing recommendation contract ${required}`);
+  }
+}
 if (
   xstocksSkill.includes("requires host env `JUPITER_API_KEY`") ||
   xstocksSkill.includes("Host `JUPITER_API_KEY` is required") ||
