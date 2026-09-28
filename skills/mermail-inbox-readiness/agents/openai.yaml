@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbox Readiness"
+  short_description: "Commission an agent mailbox and prove it with a round-trip self-test"
+  default_prompt: "Use $mermail-inbox-readiness when the job is standing up a Mermail mailbox, running a bounded round-trip delivery self-test, or producing a go/no-go readiness report before an agent depends on that mailbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
