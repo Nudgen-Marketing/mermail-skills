@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Open Loops"
+  short_description: "Find and follow up on commitments and unanswered asks in a Mermail mailbox"
+  default_prompt: "Use $mermail-open-loops when the job is a follow-through review, an open-loops or waiting-on report, filing loop mail, or drafting follow-up nudges."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
