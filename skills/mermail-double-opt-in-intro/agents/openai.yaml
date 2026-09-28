@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Double-Opt-In Intro"
+  short_description: "Coordinate consent-gated email introductions"
+  default_prompt: "Use $mermail-double-opt-in-intro to coordinate an introduction between two specific people through separate consent threads before any joint email is created."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
