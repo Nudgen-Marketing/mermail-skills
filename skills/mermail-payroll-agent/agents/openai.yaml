@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payroll Agent"
+  short_description: "Policy-gated Web3 contractor payroll, address verification, and PayBox disbursement desk"
+  default_prompt: "Use $mermail-payroll-agent to audit, stage, and reconcile contractor payroll payments safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
