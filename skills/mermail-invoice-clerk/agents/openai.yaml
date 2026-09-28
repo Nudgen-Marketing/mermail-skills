@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Clerk"
+  short_description: "Policy-gated accounts payable and invoice verification agent"
+  default_prompt: "Use $mermail-invoice-clerk to verify incoming invoices against vendor policy, detect fraud or address changes, prepare PayBox settlement previews under user approval, and send payment remittance receipts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
