@@ -12,6 +12,7 @@ These tools appear only on Mermail MCP **OAuth** full-profile sessions. API-key 
 - `get_agent_wallet_portfolio`: portfolio view for the connected PayBox workspace.
 - `paybox_get_portfolio`: direct PayBox holdings when that tool is registered. Asset `token` addresses are returned in the clear, so read the transfer asset from here instead of guessing an address.
 - `paybox_get_request`: authoritative provider business status for one known transfer, swap, or x402 `request_id`; use it to distinguish pending from terminal settlement. May include an invocation-scoped `signing_handoff.console_url` while pending signature.
+- `paybox_list_credentials`: discover chain eligibility, `credential_id`, and `approval_mode` before a financial write. Preserve an explicit selection; prefer only one eligible autonomous wallet when choosing for the user. Never treat an unknown mode or missing chain metadata as autonomous or compatible.
 - `get_agent_wallet_request`: poll a known Mermail provider request id; never creates or retries a transfer.
 - `get_paybox_invocation`: read safe MCP invocation/audit state for one OAuth-grant invocation. This can show that the proxied tool call completed while its provider transfer, swap, or x402 request remains pending; never use it as proof of settlement or as the sole reason to block a distinct new action. Approval URLs and signing plans are never returned.
 

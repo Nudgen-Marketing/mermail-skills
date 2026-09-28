@@ -1,11 +1,12 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mermail",
-  "displayName": "Mermail",
   "version": "1.5.6",
   "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
   "author": {
     "name": "Mermail",
-    "email": "contact@mermail.app"
+    "email": "contact@mermail.app",
+    "url": "https://mermail.app"
   },
   "homepage": "https://docs.mermail.app/ai/skills",
   "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
@@ -15,17 +16,6 @@
     "inbox",
     "mcp",
     "ai-agent",
-    "automation",
-    "mermail"
-  ],
-  "logo": "assets/logo.svg",
-  "category": "productivity",
-  "tags": [
-    "email",
-    "mcp",
-    "agents",
-    "inbox"
-  ],
-  "skills": "./skills/",
-  "mcpServers": "./.cursor-plugin/mcp.json"
+    "automation"
+  ]
 }
