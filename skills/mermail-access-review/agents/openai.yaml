@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Access Review"
+  short_description: "Audit workspace members and role drift safely"
+  default_prompt: "Use $mermail-access-review to compare this Mermail workspace against my expected member roster, report access drift, and prepare only the minimum approved remediation."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
