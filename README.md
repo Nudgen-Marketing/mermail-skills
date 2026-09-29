@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / Research / Deal Closer / x402 / xStocks agent personas.
 
 ## Install portable skills
 
@@ -15,6 +15,8 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-research-agent
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-deal-closer
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
 ```
@@ -163,6 +165,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
+| `mermail-deal-closer` | Track active business opportunities across repeated email exchanges, maintain qualification evidence, choose the next best qualification action, and prepare a qualified-opportunity handoff |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer, swap, prepare an owner-approved native USDC bridge, or pay a user-selected x402 service (same MCP paths as in-app Assistant; full-profile OAuth) |
@@ -179,6 +182,8 @@ npm run validate:remote
 ```
 
 `validate:remote` checks the production server card, rejects unauthenticated MCP access, and runs authenticated initialization/tool discovery when `MERMAIL_MCP_TEST_API_KEY` is available as a repository secret.
+
+`mermail-deal-closer` is a persona/orchestration skill and intentionally owns no MCP tools; it composes the focused inbox, composition, GTM, scheduling, and wallet workflows rather than duplicating their tool coverage.
 
 ## Contributing
 
