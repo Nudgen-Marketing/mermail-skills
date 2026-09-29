@@ -81,4 +81,4 @@ The video should visibly demonstrate:
 
 Do not fabricate logs or transaction hashes.
 
-<!-- GitHub milestone verification test -->
+<!-- GitHub PR merge verification test -->
