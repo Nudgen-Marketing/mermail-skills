@@ -99,7 +99,8 @@
       "get_composio_tool_schema",
       "execute_composio_tool",
       "get_composio_calendar_account"
-    ]
+    ],
+    "mermail-opportunity-scout": []
   },
   "walletScopedDomains": {
     "mermail-agent-wallet": [
