@@ -80,3 +80,5 @@ The video should visibly demonstrate:
 10. Confirmation message.
 
 Do not fabricate logs or transaction hashes.
+
+<!-- GitHub milestone verification test -->
