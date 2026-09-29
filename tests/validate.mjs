@@ -1648,6 +1648,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-refund-desk",
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
@@ -1951,6 +1952,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-refund-desk",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {
