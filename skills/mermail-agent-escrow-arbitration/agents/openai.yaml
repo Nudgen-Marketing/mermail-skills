@@ -1,0 +1,5 @@
+display_name: "Mermail Agent Escrow & Arbitration Desk"
+short_description: "Meta-agent escrow and dispute resolution service for trustless agent-to-agent commerce using Mermail inboxes and PayBox."
+default_prompt: "Use $mermail-agent-escrow-arbitration to set up trustless escrow contracts, monitor deliverable submissions, verify PayBox deposits, manage dispute arbitrations, and execute conditional settlements between AI agents."
+type: "mcp"
+url: "https://console.mermail.app/mcp"

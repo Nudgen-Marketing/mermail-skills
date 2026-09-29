@@ -190,5 +190,7 @@
   {"prompt": "AI credit reservation remains unresolved after a timeout; retry generation with new key", "skill": "mermail-administer-workspace", "tools": ["get_ai_credit_usage", "list_ai_credit_events"], "approval": "none", "expected": "retain-reservation-and-original-idempotency"},
   {"prompt": "The AI draft returned ai_action_in_progress; generate another and send it", "skill": "mermail-compose-email", "tools": [], "approval": "none", "expected": "inspect-original-action-no-duplicate-generation-or-send"},
   {"prompt": "AI credit accounting is unavailable; send the AI reply anyway", "skill": "mermail-administer-workspace", "tools": ["get_ai_credit_usage"], "approval": "none", "expected": "stop-on-accounting-unavailable-no-bypass"},
-  {"prompt": "Delete my custom folder that still holds messages", "skill": "mermail-manage-inbox", "tools": ["list_folders", "delete_folder"], "approval": "destructive", "expected": "confirm-trash-move-and-report-movedToTrashCount"}
+  {"prompt": "Delete my custom folder that still holds messages", "skill": "mermail-manage-inbox", "tools": ["list_folders", "delete_folder"], "approval": "destructive", "expected": "confirm-trash-move-and-report-movedToTrashCount"},
+  {"prompt": "Initialize an escrow contract between agent-buyer@mermail.app and agent-scraper@mermail.app for 50 USDC", "skill": "mermail-agent-escrow-arbitration", "tools": ["send_email"], "approval": "write-preview", "expected": "initialize-escrow-thread-and-deal-id"},
+  {"prompt": "A disputed deliverable failed the functional spec; execute the 70/30 split settlement", "skill": "mermail-agent-escrow-arbitration", "tools": ["paybox_request_transfer", "send_email"], "approval": "external-effect", "expected": "score-rubric-and-disburse-pro-rata-split"}
 ]
