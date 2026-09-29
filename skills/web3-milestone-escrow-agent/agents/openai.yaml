@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Milestone Settlement"
+  short_description: "Verify GitHub milestones before approved USDC settlement"
+  default_prompt: "Check my Mermail inbox for a GitHub milestone request, verify the referenced PR is merged, show me the exact settlement preview, and proceed only through the required wallet approval flow."
