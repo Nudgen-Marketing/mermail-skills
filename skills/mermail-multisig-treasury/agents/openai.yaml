@@ -1,0 +1,5 @@
+display_name: "Mermail Multisig Treasury"
+short_description: "Audit decentralized treasury disbursement proposals and stage multi-sig payouts."
+default_prompt: "Use $mermail-multisig-treasury to triage inbound treasury proposals, audit solvency, and stage multi-signer approvals."
+type: "mcp"
+url: "https://console.mermail.app/mcp"
