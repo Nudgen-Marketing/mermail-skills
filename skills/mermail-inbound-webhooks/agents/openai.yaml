@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbound Webhooks"
+  short_description: "Subscribe to inbound mail events, verify deliveries, and manage signing secrets"
+  default_prompt: "Use $mermail-inbound-webhooks to subscribe an endpoint to inbound mail and prove the deliveries arrive."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
