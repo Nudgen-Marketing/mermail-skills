@@ -147,6 +147,9 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 
 ## Included skills
 
+The read-only `mermail-delivery-audit` workflow includes a dependency-free Python
+3.10+ DSN parser. Test it with `python3 -m unittest discover -s tests -p 'test_delivery_audit.py'`.
+
 | Skill | Purpose |
 | --- | --- |
 | `mermail` | Route broad or cross-domain requests |
@@ -162,6 +165,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
+| `mermail-delivery-audit` | Audit per-recipient delivery reports with source IDs; no resends or inbox writes |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
