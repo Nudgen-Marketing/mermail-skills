@@ -1,0 +1,5 @@
+display_name: Mermail Dev Intake
+short_description: Turn engineering emails into safe developer intake and issue drafts.
+default_prompt: "Use $mermail-dev-intake to triage an inbound engineering report and prepare a safe implementation-ready intake."
+type: "mcp"
+url: "https://console.mermail.app/mcp"
