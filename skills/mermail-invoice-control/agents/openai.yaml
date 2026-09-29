@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Control"
+  short_description: "Review invoices, stop duplicates, and prepare approved payments"
+  default_prompt: "Use $mermail-invoice-control to review one invoice email, build an approval packet, and keep any payment or remittance behind separate owner approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
