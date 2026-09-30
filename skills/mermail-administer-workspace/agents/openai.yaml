@@ -1,7 +1,7 @@
 interface:
   display_name: "Administer Mermail Workspace"
-  short_description: "Manage workspaces, webhooks, mailboxes, and usage"
-  default_prompt: "Use $mermail-administer-workspace when this task is about workspace settings, members, domains, webhooks, mailbox configuration, storage, credits, or usage."
+  short_description: "Manage workspaces, mailboxes, webhooks, access, and usage"
+  default_prompt: "Use $mermail-administer-workspace when this task is about workspace settings, members, domains, mailbox configuration, webhooks, storage, credits, or usage."
 dependencies:
   tools:
     - type: "mcp"
