@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Earn Inbox Triage"
+  short_description: "Triage Earn/bounty Mermail mail into drafts, checklists, and read-only wallet stubs"
+  default_prompt: "Use $mermail-earn-inbox-triage to poll my Mermail inbox for Superteam Earn or bounty-related mail, classify each message, draft replies for review, and optionally prepare a read-only Agent Wallet payment-request stub without moving funds."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
