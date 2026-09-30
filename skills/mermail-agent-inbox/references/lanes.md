@@ -89,6 +89,15 @@ candidate evidence (non-secret sender, recipient, subject, timestamp, message ID
 remaining human action. Separate extraction from use: state that a code or link is ready in protected
 context for lane X, then name the fresh approval still required.
 
+## Live observations (verified 2026-09-30 against the hosted MCP)
+
+- `create_mailbox` takes a nested `body` object: `{"body": {"email": "<name>@mermail.app", "name": "<display>", "settings": {"agentInbox": {"mode": "verification", "automationsEnabled": false}}}}`. The address must sit on an allowed hosted or fully verified custom domain.
+- Some usernames are reserved by the provider (`That mailbox username is reserved by Mermail.`): derive the address from the service and flow, not from generic words, and treat the rejection as a naming problem rather than a transport failure.
+- On a plan with a mailbox quota, provisioning a second lane returns `mailbox_limit_reached`. Report the lane as blocked at the plan boundary; never retry provisioning and never move the second flow into the first lane's mailbox.
+- Free-tier pacing is 10 API RPM: a burst returns `rate_limit_exceeded`. Pace the lane calls, allow exactly one bounded retry inside the same lane deadline, and never spend another lane's attempts on it.
+- Payload-level provider errors arrive as `{"error": ..., "code": ...}` inside a successful JSON-RPC response, not as a JSON-RPC `error`. Check both shapes before trusting a result.
+- `welcome_onboarding_status: pending` appears on a freshly created mailbox and does not block receipt: the first real message was found and validated while the field was still `pending`.
+
 ## Teardown
 
 Lanes are historical receipts. Later archive, folder, label, or bulk-cleanup work routes to
