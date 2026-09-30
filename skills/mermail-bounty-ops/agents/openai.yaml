@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Ops"
+  short_description: "Triage paid-task email, prevent duplicate outreach, and track rewards safely"
+  default_prompt: "Use $mermail-bounty-ops to review my bounty inbox, identify the next safe action, and keep opportunity, accepted, and paid amounts separate."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
