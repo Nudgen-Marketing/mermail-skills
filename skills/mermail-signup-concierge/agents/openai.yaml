@@ -1,0 +1,11 @@
+interface:
+  display_name: "Use Mermail Signup Concierge"
+  short_description: "Complete one third-party signup with an agent inbox: register, verify, archive"
+  default_prompt: "Use $mermail-signup-concierge when a task needs the full signup journey for one service — provision or reuse a Mermail mailbox, register, watch for the verification message, extract the code or link into protected context, and archive the result. Not for single-message retrieval or bulk signups."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
