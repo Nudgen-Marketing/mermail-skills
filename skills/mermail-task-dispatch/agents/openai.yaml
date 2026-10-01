@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Task Dispatch"
+  short_description: "Coordinate multi-agent work with email task cards"
+  default_prompt: "Use $mermail-task-dispatch when the job is coordinating a human-supervised agent team through Mermail task-card email: dispatching cards, sweeping ACK / RESULT / BLOCKED replies, and reconciling a task ledger without auto-sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
