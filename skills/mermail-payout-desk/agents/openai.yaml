@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payout Desk"
+  short_description: "Verify and forward bounty/invoice payments from a dedicated Mermail inbox with owner-approved terms"
+  default_prompt: "Use $mermail-payout-desk to collect, verify, and forward expected payments safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
