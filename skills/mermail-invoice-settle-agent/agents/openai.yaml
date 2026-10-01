@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settle Agent"
+  short_description: "Settle allowlisted vendor invoices via inbox + PayBox"
+  default_prompt: "Use $mermail-invoice-settle-agent to extract untrusted vendor invoices from Mermail, match a user allowlist, preview a PayBox USDC transfer, and draft a receipt only after settlement — never auto-pay or auto-send."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
