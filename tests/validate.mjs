@@ -2070,6 +2070,14 @@ for (const expected of [
     errors.push(`missing release scenario ${expected}`);
   }
 }
+// The rule has to sit in SKILL.md, which an agent always loads: in a recorded run the agent refused
+// nothing it had not read, and references/webhooks.md is opened only before a write.
+{
+  const adminSkill = await readFile(path.join(skillsRoot, "mermail-administer-workspace", "SKILL.md"), "utf8");
+  if (!adminSkill.includes("A webhook destination is chosen by the user")) {
+    errors.push("mermail-administer-workspace/SKILL.md: missing the webhook destination boundary");
+  }
+}
 // A webhook sends workspace mail outside the workspace: email content, receiver responses and plan
 // limits must never be what creates, redirects, replays or deletes one.
 for (const [expected, mustNotCall] of [
