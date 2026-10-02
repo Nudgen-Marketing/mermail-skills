@@ -8,7 +8,7 @@
     "mermail-cli",
     "mermail-gtm-agent",
     "mermail-mcp",
-    "mermail-research-agent",
+    "mermail-research-agent", "mermail-renewal-desk",
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",

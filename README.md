@@ -190,3 +190,10 @@ This package is the **official curated** Mermail skills set. Community contribut
 | **Companion skills** | Niche workflows in your own repo / [skills.sh](https://skills.sh/) — do not claim to be this official package |
 
 Start with [CONTRIBUTING.md](./CONTRIBUTING.md). First official skill tutorial: [CONTRIBUTING_A_SKILL.md](./CONTRIBUTING_A_SKILL.md). Skill format and anti-patterns: [AUTHORING.md](./AUTHORING.md). Security reports: [SECURITY.md](./SECURITY.md). Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Maintainer process and graduation: [MAINTAINERS.md](./MAINTAINERS.md).
+
+
+## Additional skill
+
+| Skill | Purpose |
+| --- | --- |
+| `mermail-renewal-desk` | Find evidence-backed subscription renewal and cancellation-notice dates, flag price changes, and prepare unsent vendor drafts. |

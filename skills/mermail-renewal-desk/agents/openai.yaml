@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Renewal Desk"
+  short_description: "Find renewal deadlines, price hikes, and cancellation windows."
+  default_prompt: "Use $mermail-renewal-desk to review upcoming subscriptions and surface their evidence-backed renewal deadlines."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
