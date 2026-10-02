@@ -1,0 +1,11 @@
+interface:
+  display_name: "Promise Ledger"
+  short_description: "Trace email commitments, revisions, and handoff gaps"
+  default_prompt: "Use $mermail-promise-ledger to review one selected Mermail conversation and produce an evidence-backed handoff without sending anything."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail mailbox discovery and bounded email reads"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
