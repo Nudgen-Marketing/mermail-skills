@@ -67,7 +67,8 @@ Keep quotations short and synthetic in demos. Every email source must have a uni
   "revisionBudget": {
     "included": 2,
     "used": 1,
-    "sourceRef": "accepted-proposal"
+    "sourceRef": "accepted-proposal",
+    "usedSourceRef": "owner-revision-usage"
   },
   "deadline": { "date": "2026-09-20", "sourceRef": "accepted-proposal" },
   "pricing": {
@@ -84,6 +85,8 @@ Keep quotations short and synthetic in demos. Every email source must have a uni
 ```
 
 `pricing`, `revisionBudget`, and `deadline` are optional. Omit missing terms instead of inventing values.
+
+`revisionBudget.sourceRef` identifies the selected contractual allowance. If used rounds came from a separate owner statement, add that statement as a `type: "user"` source and set `revisionBudget.usedSourceRef` to it; it must reference an owner source or selected baseline authority. The example needs an `owner-revision-usage` source quoting the owner's statement that one round was already used. Do not attribute usage to a contract email that only states the allowance. If both values are genuinely evidenced by one source, `usedSourceRef` may be omitted for compatibility. Unknown usage is not zero: request it before presenting a complete revision-based quote. The output and Markdown preserve separate usage provenance, and the full packet digest binds it.
 
 ## Request items
 

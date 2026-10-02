@@ -540,6 +540,14 @@ export function buildMarginPacket(rawInput) {
       overflow: 0,
       remainingAfter: included - usedBefore,
     };
+    if (value.usedSourceRef !== undefined) {
+      const usedSourceRef = validateSourceRef(value.usedSourceRef, "baseline.revisionBudget.usedSourceRef", sourceMap);
+      invariant(
+        sourceMap.get(usedSourceRef).type === "user" || authoritySourceRefs.includes(usedSourceRef),
+        "baseline.revisionBudget.usedSourceRef must be owner-supplied or part of the selected baseline",
+      );
+      revisionBudget.usedSourceRef = usedSourceRef;
+    }
   }
 
   let deadline = null;
@@ -716,7 +724,9 @@ export function buildMarginPacket(rawInput) {
     (row) => row.status === "scope_change" && row.kind === "deadline",
   );
   if (compressionDays > 0 && compressedDeadlineRows.length > 0 && knownAddedHours.max === 0) {
-    for (const row of compressedDeadlineRows) unpricedItemIds.push(row.id);
+    for (const row of compressedDeadlineRows) {
+      if (!unpricedItemIds.includes(row.id)) unpricedItemIds.push(row.id);
+    }
   }
 
   const rate = pricing?.rate ?? null;
@@ -945,9 +955,9 @@ export function renderMarkdown(packet) {
     lines.push(
       "### Revision budget",
       "",
-      "| Included | Used before | Requested | Covered | Overflow | Remaining after | Source |",
-      "| ---: | ---: | ---: | ---: | ---: | ---: | --- |",
-      `| ${revision.included} | ${revision.usedBefore} | ${revision.requested} | ${revision.covered} | ${revision.overflow} | ${revision.remainingAfter} | \`${revision.sourceRef}\` |`,
+      "| Included | Used before | Requested | Covered | Overflow | Remaining after | Allowance source | Usage source |",
+      "| ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+      `| ${revision.included} | ${revision.usedBefore} | ${revision.requested} | ${revision.covered} | ${revision.overflow} | ${revision.remainingAfter} | \`${revision.sourceRef}\` | \`${revision.usedSourceRef ?? revision.sourceRef}\` |`,
       "",
     );
   }

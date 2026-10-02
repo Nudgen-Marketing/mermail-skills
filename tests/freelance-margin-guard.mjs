@@ -383,6 +383,29 @@ check("reports the full revision budget ledger", () => {
   });
 });
 
+check("separates owner revision usage from the contractual allowance and binds its digest", () => {
+  const input = clone(fixture);
+  input.sources.push({ id: "owner-usage", type: "user", label: "Owner-confirmed consumed rounds", quote: "One included revision round has already been used." });
+  input.baseline.revisionBudget.usedSourceRef = "owner-usage";
+  const result = buildMarginPacket(input);
+  assert.equal(result.baseline.revisionBudget.sourceRef, "accepted-proposal");
+  assert.equal(result.baseline.revisionBudget.usedSourceRef, "owner-usage");
+  assert.equal(verifyMarginPacket(result).valid, true);
+  assert.match(renderMarkdown(result), /Allowance source \| Usage source/);
+  assert.match(renderMarkdown(result), /`accepted-proposal` \| `owner-usage`/);
+  const changed = clone(result);
+  changed.baseline.revisionBudget.usedSourceRef = "accepted-proposal";
+  assert.equal(verifyMarginPacket(changed).valid, false);
+});
+
+check("rejects later-request and missing sources as revision usage authority", () => {
+  for (const sourceRef of ["later-request", "missing-usage-source"]) {
+    const input = clone(fixture);
+    input.baseline.revisionBudget.usedSourceRef = sourceRef;
+    assert.throws(() => buildMarginPacket(input), /usedSourceRef/);
+  }
+});
+
 check("retains the approved rate provenance", () => {
   assert.equal(packet.marginSnapshot.rate.amount, 15);
   assert.equal(packet.marginSnapshot.rateSourceRef, "approved-rate");
@@ -518,6 +541,17 @@ check("does not price a deadline-only scope change as zero", () => {
     result.clientOptions.find((option) => option.id === "paid_change_order").feeRange,
     null,
   );
+});
+
+check("reports an unestimated compressed deadline only once among unpriced items", () => {
+  const input = clone(fixture);
+  for (const item of input.request.items) delete item.effortHours;
+  delete input.baseline.pricing;
+  const result = buildMarginPacket(input);
+  assert.equal(result.marginSnapshot.unpricedItemIds.filter(id => id === "accelerated-deadline").length, 1);
+  assert.equal(new Set(result.marginSnapshot.unpricedItemIds).size, result.marginSnapshot.unpricedItemIds.length);
+  assert.equal(result.marginSnapshot.completeTotalFeeRange, null);
+  assert.equal(result.marginSnapshot.pricingState, "approval_needed");
 });
 
 check("marks a missing scope-change estimate approval_needed", () => {
