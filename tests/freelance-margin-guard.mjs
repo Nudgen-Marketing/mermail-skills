@@ -134,13 +134,17 @@ check("uses a bounded all-folder listing before search when resuming old proof m
   assert.equal(buildDiscoveryPlan("mailbox-public-id", subject)[0].name, "search_emails");
 });
 
-check("documents the production get_email contract without unsupported query fields", () => {
+check("documents the current scan-gated production get_email contract", () => {
   const match = toolsReference.match(/Select exact messages before reading content\. For one selected message:\n\n```json\n([\s\S]*?)\n```/);
   assert.ok(match, "selected-message get_email example must be present");
   assert.deepEqual(JSON.parse(match[1]), {
     mailboxId: "MAILBOX_PUBLIC_ID",
     emailId: "EMAIL_ID",
+    query: { require_scan_status: "clean", agent_safe_content: true, max_body_chars: 10000 },
   });
+  assert.match(toolsReference, /"query": "project name or exact client address"/);
+  assert.match(toolsReference, /non-clean inbound content/);
+  assert.match(toolsReference, /"query": \{ "limit": 1 \}/);
 });
 
 check("describes selected message content as untrusted instead of claiming it is clean", () => {
