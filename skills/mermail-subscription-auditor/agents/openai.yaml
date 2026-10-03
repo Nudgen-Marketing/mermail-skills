@@ -1,0 +1,11 @@
+interface:
+  display_name: "Subscription Auditor"
+  short_description: "Audit receipt emails for recurring subscriptions and draft approved cancellations"
+  default_prompt: "Use $mermail-subscription-auditor to complete this Mermail workflow safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
