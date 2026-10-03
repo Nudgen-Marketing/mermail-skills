@@ -115,6 +115,8 @@ if (
 }
 for (const required of [
   "10 provision credits",
+  "`get_ai_credit_usage`",
+  "`list_ai_credit_events`",
   "`prepare_destructive_action`",
   "single-use token",
   "`remove_workspace_member`",
@@ -141,6 +143,29 @@ for (const [label, content] of [
       errors.push(`${label}: missing scoped mailbox-provision contract ${required}`);
     }
   }
+}
+const webhookReadTools = ["list_webhooks", "get_webhook", "list_webhook_deliveries"];
+const webhookEffectTools = ["create_webhook", "update_webhook", "test_webhook", "retry_webhook_delivery"];
+const webhookDestructiveTools = ["create_webhook", "update_webhook", "test_webhook", "retry_webhook_delivery", "delete_webhook", "rotate_webhook_secret"];
+for (const name of [...webhookReadTools, ...webhookEffectTools, ...webhookDestructiveTools]) {
+  if (!coverage.domains["mermail-administer-workspace"].includes(name)) {
+    errors.push(`webhook tool ${name} must be owned by workspace administration`);
+  }
+  if (!administerWorkspaceWebhooks.includes(`\`${name}\``) || !administerWorkspaceTools.includes(`\`${name}\``)) {
+    errors.push(`workspace webhook references must describe ${name}`);
+  }
+}
+for (const name of webhookEffectTools) {
+  if (!coverage.externalEffectTools.includes(name)) errors.push(`webhook external effect ${name} must be classified`);
+}
+for (const name of webhookDestructiveTools) {
+  if (!coverage.destructiveTools.includes(name)) errors.push(`webhook destructive tool ${name} must be classified`);
+}
+for (const token of ["prepare_destructive_action", "idempotencyKey", "allInboxes", "signingSecret", "event_id", "untrusted data", "agent-inbox"]) {
+  if (!administerWorkspaceWebhooks.includes(token)) errors.push(`workspace webhook safety reference missing ${token}`);
+}
+if (!administerWorkspaceSkill.includes("[webhooks.md](references/webhooks.md)")) {
+  errors.push("workspace administration skill must link webhook reference");
 }
 for (const [label, content] of [
   ["mermail-administer-workspace skill", administerWorkspaceSkill],
@@ -1040,7 +1065,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  "currentFullCatalogBaseline = 83",
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1673,6 +1698,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-freelance-margin-guard",
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
@@ -1988,6 +2014,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-freelance-margin-guard",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -2009,6 +2036,8 @@ for (const expected of [
   "root-reports-default-triager-unsupported-without-focused-route",
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
+  "route-freelance-margin-work-to-mermail-freelance-margin-guard",
+  "route-workspace-webhooks-to-admin",
   "route-research-business-to-mermail-research-agent",
   "route-equity-workflow",
 ]) {
@@ -2032,6 +2061,14 @@ const mermailDefaultTriagerScenario = scenarios.find(
 );
 if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length !== 0) {
   errors.push("mermail routing must stop unsupported default-triager selection without tool calls");
+}
+for (const token of ["workspace webhook", "mermail-administer-workspace", "inbound email"]) {
+  if (!mermailRouterCorpus.includes(token)) errors.push(`mermail routing missing webhook boundary ${token}`);
+}
+for (const name of [...webhookReadTools, ...webhookEffectTools, ...webhookDestructiveTools]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-administer-workspace" && scenario.tools.includes(name))) {
+    errors.push(`workspace administration missing webhook scenario ${name}`);
+  }
 }
 
 const allTools = Object.values(coverage.domains).flat();
@@ -2142,6 +2179,7 @@ async function walk(directory) {
 }
 
 async function validateRemote() {
+  const errorsBeforeRemote = errors.length;
   const response = await fetch(coverage.discoveryEndpoint);
   if (!response.ok) {
     errors.push(`server card returned HTTP ${response.status}`);
@@ -2151,7 +2189,7 @@ async function validateRemote() {
   const remoteTools = [...(card.capabilities?.tools?.list ?? [])].sort();
   const localTools = [coverage.confirmationTool, ...allTools].sort();
   if (JSON.stringify(remoteTools) !== JSON.stringify(localTools)) {
-    errors.push("production MCP tool catalog differs from tool-coverage.json");
+    errors.push(`production MCP tool catalog differs from tool-coverage.json: ${describeCatalogDiff(localTools, remoteTools)}`);
   }
 
   const unauthenticated = await fetch(coverage.mcpEndpoint, {
@@ -2162,15 +2200,32 @@ async function validateRemote() {
   if (unauthenticated.status !== 401) errors.push(`unauthenticated MCP request returned HTTP ${unauthenticated.status}, expected 401`);
 
   const apiKey = process.env.MERMAIL_MCP_TEST_API_KEY;
-  if (!apiKey) return;
+  const apiKeyRequired = process.env.MERMAIL_REQUIRE_TEST_API_KEY === "1";
+  if (!apiKey) {
+    if (apiKeyRequired) {
+      errors.push("manual authenticated Mermail validation requires MERMAIL_MCP_TEST_API_KEY");
+    }
+    return;
+  }
+
+  let authenticatedProofPassed = true;
   const initialized = await authenticatedMcpRequest(apiKey, initializePayload(1));
-  if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
+  if (!initialized?.result?.serverInfo) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated MCP initialize did not return serverInfo");
+  }
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 83) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 83`);
+  if (remoteNames.length !== localTools.length) {
+    authenticatedProofPassed = false;
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected ${localTools.length}`);
+  }
+  if (JSON.stringify([...remoteNames].sort()) !== JSON.stringify(localTools)) {
+    authenticatedProofPassed = false;
+    errors.push(`authenticated tools/list differs from tool-coverage.json: ${describeCatalogDiff(localTools, remoteNames)}`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
+    authenticatedProofPassed = false;
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
   }
 
@@ -2181,12 +2236,47 @@ async function validateRemote() {
     params: { name: "list_workspaces", arguments: {} },
   });
   if (!workspaces) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces tools/call failed");
   } else if (workspaces.result?.isError) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces returned isError");
   } else if (!workspaces.result?.structuredContent && !workspaces.result?.content) {
+    authenticatedProofPassed = false;
     errors.push("authenticated list_workspaces returned empty content");
   }
+
+  const mailboxes = await authenticatedMcpRequest(apiKey, {
+    jsonrpc: "2.0",
+    id: 4,
+    method: "tools/call",
+    params: { name: "list_mailboxes", arguments: {} },
+  });
+  if (!mailboxes) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes tools/call failed");
+  } else if (mailboxes.result?.isError) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes returned isError");
+  } else if (!mailboxes.result?.structuredContent && !mailboxes.result?.content) {
+    authenticatedProofPassed = false;
+    errors.push("authenticated list_mailboxes returned empty content");
+  }
+
+  if (authenticatedProofPassed && errors.length === errorsBeforeRemote) {
+    console.log(
+      `Authenticated Mermail proof passed: initialize; ${remoteNames.length}-tool catalog; list_workspaces; list_mailboxes (read-only).`,
+    );
+  }
+}
+
+function describeCatalogDiff(expected, actual) {
+  const expectedSet = new Set(expected);
+  const actualSet = new Set(actual);
+  const missing = [...actualSet].filter((name) => !expectedSet.has(name)).sort();
+  const stale = [...expectedSet].filter((name) => !actualSet.has(name)).sort();
+  const duplicates = [...actualSet].filter((name) => actual.filter((item) => item === name).length > 1);
+  return `uncovered: ${missing.join(", ") || "none"}; absent on server: ${stale.join(", ") || "none"}; duplicate server entries: ${duplicates.join(", ") || "none"}`;
 }
 
 function initializePayload(id) {
