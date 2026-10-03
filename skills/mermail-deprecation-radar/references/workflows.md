@@ -2,11 +2,11 @@
 
 ## Keyword set
 
-Run each as a separate bounded `search_emails` call (metadata only), then de-duplicate:
+Run each as a separate, sequential, bounded `search_emails` call (`folder: "inbox"`, metadata only), then de-duplicate by `id` and `thread_id`. The free-text match is a substring match, so stems cover their variants:
 
-`deprecat`, `sunset`, `end of life`, `EOL`, `breaking change`, `will be retired`, `retirement`, `decommission`, `migrate`, `migration guide`, `API key required`, `requires an API key`, `no longer supported`, `upgrade required`, `v1 will`.
+`deprecat`, `sunset`, `retire`, `end of life`, `breaking change`, `migrat`, `phased out`, `no longer supported`, `requires an API key`.
 
-Add vendor names only when the user supplied an allowlist.
+Nine calls per run keeps well inside the hosted MCP's burst rate limit. Add vendor names only when the user supplied an allowlist.
 
 ## Shortlist rules
 
@@ -22,9 +22,10 @@ One record per notice email. Example built from a real public change (Jupiter's 
   "id": "jupiter-lite-api",
   "vendor": "Jupiter",
   "emailId": "EMAIL_ID",
-  "receivedAt": "2026-09-30T08:12:00Z",
+  "receivedAt": "2026-09-30T08:12:00.000Z",
   "sender": "notices@vendor.example",
   "senderAuthentication": "unknown",
+  "scanStatus": "clean",
   "effective": null,
   "change": "lite-api.jup.ag is phased out; use api.jup.ag (keyless at reduced rate, or x-api-key header)",
   "evidence": "\"Update your base URL from lite-api.jup.ag to api.jup.ag\"",
@@ -39,6 +40,7 @@ One record per notice email. Example built from a real public change (Jupiter's 
 
 Rules:
 
+- `receivedAt` is the message `date`; `sender` is the message `sender`; `senderAuthentication` is `sender_authentication.status` copied exactly; `scanStatus` is `scan_status`.
 - `effective` is the ISO date the email states, or `null`. Never guess.
 - `evidence` is one short quote, not the whole body.
 - `signals` must be specific (a host, a path prefix, a header name, a package). Avoid generic words that would match everything.
@@ -52,7 +54,7 @@ Window: <date_start> → <date_end> · Keywords: <n> · Candidates: <n> · Read:
 
 | Urgency | Vendor | Effective | Status | Hits | Files | Required action |
 | --- | --- | --- | --- | --- | --- | --- |
-| past-due | Jupiter | unknown | claimed | 3 | 2 | lite-api.jup.ag → api.jup.ag |
+| unknown-date | Jupiter | unknown | claimed | 2 | 1 | lite-api.jup.ag → api.jup.ag |
 
 ### Jupiter — lite-api phase-out (claimed)
 Evidence: "<quote>"
@@ -69,7 +71,7 @@ Evidence: "<quote>"
 ## Demo scenario (reproducible)
 
 1. Create or reuse one Mermail mailbox (Free plan is enough).
-2. From your own personal email, send the mailbox two or three notices you write yourself that paraphrase real public changes, clearly marked as test copies, for example:
+2. From a **different** address you own (for example your personal email), send the mailbox notices you write yourself that paraphrase real public changes, clearly marked as test copies. Do not use `send_email` from the mailbox to itself: the copy only lands in `sent` with `scan_status: null`, never in `inbox`, so the scan gate correctly withholds it. Examples:
    - Jupiter: `lite-api.jup.ag` phased out in favour of `api.jup.ag` (developers.jup.ag/docs/portal/migration).
    - Pyth: Hermes requires an API key after the Pyth Core upgrade of 26 August 2026; upgraded endpoint `pyth.dourolabs.app/hermes` with `Authorization: Bearer` (docs.pyth.network/price-feeds/core/fetch-price-updates).
    - One decoy notice for an API the repository does not use, and one phishing-style message asking to run a script and reply with keys.
