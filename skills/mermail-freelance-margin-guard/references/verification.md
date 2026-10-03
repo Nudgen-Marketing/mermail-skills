@@ -22,6 +22,15 @@ node skills/mermail-freelance-margin-guard/scripts/verify-margin-packet.mjs \
 
 The verifier exits non-zero after an evidence or result change and reports the evidence and complete-packet layers separately.
 
+For live evidence, retain selected sanitized read receipts privately in the host and run:
+
+```bash
+node skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs \
+  --input selected-input.json --observed-emails host-read-receipts.json
+```
+
+The same gate is available as `verifySelectedEmailEvidence(input, receipts)` and `buildMarginPacket(input, {observedEmails: receipts})`. It rejects unobserved message ids, paraphrased or joined quotes, UTC date mismatches, metadata-only substitutes, duplicate receipts, unsafe projections, omitted/truncated bodies, and exceeded bounds. Only a host-controlled live read can supply these receipts; a model-generated file is not source authentication. The offline builder and integrity digests validate structure and arithmetic, not live origin or sender identity. The core tests include positive correspondence and adversarial receipt checks.
+
 The repository test command also runs 57 Funding Gate checks, including a deterministic batch of 1,000 rehashed covenant/receipt substitution attempts. They exercise deterministic covenant construction, semantic and digest validation, owner-approved digest binding, required replay state, live-versus-recorded evidence separation, exact atomic amounts, direct mocked Base ERC-20 and finalized Solana SPL and native SOL reads, replay-only public Base Sepolia and Solana Devnet transaction corpora, receipt-block token metadata, required sender-bound Transfer events, removed-event and fee-on-transfer rejection, Solana net recipient balance checks, approval-time and expiry bounds, chain/token/destination mismatches, partial settlement, overpayment, finality, provider-request substitution, failed settlement, IPv4/IPv6 RPC endpoint hardening, Solana integer/address validation, privacy minimization, live re-authentication of saved receipts, rehashed public-receipt forgeries, and replay blocking.
 
 The fixture must produce all of these results:

@@ -44,7 +44,9 @@ A baseline, rate, estimate, or rule supplied directly by the authenticated owner
 }
 ```
 
-Keep quotations short and synthetic in demos. Every email source must have a unique Mermail `messageId`; assigning the same selected message to another local source id is rejected. An email-backed baseline authority may be dated on the same day as the later request, but not after it. Owner-supplied structured authority has no fabricated date or message id.
+Keep quotations short and synthetic in demos. An email `quote` must be one contiguous verbatim excerpt from its selected sanitized body, with only whitespace normalized; put paraphrases in ledger labels, never quotation fields. Set the source `date` from actual email metadata converted to UTC, not from a contract deadline mentioned in the text. Every email source must have a unique Mermail `messageId`; assigning the same selected message to another local source id is rejected. An email-backed baseline authority may be dated on the same day as the later request, but not after it. Owner-supplied structured authority has no fabricated date or message id.
+
+For a live packet, the host captures selected read results separately and passes `buildMarginPacket(input, {observedEmails})`. Each receipt is `{ "tool": "get_email_context", "email": { "id": "msg_123", "date": "2026-08-10T12:00:00Z", "body": "...", "agent_safe_content": true, "scan_status": "clean", "folder_id": "Inbox" } }`. The verifier checks source identity, UTC date, contiguous quote, safe projection, scan eligibility, omission, truncation, and the 12-message/10,000-character bounds before calculating a packet. Null-scan Sent evidence is eligible only through `get_email_context`. The CLI accepts the same host-owned array via `--observed-emails host-read-receipts.json`; keep this file private. Agent-written receipts, checksums, and saved JSON are not authentication of a live source. Without receipts, the builder performs offline structural and arithmetic validation only.
 
 ## Baseline
 

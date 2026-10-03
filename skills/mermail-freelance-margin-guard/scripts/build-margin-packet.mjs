@@ -233,6 +233,49 @@ function validateSourceRef(ref, label, sourceMap) {
   return sourceRef;
 }
 
+// Supply these receipts from the host's selected live reads, outside model
+// control. Packet checksums alone cannot establish that an email was read.
+export function verifySelectedEmailEvidence(rawInput, observedEmails) {
+  object(rawInput, "packet input");
+  const sources = array(rawInput.sources, "sources").map(validateSource);
+  const receipts = array(observedEmails, "observedEmails");
+  invariant(receipts.length <= 12, "observedEmails exceeds the selected-message bound");
+  const byId = new Map();
+  for (const [index, receipt] of receipts.entries()) {
+    object(receipt, `observedEmails[${index}]`);
+    invariant(["get_email", "get_email_context"].includes(receipt.tool), "observed email requires a selected content-read tool");
+    const email = object(receipt.email, `observedEmails[${index}].email`);
+    const id = textValue(email.id, "observed email id", 240);
+    invariant(!byId.has(id), "observed email ids must be unique");
+    byId.set(id, {tool: receipt.tool, email});
+  }
+  let verifiedEmailSources = 0;
+  const literal = value => value.replace(/\s+/gu, " ").trim();
+  for (const source of sources.filter(s => s.type === "email")) {
+    const receipt = byId.get(source.messageId);
+    invariant(receipt, `email source ${source.id} has no selected live content read`);
+    const {email, tool} = receipt;
+    invariant(email.agent_safe_content === true, `email source ${source.id} lacks the server safe projection`);
+    invariant(!email.content_omitted && !email.content_truncated, `email source ${source.id} has omitted or truncated content`);
+    const sent = String(email.folder_name || email.folder_id || "").toLowerCase() === "sent";
+    invariant(email.scan_status === "clean" || tool === "get_email_context" && sent && email.is_incoming !== true && email.scan_status === null,
+      `email source ${source.id} is not eligible under the selected scan gate`);
+    const body = textValue(email.body, `email source ${source.id} observed body`, 10000);
+    invariant(email.body.length <= 10000, `email source ${source.id} observed body exceeds the content bound`);
+    const date = textValue(email.date, `email source ${source.id} observed date`, 80);
+    dateValue(date.slice(0, 10), `email source ${source.id} observed date`);
+    invariant(/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(date),
+      `email source ${source.id} observed date must be date-only or timezone-qualified`);
+    const parsed = new Date(date);
+    invariant(!Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === source.date,
+      `email source ${source.id} date does not match observed UTC metadata`);
+    invariant(source.quote && literal(body).includes(literal(source.quote)),
+      `email source ${source.id} quote must be a contiguous verbatim excerpt of the observed body`);
+    verifiedEmailSources += 1;
+  }
+  return {valid: true, verifiedEmailSources};
+}
+
 function validateAuthoritySourceRef(ref, label, sourceMap, authoritySourceRefs) {
   const sourceRef = validateSourceRef(ref, label, sourceMap);
   invariant(
@@ -468,7 +511,8 @@ function requiresEffortEstimate(row) {
   return row.status === "scope_change";
 }
 
-export function buildMarginPacket(rawInput) {
+export function buildMarginPacket(rawInput, {observedEmails} = {}) {
+  if (observedEmails !== undefined) verifySelectedEmailEvidence(rawInput, observedEmails);
   object(rawInput, "input");
   invariant(rawInput.version === 1, "version must be 1");
   const project = object(rawInput.project, "project");
@@ -1020,6 +1064,7 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--input") result.input = argv[++index];
+    else if (arg === "--observed-emails") result.observedEmails = textValue(argv[++index], "--observed-emails file path");
     else if (arg === "--format") result.format = argv[++index];
     else if (arg === "--help" || arg === "-h") result.help = true;
     else throw new Error(`unknown argument ${arg}`);
@@ -1041,12 +1086,13 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     process.stdout.write(
-      "Usage: build-margin-packet.mjs --input <file|-> [--format json|markdown]\n",
+      "Usage: build-margin-packet.mjs --input <file|-> [--observed-emails <host-read-receipts.json>] [--format json|markdown]\n",
     );
     return;
   }
   const raw = args.input === "-" ? await readStdin() : await readFile(args.input, "utf8");
-  const packet = buildMarginPacket(JSON.parse(raw));
+  const observedEmails = args.observedEmails ? JSON.parse(await readFile(args.observedEmails, "utf8")) : undefined;
+  const packet = buildMarginPacket(JSON.parse(raw), {observedEmails});
   process.stdout.write(
     args.format === "markdown" ? renderMarkdown(packet) : `${JSON.stringify(packet, null, 2)}\n`,
   );

@@ -6,6 +6,7 @@ import {
   buildMarginPacket,
   renderMarkdown,
   verifyMarginPacket,
+  verifySelectedEmailEvidence,
 } from "../skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs";
 import {
   buildDiscoveryPlan,
@@ -30,6 +31,11 @@ const selectedMessageGuides = await Promise.all([
 ].map((relativePath) => readFile(path.join(skillRoot, relativePath), "utf8")));
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const packet = buildMarginPacket(clone(fixture));
+const liveReceipts = () => fixture.sources.filter(s => s.type === "email").map(s => ({
+  tool: "get_email_context",
+  email: {id: s.messageId, date: `${s.date}T12:00:00Z`, body: `Message introduction.\n${s.quote}\nMessage ending.`,
+    agent_safe_content: true, scan_status: "clean", folder_id: "Inbox"},
+}));
 let checks = 0;
 
 function check(name, fn) {
@@ -696,6 +702,67 @@ check("renders evidence, retained terms, and all client options in Markdown", ()
   assert.match(markdown, /Includes only an owner-approved rush rule/);
   assert.match(markdown, /## Integrity/);
   assert.match(markdown, /Evidence digest: `[a-f0-9]{64}`/);
+});
+
+check("matches literal live quotes, message identities and UTC dates without changing packet digests", () => {
+  const receipts = liveReceipts();
+  receipts[0].email.body = receipts[0].email.body.replaceAll(" ", "\n  ");
+  assert.deepEqual(verifySelectedEmailEvidence(fixture, receipts), {valid: true, verifiedEmailSources: 3});
+  assert.deepEqual(buildMarginPacket(clone(fixture), {observedEmails: receipts}), packet);
+});
+
+check("rejects missing reads, unselected ids, duplicate receipts and missing quotes", () => {
+  assert.throws(() => verifySelectedEmailEvidence(fixture, []), /no selected live content read/);
+  const receipts = liveReceipts(); receipts[0].email.id = "unselected";
+  assert.throws(() => verifySelectedEmailEvidence(fixture, receipts), /no selected live content read/);
+  assert.throws(() => verifySelectedEmailEvidence(fixture, [...liveReceipts(), liveReceipts()[0]]), /ids must be unique/);
+  const input = clone(fixture); delete input.sources[0].quote;
+  assert.throws(() => verifySelectedEmailEvidence(input, liveReceipts()), /contiguous verbatim/);
+});
+
+check("rejects paraphrases, joined excerpts and changed quotation case", () => {
+  for (const quote of ["A responsive page with two revisions", "Message introduction. Message ending.", fixture.sources[0].quote.toLowerCase()]) {
+    const input = clone(fixture); input.sources[0].quote = quote;
+    assert.throws(() => verifySelectedEmailEvidence(input, liveReceipts()), /contiguous verbatim/);
+  }
+});
+
+check("uses observed UTC dates and rejects body deadlines, invalid or timezone-less dates", () => {
+  const receipts = liveReceipts(); receipts[0].email.date = "2026-08-11T00:30:00+02:00";
+  assert.equal(verifySelectedEmailEvidence(fixture, receipts).valid, true);
+  for (const date of ["2026-08-29", "2026-02-30T12:00:00Z", "2026-08-10T12:00:00"]) {
+    const changed = liveReceipts(); changed[0].email.date = date;
+    assert.throws(() => verifySelectedEmailEvidence(fixture, changed), /date/);
+  }
+});
+
+check("rejects missing safe projections, omitted, truncated, empty and overlong bodies", () => {
+  for (const change of [{agent_safe_content: false}, {content_omitted: true}, {content_truncated: true}, {body: ""}, {body: "x".repeat(10001)}]) {
+    const receipts = liveReceipts(); Object.assign(receipts[0].email, change);
+    assert.throws(() => verifySelectedEmailEvidence(fixture, receipts), /safe projection|omitted or truncated|body/);
+  }
+});
+
+check("null-scan Sent evidence requires sanitized context and never admits unsafe inbound content", () => {
+  const receipts = liveReceipts(); Object.assign(receipts[0].email, {scan_status: null, folder_id: "Sent"});
+  assert.equal(verifySelectedEmailEvidence(fixture, receipts).valid, true);
+  for (const change of [{tool: "get_email"}, {email: {folder_id: "Inbox"}}, {email: {is_incoming: true}}, {email: {scan_status: "flagged"}}, {email: {agent_safe_content: false}}]) {
+    const modified = clone(receipts); if (change.tool) modified[0].tool = change.tool;
+    if (change.email) Object.assign(modified[0].email, change.email);
+    assert.throws(() => verifySelectedEmailEvidence(fixture, modified), /scan gate|safe projection/);
+  }
+});
+
+check("metadata-only tools and oversized receipt collections cannot stand in for selected reads", () => {
+  const receipts = liveReceipts(); receipts[0].tool = "search_emails";
+  assert.throws(() => verifySelectedEmailEvidence(fixture, receipts), /selected content-read tool/);
+  assert.throws(() => verifySelectedEmailEvidence(fixture, Array.from({length: 13}, () => liveReceipts()[0])), /selected-message bound/);
+});
+
+check("live building rejects fabricated source text even when offline packet checksums are valid", () => {
+  const input = clone(fixture); input.sources[0].quote += " Invented contractual approval.";
+  assert.equal(verifyMarginPacket(buildMarginPacket(input)).valid, true);
+  assert.throws(() => buildMarginPacket(input, {observedEmails: liveReceipts()}), /contiguous verbatim/);
 });
 
 process.stdout.write(`Validated ${checks} Freelance Margin Guard checks.\n`);
