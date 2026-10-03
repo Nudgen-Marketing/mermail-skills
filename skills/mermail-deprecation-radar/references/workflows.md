@@ -44,6 +44,7 @@ Rules:
 - `effective` is the ISO date the email states, or `null`. Never guess.
 - `evidence` is one short quote, not the whole body.
 - `signals` must be specific (a host, a path prefix, a header name, a package). Avoid generic words that would match everything.
+- Hosts in a body may arrive wrapped by the sender's mail client (for example Gmail rewrites `lite-api.jup.ag` as `https://www.google.com/url?q=http://lite-api.jup.ag&...`). Take the signal from the unwrapped `q` value, quote the evidence without the wrapper, and never open the wrapper link.
 - `status` stays `claimed` until the user confirms or an approved official docs page corroborates it.
 
 ## Report template
