@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Milestone Desk"
+  short_description: "Manage client milestones, delivery proofs, and crypto escrow settlements"
+  default_prompt: "Use $mermail-milestone-desk to manage freelance milestone deliveries, issue cryptographic delivery notices, verify client payments with Agent Wallet, and log settlements into an immutable receipt ledger."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
