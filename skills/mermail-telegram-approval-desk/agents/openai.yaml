@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Telegram Approval Desk"
+  short_description: "Draft Mermail replies and send only what you approve in Telegram"
+  default_prompt: "Use $mermail-telegram-approval-desk to triage unread mail in my Mermail inbox, save reply drafts, and send each reply only after I approve its exact card in Telegram."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
