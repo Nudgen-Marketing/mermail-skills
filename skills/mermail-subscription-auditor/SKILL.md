@@ -50,6 +50,7 @@ If tool names appear with a prefix in your client (for example `Mermail:list_ema
 5. Show the exact recipient, subject, and body before sending. Send only after the user approves that exact draft. One approval covers one message.
 6. If a send result is uncertain, stop and tell the user. Do not retry.
 7. Do not delete or move emails as part of an audit.
+8. Never send an email whose exact recipient, subject, and body the user has not seen and approved. After saving a draft, read it back to confirm the fields were stored. Malformed drafts are reported, not repaired in a loop, and never sent. Leave them for the user to delete.
 
 ## Workflow
 
@@ -63,7 +64,13 @@ If tool names appear with a prefix in your client (for example `Mermail:list_ema
    - Price change: same service with a different amount than before.
 6. **Report.** Use the format below.
 7. **Offer next steps.** Ask which subscription, if any, the user wants to cancel. Do not start a cancellation unprompted.
-8. **Cancellation (only if asked).** Ask the user for the recipient address. Create a draft with `save_draft`. Show the full draft. Wait for explicit approval. Then send once, and confirm the result.
+8. **Cancellation (only if asked).**
+   1. Ask the user for the recipient address. Use only that address.
+   2. Write a short, factual email: the service, the latest charge amount and date from the audit, a request for written confirmation, the effective date, and any refund or credit. Do not invent account numbers; leave them out.
+   3. Call `save_draft` with each field as its own top-level argument: `mailboxId`, `to`, `from`, `subject`, `body` (the message text), and `body_format: "text"`. Do not wrap the fields in an object or a JSON string: a wrapped payload is stored as the message text and leaves the recipient and subject empty. See "Draft and send payloads" in [tools.md](references/tools.md).
+   4. Read the draft back (`list_emails` with `query.folder: "draft"`, then `get_email`). Confirm `to`, `subject`, and the body are filled in and match what you intended. If any field is empty or wrong, stop and tell the user. Retry at most once with a corrected payload, and never send a draft you have not read back.
+   5. Show the exact From, To, Subject, and body. Wait for the user to approve that exact text.
+   6. Send once with `send_email`, passing `mailboxId`, `to`, `from`, `subject`, and `text` as separate top-level arguments, plus a unique `idempotencyKey`. Use exactly the recipient, subject, and text the user approved. Report it as sent only after the tool confirms it. A `queued` status means accepted for delivery, not delivered; say so. If the result is uncertain, stop and tell the user. The saved draft stays in Drafts; mention it so the user can delete it.
 
 ## Report format
 
