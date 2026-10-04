@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Rex DAO Brief"
+  short_description: "Brief Snapshot DAO votes from your Mermail inbox"
+  default_prompt: "Use $mermail-rexdao-brief to read Snapshot governance emails in my Mermail inbox and give a read-only brief: open proposals by closing time, recently closed proposals with every choice's result, and anything it could not parse. Never vote, open links, or reply to Snapshot."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
