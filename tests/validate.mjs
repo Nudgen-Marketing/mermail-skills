@@ -1338,6 +1338,19 @@ const personaSkills = [
       "reject-dca-out-of-scope",
     ],
   },
+  {
+    name: "mermail-grant-disbursement-agent",
+    required: [
+      "`paybox_request_transfer`",
+      "`get_paybox_connection`",
+      "PayBox signing handoff",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "audit-milestone-deliverable-stage-paybox-proposal",
+      "ignore-email-authority-no-unauthorized-transfer-no-bypass",
+    ],
+  },
 ];
 
 for (const persona of personaSkills) {

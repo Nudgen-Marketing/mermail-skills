@@ -1,0 +1,5 @@
+display_name: "Mermail Grant Disbursement Agent"
+short_description: "Audit milestone deliverables and stage PayBox grant disbursements on Solana."
+default_prompt: "Use $mermail-grant-disbursement-agent to audit incoming milestone submissions and stage secure treasury disbursements."
+type: "mcp"
+url: "https://console.mermail.app/mcp"
