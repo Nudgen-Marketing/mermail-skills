@@ -236,11 +236,22 @@ export function resolveEmailMetadata(payloads, subject) {
 }
 
 export function resolveSelectedEmailEvidence(payloads, emailId, requiredPhrases, tool = "get_email") {
-  const namedSelected = walkObjects(payloads).filter((value) => isObject(value.email)).map((value) => value.email);
-  // Context thread siblings cannot replace a mismatched primary `email`.
-  // get_email may also return its selected projection directly.
-  const candidates = namedSelected.length ? namedSelected : tool === "get_email" ?
-    payloads.filter((value) => isObject(value) && Object.hasOwn(value, "body")) : [];
+  const selectedProjections = (value, depth = 0) => {
+    if (!isObject(value)) return [];
+    // Only the primary selected field is evidence. Never search thread entries,
+    // metadata or arbitrary nested objects for a replacement email.
+    if (Object.hasOwn(value, "email")) {
+      invariant(isObject(value.email), "selected-message-identity");
+      return [value.email];
+    }
+    // get_email may return its selected projection directly; context may not.
+    if (tool === "get_email" && Object.hasOwn(value, "body")) return [value];
+    // Permit bounded application envelopes, without traversing thread content.
+    if (depth >= 3) return [];
+    return ["data", "result"].flatMap((key) =>
+      Object.hasOwn(value, key) ? selectedProjections(value[key], depth + 1) : []);
+  };
+  const candidates = payloads.flatMap((value) => selectedProjections(value));
   invariant(candidates.every((value) => value.id === emailId && Object.hasOwn(value, "body")),
     "selected-message-identity");
   // MCP may duplicate one projection in structuredContent and text content.

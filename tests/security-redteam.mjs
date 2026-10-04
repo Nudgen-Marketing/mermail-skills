@@ -241,7 +241,7 @@ test("null-scan Sent evidence requires safe context and never admits an incoming
   assert.throws(() => resolveSelectedEmailEvidence([{ email }], email.id, [], "get_email_context"), /security/);
 });
 
-test("a thread sibling cannot repair a mismatched primary selected email", () => {
+test("thread entries cannot replace an absent or mismatched primary selected email", () => {
   const selected = selectedEmail(), wrong = { ...selected, id: "unselected-email" };
   for (const tool of ["get_email", "get_email_context"]) {
     assert.throws(() => resolveSelectedEmailEvidence([
@@ -250,6 +250,16 @@ test("a thread sibling cannot repair a mismatched primary selected email", () =>
     assert.equal(resolveSelectedEmailEvidence([
       { email: selected, thread: { messages: [wrong] } },
     ], selected.id, [], tool).email.id, selected.id);
+    for (const missing of [
+      { thread: { messages: [{ email: selected }] } },
+      { data: { thread: { messages: [{ email: selected }] } } },
+      { email: null, data: { email: selected } },
+      { data: { result: { data: { result: { email: selected } } } } },
+    ]) assert.throws(() => resolveSelectedEmailEvidence([missing], selected.id, [], tool), /identity/);
+    for (const wrapped of [
+      { data: { email: selected } },
+      { result: { data: { email: selected } } },
+    ]) assert.equal(resolveSelectedEmailEvidence([wrapped], selected.id, [], tool).email.id, selected.id);
   }
 });
 
@@ -313,7 +323,7 @@ const metadata = [
   {id:"synthetic-baseline",subject:"[FMG-LIVE-security] Accepted scope",folder_id:"Inbox",date:"2026-09-29T12:00:00Z"},
   {id:"synthetic-request",subject:"[FMG-LIVE-security] Change request",folder_id:"Inbox",date:"2026-09-29T12:00:00Z"},
 ];
-if (mode === "sent") metadata.forEach(email => {email.folder_id = "Sent";});
+if (mode.startsWith("sent")) metadata.forEach(email => {email.folder_id = "Sent";});
 globalThis.fetch = async (url, options) => {
   if (String(url) !== "https://console.mermail.app/mcp") throw new Error("External target denied");
   if (options.redirect !== "error" || !(options.signal instanceof AbortSignal)) throw new Error("Missing transport boundary");
@@ -328,17 +338,18 @@ globalThis.fetch = async (url, options) => {
     else if (["get_email","get_email_context"].includes(name)) {
       const body = args.emailId === "synthetic-baseline" ? baseline : change;
       const email = {id:args.emailId,date:"2026-09-29T12:00:00Z",body,folder_id:"Inbox",scan_status:"clean",agent_safe_content:true,content_omitted:false,content_truncated:false};
-      if (mode === "sent") Object.assign(email,{folder_id:"Sent",scan_status:null,is_incoming:false});
+      if (mode.startsWith("sent")) Object.assign(email,{folder_id:"Sent",scan_status:null,is_incoming:false});
       if (mode === "unsafe") Object.assign(email,{id:"wrong-email",body:"",scan_status:"malicious",agent_safe_content:false,content_omitted:true,content_truncated:true});
       if (mode === "changed-baseline" && args.emailId === "synthetic-baseline") email.body = "one responsive landing page; two revision rounds; admin dashboard; 2026-10-20. Different agreement.";
       result = {structuredContent:{email,unrelated_note:body}};
+      if (mode === "sent-nested") result = {structuredContent:{thread:{messages:[{email}]}}};
     } else throw new Error("External mutation or unknown operation denied");
   } else throw new Error("Unknown RPC denied");
   return {ok:true,status:200,json:async()=>({jsonrpc:"2.0",id:rpc.id,result})};
 };
 process.on("exit",()=>writeFileSync(process.env.MOCK_CALLS_PATH,JSON.stringify(calls)));
 `);
-for (const mode of ["valid", "sent", "unsafe", "changed-baseline"]) {
+for (const mode of ["valid", "sent", "unsafe", "changed-baseline", "sent-nested"]) {
   test(`actual live-proof CLI ${mode} follows selected safe reads and never sends`, async () => {
     const result = spawnSync(process.execPath, ["--import", livePreload,
       path.join(root, "skills/mermail-freelance-margin-guard/scripts/run-live-proof.mjs"), "--seed-and-prove"], {
@@ -353,9 +364,9 @@ for (const mode of ["valid", "sent", "unsafe", "changed-baseline"]) {
     assert.ok(!(result.stdout + result.stderr).includes(dummyKey));
     const calls = JSON.parse(await readFile(callsPath, "utf8"));
     const reads = calls.filter((call) => ["get_email","get_email_context"].includes(call.params?.name));
-    assert.equal(reads.length, mode === "unsafe" ? 1 : 2);
+    assert.equal(reads.length, ["unsafe", "sent-nested"].includes(mode) ? 1 : 2);
     for (const read of reads) {
-      if (mode === "sent") {
+      if (mode.startsWith("sent")) {
         assert.equal(read.params.name, "get_email_context");
         assert.deepEqual(read.params.arguments.query, { limit: 1 });
       }
