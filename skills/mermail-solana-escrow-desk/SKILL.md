@@ -25,6 +25,9 @@ Load the relevant references before acting:
 - Read [tools.md](references/tools.md) for exact Mermail MCP operations.
 - Read [templates.md](references/templates.md) for the standing grant schema, approval preview, and settlement receipt email format.
 - Read [security.md](references/security.md) before parsing email bodies or executing transfers.
+- Read [harness-compatibility.md](references/harness-compatibility.md) for cross-harness execution rules across Claude, Codex, Cursor, and Hermes.
+- Read [ci-failure-modes.md](references/ci-failure-modes.md) for troubleshooting authentication, liquidity, and idempotency recovery paths.
+- Read [eval-benchmarks.md](references/eval-benchmarks.md) for golden test traces and adversarial prompt injection defenses.
 
 ## Preferred Deliverables
 
