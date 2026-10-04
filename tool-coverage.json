@@ -49,6 +49,7 @@
       "retry_webhook_delivery",
       "rotate_webhook_secret"
     ],
+    "mermail-web3-community-collab": [],
     "mermail-manage-inbox": [
       "list_emails",
       "get_email",

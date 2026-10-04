@@ -17,6 +17,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-web3-community-collab
 ```
 
 ## Install as a plugin
@@ -161,6 +162,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-composio` | Connect and execute third-party apps through Composio |
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
+| `mermail-web3-community-collab` | Manage Web3 project-to-community collaborations from outreach to final result reporting |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
