@@ -241,6 +241,18 @@ test("null-scan Sent evidence requires safe context and never admits an incoming
   assert.throws(() => resolveSelectedEmailEvidence([{ email }], email.id, [], "get_email_context"), /security/);
 });
 
+test("a thread sibling cannot repair a mismatched primary selected email", () => {
+  const selected = selectedEmail(), wrong = { ...selected, id: "unselected-email" };
+  for (const tool of ["get_email", "get_email_context"]) {
+    assert.throws(() => resolveSelectedEmailEvidence([
+      { email: wrong, thread: { messages: [selected] } },
+    ], selected.id, [], tool), /identity/);
+    assert.equal(resolveSelectedEmailEvidence([
+      { email: selected, thread: { messages: [wrong] } },
+    ], selected.id, [], tool).email.id, selected.id);
+  }
+});
+
 const temporary = await mkdtemp(path.join(os.tmpdir(), "mermail-security-"));
 const dummyKey = ["sk", "proj", "synthetic", "offline", "only"].join("-");
 const preloadPath = path.join(temporary, "mcp-mock.mjs");
@@ -343,7 +355,10 @@ for (const mode of ["valid", "sent", "unsafe", "changed-baseline"]) {
     const reads = calls.filter((call) => ["get_email","get_email_context"].includes(call.params?.name));
     assert.equal(reads.length, mode === "unsafe" ? 1 : 2);
     for (const read of reads) {
-      if (mode === "sent") assert.equal(read.params.name, "get_email_context");
+      if (mode === "sent") {
+        assert.equal(read.params.name, "get_email_context");
+        assert.deepEqual(read.params.arguments.query, { limit: 1 });
+      }
       else assert.deepEqual(read.params.arguments.query, {
         require_scan_status: "clean", agent_safe_content: true, max_body_chars: 10000,
       });

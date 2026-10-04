@@ -236,8 +236,13 @@ export function resolveEmailMetadata(payloads, subject) {
 }
 
 export function resolveSelectedEmailEvidence(payloads, emailId, requiredPhrases, tool = "get_email") {
-  const candidates = walkObjects(payloads).filter((value) =>
-    value.id === emailId && Object.hasOwn(value, "body"));
+  const namedSelected = walkObjects(payloads).filter((value) => isObject(value.email)).map((value) => value.email);
+  // Context thread siblings cannot replace a mismatched primary `email`.
+  // get_email may also return its selected projection directly.
+  const candidates = namedSelected.length ? namedSelected : tool === "get_email" ?
+    payloads.filter((value) => isObject(value) && Object.hasOwn(value, "body")) : [];
+  invariant(candidates.every((value) => value.id === emailId && Object.hasOwn(value, "body")),
+    "selected-message-identity");
   // MCP may duplicate one projection in structuredContent and text content.
   // Conflicting copies must never let the proof select whichever looks safe.
   const projectionKey = (value) => JSON.stringify([
@@ -343,7 +348,7 @@ async function readSelectedMessage(apiKey, counter, mailboxId, emailId, phrases,
   const tool = sent ? "get_email_context" : "get_email";
   const payloads = await callTool(
     apiKey, counter, tool,
-    sent ? { mailboxId, emailId } : {
+    sent ? { mailboxId, emailId, query: { limit: 1 } } : {
       mailboxId, emailId,
       query: { require_scan_status: "clean", agent_safe_content: true, max_body_chars: 10000 },
     },
