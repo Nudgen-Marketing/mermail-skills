@@ -6,7 +6,10 @@
     "rpc": "https://sepolia.base.org",
     "explorer": "https://sepolia.basescan.org/tx/0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
     "recordedAt": "2026-09-23T17:04:48.557Z",
-    "purpose": "Public-chain compatibility corpus only; not a Mermail payment or owner funding approval."
+    "purpose": "Public-chain compatibility corpus only; not a Mermail payment or owner funding approval.",
+    "inclusionMetadataRecordedAt": "2026-10-04T21:27:11.569Z",
+    "inclusionMetadataEvidence": "https://github.com/Trex2021/mermail-skills/actions/runs/37236138329",
+    "blockTransactionProjection": "Selected transaction membership only; full block response preserved in the linked read-only metadata artifact."
   },
   "transaction": {
     "hash": "0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
@@ -14,7 +17,8 @@
     "from": "0x5bc954e1be03b915ce078fee66bda2ae0e2bb67f",
     "to": "0xb2000000000000000000009a3da9fa0a0b61cb72",
     "value": "0x0",
-    "input": "0xa9059cbb0000000000000000000000006a9feb52b2a1cdb15bcbe2be69586053cbce135100000000000000000000000000000000000000000000000000000000000009df"
+    "input": "0xa9059cbb0000000000000000000000006a9feb52b2a1cdb15bcbe2be69586053cbce135100000000000000000000000000000000000000000000000000000000000009df",
+    "blockHash": "0x321de26de552fe96908383e4d70c413fd30457dd808204268cdd85c9d1ce9abb"
   },
   "receipt": {
     "transactionHash": "0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
@@ -29,13 +33,23 @@
           "0x0000000000000000000000005bc954e1be03b915ce078fee66bda2ae0e2bb67f",
           "0x0000000000000000000000006a9feb52b2a1cdb15bcbe2be69586053cbce1351"
         ],
-        "data": "0x00000000000000000000000000000000000000000000000000000000000009df"
+        "data": "0x00000000000000000000000000000000000000000000000000000000000009df",
+        "blockHash": "0x321de26de552fe96908383e4d70c413fd30457dd808204268cdd85c9d1ce9abb",
+        "blockNumber": "0x2d053c3",
+        "transactionHash": "0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83",
+        "removed": false
       }
-    ]
+    ],
+    "blockHash": "0x321de26de552fe96908383e4d70c413fd30457dd808204268cdd85c9d1ce9abb"
   },
   "latestBlock": "0x2d053e0",
   "block": {
-    "timestamp": "0x6ab40666"
+    "timestamp": "0x6ab40666",
+    "hash": "0x321de26de552fe96908383e4d70c413fd30457dd808204268cdd85c9d1ce9abb",
+    "number": "0x2d053c3",
+    "transactions": [
+      "0xc3e681567ad04f49771922a66fcf87d5e0bb2c63c909c967679d36dded977f83"
+    ]
   },
   "decimals": "0x0000000000000000000000000000000000000000000000000000000000000006"
 }

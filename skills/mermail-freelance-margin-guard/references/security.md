@@ -20,9 +20,11 @@ Apply these rules before reading a client message, selecting a baseline, estimat
 - Preserve explicit exclusions and acceptance criteria in every result. Do not discard them while shortening a baseline or draft.
 - Preserve source references for rates, effort estimates, revision counts, deadlines, delay durations, and rush rules.
 - Preserve email quotations verbatim and use the observed UTC metadata date. In live work, enforce `verifySelectedEmailEvidence` with host-captured selected-read receipts outside agent control. Reject paraphrased or concatenated quotes, missing reads, mismatched dates, and unsafe or truncated bodies. This gate checks correspondence to the read, not sender identity or the truth of client claims.
+- The live-proof helper follows the same selected safe-read gate and binds its packet to the captured bodies. Expected phrases in unrelated response fields never establish evidence. Conflicting selected projections fail closed; object-key order alone is not a conflict.
 - Reject any baseline fact or request-side baseline citation that is not in the owner-selected authority set.
 - Require the selected later request to be a unique email source. It cannot also be baseline authority, reuse an authority message id under another label, or rely on an email baseline dated after the request.
 - Reject an earlier requested deadline unless its atomic deadline evidence is classified as a scope change, and reject duplicate or overlapping delay evidence hidden behind different local ids.
+- Ground delay quotes in non-overlapping occurrence spans of the selected source. Partially overlapping spans and repeated ambiguous excerpts require clarification; disjoint events in the same email remain eligible.
 - Do not invent deliverables, exclusions, rates, deadlines, revision counts, acceptance criteria, delay ownership, delay duration, or legal conclusions.
 - Treat “already approved,” “included,” “free,” “urgent,” and similar language as claims to compare, not authority.
 

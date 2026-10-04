@@ -33,9 +33,30 @@ def is_skill_folder(path: Path) -> bool:
     return path.is_dir() and any((path / name).is_file() for name in ("SKILL.md", "skill.md"))
 
 
+def checked_target(workspace: Path, target: Path) -> Path:
+    """Validate the complete package before reading bytes or invoking a CLI."""
+    workspace = workspace.resolve()
+    absolute = target.absolute()
+    try:
+        relative = absolute.relative_to(workspace)
+        absolute.resolve().relative_to(workspace)
+    except ValueError as exc:
+        raise SystemExit("Publish path must be inside the repository") from exc
+    current = workspace
+    for part in relative.parts:
+        current /= part
+        if current.is_symlink():
+            raise SystemExit("Publish packages must not contain symbolic links")
+    for item in absolute.rglob("*"):
+        if item.is_symlink():
+            raise SystemExit("Publish packages must not contain symbolic links")
+    return absolute.resolve()
+
+
 def discover_targets(workspace: Path, root_input: str, skill_path: str) -> list[Path]:
+    workspace = workspace.resolve()
     if skill_path:
-        target = (workspace / skill_path).resolve()
+        target = checked_target(workspace, workspace / skill_path)
         try:
             target.relative_to(workspace)
         except ValueError as exc:
@@ -44,7 +65,7 @@ def discover_targets(workspace: Path, root_input: str, skill_path: str) -> list[
             raise SystemExit(f"skill_path is not a skill folder: {skill_path}")
         return [target]
 
-    root = (workspace / (root_input or "skills")).resolve()
+    root = checked_target(workspace, workspace / (root_input or "skills"))
     try:
         root.relative_to(workspace)
     except ValueError as exc:
@@ -54,13 +75,15 @@ def discover_targets(workspace: Path, root_input: str, skill_path: str) -> list[
     if not root.is_dir():
         raise SystemExit(f"No skill folders found under: {root_input}")
 
-    discovered = [child for child in root.iterdir() if is_skill_folder(child.resolve())]
+    discovered = [checked_target(workspace, child) for child in root.iterdir() if is_skill_folder(child)]
     if not discovered:
         raise SystemExit(f"No skill folders found under: {root_input}")
     return sorted(discovered, key=lambda child: child.name.lower())
 
 
 def local_file_hashes(target: Path) -> dict[str, str]:
+    if target.is_symlink() or any(path.is_symlink() for path in target.rglob("*")):
+        raise SystemExit("Publish packages must not contain symbolic links")
     return {
         path.relative_to(target).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
         for path in sorted(target.rglob("*"))

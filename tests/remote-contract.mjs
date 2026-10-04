@@ -10,22 +10,27 @@ const catalog = [coverage.confirmationTool, ...Object.values(coverage.domains).f
 const success = "Authenticated Mermail proof passed:";
 
 // Run the actual validator with a hermetic transport. Never call Mermail or use a real key.
-function validate({ names = catalog, discovery = catalog, unauthenticatedStatus = 401, key = true } = {}) {
+function validate({ names = catalog, discovery = catalog, unauthenticatedStatus = 401, key = true, mode = "valid" } = {}) {
   const setup = `
     const coverage = ${JSON.stringify(coverage)};
     const names = ${JSON.stringify(names)};
     const discovery = ${JSON.stringify(discovery)};
+    const mode = ${JSON.stringify(mode)};
+    const rpc = (request, result) => Response.json({jsonrpc: mode === "invalid-envelope" ? "0.0" : "2.0", id: mode === "invalid-envelope" ? 999 : request.id, result});
     globalThis.fetch = async (url, options = {}) => {
+      if (options.redirect !== "error" || !(options.signal instanceof AbortSignal)) throw new Error("Missing transport boundary");
       if (url === coverage.discoveryEndpoint) {
         return Response.json({ capabilities: { tools: { list: discovery } } });
       }
       if (url !== coverage.mcpEndpoint) throw new Error("Unexpected network target in offline test");
       if (!options.headers?.["x-api-key"]) return new Response(null, { status: ${unauthenticatedStatus} });
       const request = JSON.parse(options.body);
-      if (request.method === "initialize") return Response.json({ result: { serverInfo: { name: "offline-fixture" } } });
-      if (request.method === "tools/list") return Response.json({ result: { tools: names.map(name => ({ name })) } });
+      if (mode === "reflected-network-error") throw new Error(process.env.MERMAIL_MCP_TEST_API_KEY);
+      if (mode === "reflected-json-error") return {ok:true,json:async()=>{throw new Error(process.env.MERMAIL_MCP_TEST_API_KEY);}};
+      if (request.method === "initialize") return rpc(request, { serverInfo: { name: "offline-fixture" } });
+      if (request.method === "tools/list") return rpc(request, { tools: names.map(name => ({ name })) });
       if (request.method === "tools/call" && ["list_workspaces", "list_mailboxes"].includes(request.params.name)) {
-        return Response.json({ result: { structuredContent: { items: [] } } });
+        return rpc(request, { structuredContent: { items: [] } });
       }
       throw new Error("Unexpected MCP operation in read-only validation test");
     };
@@ -85,3 +90,20 @@ test("manual remote proof still requires the configured test credential", () => 
   assert.match(result.stderr, /requires MERMAIL_MCP_TEST_API_KEY/);
   assert.ok(!result.stdout.includes(success));
 });
+
+test("remote diagnostic rejects reflected credential in a tool name without logging it", () => {
+  const dummy = "offline-test-only";
+  const result = validate({ names: [catalog[0], dummy, ...catalog.slice(2)] });
+  assert.equal(result.status, 1);
+  assert.ok(!(result.stdout + result.stderr).includes(dummy));
+  assert.match(result.stderr, /redacted-or-invalid/);
+});
+
+for (const mode of ["invalid-envelope", "reflected-network-error", "reflected-json-error"]) {
+  test(`remote proof rejects ${mode} without logging a credential or false success`, () => {
+    const result = validate({ mode });
+    assert.equal(result.status, 1);
+    assert.ok(!(result.stdout + result.stderr).includes("offline-test-only"));
+    assert.ok(!result.stdout.includes(success));
+  });
+}

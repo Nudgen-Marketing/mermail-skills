@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 import {
   buildMarginPacket,
   verifyMarginPacket,
+  verifySelectedEmailEvidence,
 } from "./build-margin-packet.mjs";
 
 const MCP_ENDPOINT = "https://console.mermail.app/mcp";
@@ -99,19 +100,6 @@ function walkObjects(value, result = [], seen = new Set()) {
   return result;
 }
 
-function walkStrings(value, result = [], seen = new Set()) {
-  if (typeof value === "string") {
-    result.push(value);
-    return result;
-  }
-  if (value === null || typeof value !== "object" || seen.has(value)) return result;
-  seen.add(value);
-  for (const child of Array.isArray(value) ? value : Object.values(value)) {
-    walkStrings(child, result, seen);
-  }
-  return result;
-}
-
 function firstString(object, keys) {
   for (const key of keys) {
     if (typeof object?.[key] === "string" && object[key].trim()) return object[key].trim();
@@ -141,6 +129,8 @@ async function mcpRequest(apiKey, id, method, params, stage) {
   try {
     response = await fetch(MCP_ENDPOINT, {
       method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
       headers: {
         accept: "application/json, text/event-stream",
         "content-type": "application/json",
@@ -159,6 +149,7 @@ async function mcpRequest(apiKey, id, method, params, stage) {
     throw new SafeError(`${stage}:response-format`);
   }
   invariant(!rpc?.error, `${stage}:rpc-error`);
+  invariant(rpc?.jsonrpc === "2.0" && rpc.id === id, `${stage}:rpc-envelope`);
   return rpc;
 }
 
@@ -223,7 +214,7 @@ export function resolveEmailMetadata(payloads, subject) {
     // correlation metadata and must never be used as the resource identifier.
     const id = firstString(object, ["id", "email_id", "emailId"]);
     if (!id) continue;
-    const folder = firstString(object, ["folder_id", "folderId", "folder_name", "folderName"]);
+    const folder = firstString(object, ["folder_name", "folderName", "folder_id", "folderId"]);
     const rawDate = firstString(object, [
       "date",
       "received_at",
@@ -244,33 +235,38 @@ export function resolveEmailMetadata(payloads, subject) {
   return unique[0];
 }
 
-function resolveMessageDate(payloads, metadataDate) {
-  const candidates = [metadataDate];
-  for (const object of walkObjects(payloads)) {
-    candidates.push(firstString(object, [
-      "date",
-      "received_at",
-      "receivedAt",
-      "sent_at",
-      "sentAt",
-      "created_at",
-      "createdAt",
-      "timestamp",
-    ]));
+export function resolveSelectedEmailEvidence(payloads, emailId, requiredPhrases, tool = "get_email") {
+  const candidates = walkObjects(payloads).filter((value) =>
+    value.id === emailId && Object.hasOwn(value, "body"));
+  // MCP may duplicate one projection in structuredContent and text content.
+  // Conflicting copies must never let the proof select whichever looks safe.
+  const projectionKey = (value) => JSON.stringify([
+    value.id, value.body, value.date, value.folder_name, value.folder_id,
+    value.is_incoming, value.scan_status, value.agent_safe_content,
+    value.content_omitted ?? false, value.content_truncated ?? false,
+  ]);
+  const unique = [...new Map(candidates.map((value) => [projectionKey(value), value])).values()];
+  invariant(unique.length === 1, "selected-message-identity");
+  const email = unique[0];
+  invariant(typeof email.body === "string" && typeof email.date === "string", "selected-message-format");
+  invariant(/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(email.date),
+    "selected-message-date");
+  const parsedDate = new Date(email.date);
+  invariant(!Number.isNaN(parsedDate.valueOf()), "selected-message-date");
+  const receipt = { tool, email };
+  try {
+    verifySelectedEmailEvidence({ sources: [{
+      id: "selected-live-email", type: "email", messageId: emailId,
+      date: parsedDate.toISOString().slice(0, 10), quote: email.body.slice(0, 300),
+    }] }, [receipt]);
+  } catch {
+    throw new SafeError("selected-message-security");
   }
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    const parsed = new Date(candidate);
-    if (!Number.isNaN(parsed.valueOf())) return parsed.toISOString().slice(0, 10);
-  }
-  throw new SafeError("message-date");
-}
-
-function assertMessageEvidence(payloads, requiredPhrases) {
-  const corpus = normalize(walkStrings(payloads).join(" "));
+  const corpus = normalize(email.body);
   for (const phrase of requiredPhrases) {
     invariant(corpus.includes(normalize(phrase)), "message-evidence");
   }
+  return receipt;
 }
 
 export function buildDiscoveryPlan(mailboxId, subject, { resumeOnly = false } = {}) {
@@ -340,27 +336,22 @@ async function findMessage(apiKey, counter, mailboxId, subject, { resumeOnly = f
   throw lastError;
 }
 
-async function readSelectedMessage(apiKey, counter, mailboxId, emailId, phrases) {
-  for (let attempt = 0; attempt < WAIT_ATTEMPTS; attempt += 1) {
-    try {
-      const payloads = await callTool(
-        apiKey,
-        counter,
-        "get_email",
-        {
-          mailboxId,
-          emailId,
-        },
-        "selected-message-read",
-      );
-      assertMessageEvidence(payloads, phrases);
-      return payloads;
-    } catch (error) {
-      if (!(error instanceof SafeError) || attempt === WAIT_ATTEMPTS - 1) throw error;
-      await sleep(WAIT_MS);
-    }
-  }
-  throw new SafeError("selected-message-read");
+async function readSelectedMessage(apiKey, counter, mailboxId, emailId, phrases,
+  { selectedFolder = null, safeContextAvailable = false } = {}) {
+  const sent = normalize(selectedFolder) === "sent";
+  invariant(!sent || safeContextAvailable, "selected-sent-context-unavailable");
+  const tool = sent ? "get_email_context" : "get_email";
+  const payloads = await callTool(
+    apiKey, counter, tool,
+    sent ? { mailboxId, emailId } : {
+      mailboxId, emailId,
+      query: { require_scan_status: "clean", agent_safe_content: true, max_body_chars: 10000 },
+    },
+    "selected-message-read",
+  );
+  // A blocked/mismatched projection is a definite failure, not eventual
+  // delivery. Only the bounded transport operation above is retried.
+  return resolveSelectedEmailEvidence(payloads, emailId, phrases, tool);
 }
 
 export function buildLiveMarginInput({ baselineMessageId, requestMessageId, baselineDate, requestDate }) {
@@ -603,7 +594,7 @@ async function main() {
     await readSelectedMessage(apiKey, counter, mailbox.id, metadata.id, [
       "round-trip health check for PR 124",
       "sent, discovered, selected, and read successfully",
-    ]);
+    ], { selectedFolder: metadata.folder, safeContextAvailable: names.has("get_email_context") });
     outputRoundtripProbe();
     return;
   }
@@ -639,29 +630,29 @@ async function main() {
   const baselineMetadata = await findMessage(apiKey, counter, mailbox.id, baselineSubject, { resumeOnly });
   const requestMetadata = await findMessage(apiKey, counter, mailbox.id, requestSubject, { resumeOnly });
 
-  const baselinePayloads = await readSelectedMessage(apiKey, counter, mailbox.id, baselineMetadata.id, [
+  const baselineReceipt = await readSelectedMessage(apiKey, counter, mailbox.id, baselineMetadata.id, [
     "one responsive landing page",
     "two revision rounds",
     "admin dashboard",
     BASELINE_DEADLINE,
-  ]);
-  const requestPayloads = await readSelectedMessage(apiKey, counter, mailbox.id, requestMetadata.id, [
+  ], { selectedFolder: baselineMetadata.folder, safeContextAvailable: names.has("get_email_context") });
+  const requestReceipt = await readSelectedMessage(apiKey, counter, mailbox.id, requestMetadata.id, [
     "Stripe payment processing",
     "two more revision rounds",
     "five calendar days earlier",
     "supplied two days after",
-  ]);
+  ], { selectedFolder: requestMetadata.folder, safeContextAvailable: names.has("get_email_context") });
 
   const dates = {
-    baseline: resolveMessageDate(baselinePayloads, baselineMetadata.rawDate),
-    request: resolveMessageDate(requestPayloads, requestMetadata.rawDate),
+    baseline: new Date(baselineReceipt.email.date).toISOString().slice(0, 10),
+    request: new Date(requestReceipt.email.date).toISOString().slice(0, 10),
   };
   const packet = buildMarginPacket(buildLiveMarginInput({
     baselineMessageId: baselineMetadata.id,
     requestMessageId: requestMetadata.id,
     baselineDate: dates.baseline,
     requestDate: dates.request,
-  }));
+  }), { observedEmails: [baselineReceipt, requestReceipt] });
   outputProof(packet, dates);
 }
 

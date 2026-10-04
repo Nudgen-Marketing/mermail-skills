@@ -1,5 +1,7 @@
 # Mermail MCP connection safety
 
+Connection diagnostics accept only the canonical `https://console.mermail.app/mcp` endpoint and the optional `agent-inbox` profile. Validate the endpoint before sending a key, disable redirects, and bound each request with a timeout. Do not print untrusted server names, error messages, or reflected credential values. An invalid JSON-RPC version or response id is a failed check.
+
 Read this reference before handling API keys, OAuth, workspace selection, logs, copied configuration, or post-reconnect recovery.
 
 ## Credential boundary

@@ -50,6 +50,8 @@ Create a terms file only from values explicitly selected by the owner:
 
 `amount`, prices, and atomic amounts are strings so floating-point rounding cannot silently change financial evidence. Token identity is the contract or mint, not merely the ticker. The gate never assumes USD equals USDC; `owner_fixed` records the owner's exact conversion decision.
 
+When packet currency and settlement asset symbol are identical, the decimal settlement amount must equal the selected price exactly, with or without an explicit `same_asset` mode. Extra trailing zeroes do not change equality. A different amount requires a separately priced choice, not an implicit conversion.
+
 Build the covenant:
 
 ```bash
@@ -78,7 +80,9 @@ Supported observations:
 - Base and Base Sepolia native transfers;
 - exact ERC-20 `transfer(address,uint256)` calls on Base and Base Sepolia, with one matching `Transfer` event and decimals read at the receipt block;
 - finalized native SOL transfers on Solana mainnet-beta, devnet, or testnet with an exact net recipient balance increase; and
-- finalized SPL Token / Token-2022 transfers whose destination token account belongs to the owner-selected recipient, whose mint matches exactly, and whose net balance increase equals the observed incoming amount.
+- finalized SPL Token / Token-2022 transfers whose destination token account belongs to the owner-selected recipient, whose mint matches exactly, and whose aggregate net balance increase across that recipient's accounts of the selected mint in the transaction equals the observed incoming amount. An outgoing debit from a different owned account or a closed account cannot be hidden by a credit.
+
+Base observations bind the transaction and receipt block hashes to the canonical block returned at the receipt height, require transaction membership in that block, and bind the token event to the same transaction and block. A different block at the same height is rejected. Solana observations first check `getGenesisHash` against the selected mainnet-beta, devnet, or testnet genesis identity, then request the finalized transaction. Saved-receipt reauthentication repeats these checks. These are consistency checks against the selected RPC, not independent consensus proofs or authentication of the RPC operator.
 
 For deterministic tests or offline comparison, `--chain-observation recorded-observation.json` can replace `--tx` and `--rpc-url`. It can return only `RECORDED_MATCH`, never `FUNDED` or a new public receipt, even if every field matches. Use the live RPC path for an authoritative result. Choose an RPC endpoint you trust: the program validates HTTPS, rejects embedded credentials, local domains and private or reserved IP literals (including IPv4-mapped IPv6), disables redirects, and times out; it does not independently authenticate DNS answers or the RPC operator. For higher assurance, compare the explorer result with a second independent RPC.
 

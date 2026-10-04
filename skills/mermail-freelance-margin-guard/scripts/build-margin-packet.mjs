@@ -737,12 +737,19 @@ export function buildMarginPacket(rawInput, {observedEmails} = {}) {
     if (dependency.evidenceQuote !== null) {
       const normalizedEvidence = normalizeEvidence(dependency.evidenceQuote);
       const existingEvidence = dependencyEvidenceBySource.get(dependency.sourceRef) ?? [];
+      const source = sourceMap.get(dependency.sourceRef);
+      const sourceText = normalizeEvidence(source.quote ?? "");
+      const start = sourceText.indexOf(normalizedEvidence);
+      const end = start + normalizedEvidence.length;
+      invariant(source.type !== "email" || sourceText.indexOf(normalizedEvidence, start + 1) === -1,
+        `dependencies contains ambiguous repeated evidence for source ${dependency.sourceRef}`);
       invariant(
-        !existingEvidence.some((quote) =>
-          quote.includes(normalizedEvidence) || normalizedEvidence.includes(quote)),
+        !existingEvidence.some((prior) =>
+          source.type === "email" ? start < prior.end && end > prior.start :
+            prior.quote.includes(normalizedEvidence) || normalizedEvidence.includes(prior.quote)),
         `dependencies contains duplicate or overlapping evidence for source ${dependency.sourceRef}`,
       );
-      existingEvidence.push(normalizedEvidence);
+      existingEvidence.push({ quote: normalizedEvidence, start, end });
       dependencyEvidenceBySource.set(dependency.sourceRef, existingEvidence);
     }
   }

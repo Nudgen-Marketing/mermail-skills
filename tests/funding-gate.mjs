@@ -47,6 +47,8 @@ const packet = buildMarginPacket(clone(fixture));
 const destination = "0x111111111111111111111111111111111111aBcD";
 const token = "0x222222222222222222222222222222222222bCdE";
 const transactionHash = `0x${"ab".repeat(32)}`;
+const canonicalBlockHash = `0x${"cd".repeat(32)}`;
+const devnetGenesisHash = "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG";
 const requestId = "paybox-request-fmg-001";
 const terms = {
   optionId: "paid_change_order",
@@ -74,6 +76,7 @@ const baseRpcResults = {
   eth_getTransactionByHash: {
     hash: transactionHash,
     blockNumber: "0x64",
+    blockHash: canonicalBlockHash,
     from: "0x1111111111111111111111111111111111111111",
     to: covenant.settlement.assetId,
     value: "0x0",
@@ -82,16 +85,18 @@ const baseRpcResults = {
   eth_getTransactionReceipt: {
     transactionHash,
     blockNumber: "0x64",
+    blockHash: canonicalBlockHash,
     status: "0x1",
     to: covenant.settlement.assetId,
     logs: [{
       address: covenant.settlement.assetId,
-      topics: [transferTopic, `0x${"1".repeat(64)}`, `0x${rawDestination}`],
+      topics: [transferTopic, `0x${"0".repeat(24)}${"1".repeat(40)}`, `0x${rawDestination}`],
+      blockHash: canonicalBlockHash, blockNumber: "0x64", transactionHash, removed: false,
       data: `0x${rawAmount}`,
     }],
   },
   eth_blockNumber: "0x69",
-  eth_getBlockByNumber: { timestamp: "0x6ab26dc0" },
+  eth_getBlockByNumber: { timestamp: "0x6ab26dc0", number: "0x64", hash: canonicalBlockHash, transactions: [transactionHash] },
   eth_call: `0x${"0".repeat(63)}6`,
 };
 const baseRpcCalls = [];
@@ -814,10 +819,10 @@ await checkAsync("reads and verifies a finalized SPL-token settlement from Solan
       },
     },
   };
-  const fetchFn = async () => ({
+  const fetchFn = async (_url, request) => ({
     ok: true,
     status: 200,
-    json: async () => ({ jsonrpc: "2.0", id: 1, result: transaction }),
+    json: async () => ({ jsonrpc: "2.0", id: 1, result: JSON.parse(request.body).method === "getGenesisHash" ? devnetGenesisHash : transaction }),
   });
   const observation = await observePublicSettlement(solanaCovenant, signature, {
     rpcUrl: "https://api.devnet.solana.com",
@@ -871,10 +876,10 @@ await checkAsync("rejects a Solana transfer followed by an outbound debit in the
       },
     },
   };
-  const fetchFn = async () => ({
+  const fetchFn = async (_url, request) => ({
     ok: true,
     status: 200,
-    json: async () => ({ jsonrpc: "2.0", id: 1, result: transaction }),
+    json: async () => ({ jsonrpc: "2.0", id: 1, result: JSON.parse(request.body).method === "getGenesisHash" ? devnetGenesisHash : transaction }),
   });
   await assert.rejects(
     observePublicSettlement(solanaCovenant, signature, { rpcUrl: "https://api.devnet.solana.com", fetchFn }),
@@ -916,6 +921,10 @@ await checkAsync("replays an independently inspectable Solana Devnet SPL transac
   const fetchFn = async (_url, request) => {
     const { method, params } = JSON.parse(request.body);
     calls.push({ method, params });
+    if (method === "getGenesisHash") {
+      assert.deepEqual(params, []);
+      return { ok: true, status: 200, json: async () => ({ jsonrpc: "2.0", id: 1, result: devnetGenesisHash }) };
+    }
     assert.equal(method, "getTransaction");
     assert.equal(params[0], signature);
     assert.equal(params[1].commitment, "finalized");
@@ -933,7 +942,8 @@ await checkAsync("replays an independently inspectable Solana Devnet SPL transac
   assert.equal(observation.destination, publicCovenant.settlement.destination);
   assert.equal(observation.finality, "finalized");
   assert.equal(verifyGate(packet, publicCovenant, { chain: observation }).status, "FUNDED");
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls.map(call => call.method), ["getGenesisHash", "getTransaction"]);
 });
 
 await checkAsync("accepts a finalized native SOL receipt only when net recipient balance rises exactly", async () => {
@@ -963,9 +973,9 @@ await checkAsync("accepts a finalized native SOL receipt only when net recipient
       },
     },
   };
-  const fetchFn = async () => ({
+  const fetchFn = async (_url, request) => ({
     ok: true, status: 200,
-    json: async () => ({ jsonrpc: "2.0", id: 1, result: transaction }),
+    json: async () => ({ jsonrpc: "2.0", id: 1, result: JSON.parse(request.body).method === "getGenesisHash" ? devnetGenesisHash : transaction }),
   });
   const observation = await observePublicSettlement(nativeCovenant, signature, {
     rpcUrl: "https://api.devnet.solana.com", fetchFn,
@@ -1014,10 +1024,10 @@ await checkAsync("rejects an unsafe numeric lamport amount from Solana RPC", asy
       },
     },
   };
-  const fetchFn = async () => ({
+  const fetchFn = async (_url, request) => ({
     ok: true,
     status: 200,
-    json: async () => ({ jsonrpc: "2.0", id: 1, result: transaction }),
+    json: async () => ({ jsonrpc: "2.0", id: 1, result: JSON.parse(request.body).method === "getGenesisHash" ? devnetGenesisHash : transaction }),
   });
   await assert.rejects(
     observePublicSettlement(nativeCovenant, signature, {

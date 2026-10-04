@@ -2179,8 +2179,21 @@ async function walk(directory) {
 }
 
 async function validateRemote() {
+  try {
+    await validateRemoteSafely();
+  } catch {
+    errors.push("remote Mermail validation stopped: network, response, or schema failure (details redacted)");
+  }
+}
+
+async function validateRemoteSafely() {
+  if (coverage.mcpEndpoint !== "https://console.mermail.app/mcp" ||
+      coverage.discoveryEndpoint !== "https://console.mermail.app/.well-known/mcp/server-card.json") {
+    errors.push("remote validation requires the canonical HTTPS Mermail endpoints");
+    return;
+  }
   const errorsBeforeRemote = errors.length;
-  const response = await fetch(coverage.discoveryEndpoint);
+  const response = await fetch(coverage.discoveryEndpoint, { redirect: "error", signal: AbortSignal.timeout(30_000) });
   if (!response.ok) {
     errors.push(`server card returned HTTP ${response.status}`);
     return;
@@ -2194,6 +2207,8 @@ async function validateRemote() {
 
   const unauthenticated = await fetch(coverage.mcpEndpoint, {
     method: "POST",
+    redirect: "error",
+    signal: AbortSignal.timeout(30_000),
     headers: { accept: "application/json, text/event-stream", "content-type": "application/json" },
     body: JSON.stringify(initializePayload(0))
   });
@@ -2215,7 +2230,13 @@ async function validateRemote() {
     errors.push("authenticated MCP initialize did not return serverInfo");
   }
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
-  const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
+  const listedTools = listed?.result?.tools;
+  if (!Array.isArray(listedTools) || listedTools.length > 1000 ||
+      listedTools.some((tool) => !tool || typeof tool.name !== "string")) {
+    errors.push("authenticated tools/list returned an invalid or unbounded catalog");
+    return;
+  }
+  const remoteNames = listedTools.map((tool) => tool.name);
   if (remoteNames.length !== localTools.length) {
     authenticatedProofPassed = false;
     errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected ${localTools.length}`);
@@ -2276,7 +2297,12 @@ function describeCatalogDiff(expected, actual) {
   const missing = [...actualSet].filter((name) => !expectedSet.has(name)).sort();
   const stale = [...expectedSet].filter((name) => !actualSet.has(name)).sort();
   const duplicates = [...actualSet].filter((name) => actual.filter((item) => item === name).length > 1);
-  return `uncovered: ${missing.join(", ") || "none"}; absent on server: ${stale.join(", ") || "none"}; duplicate server entries: ${duplicates.join(", ") || "none"}`;
+  const safeName = (name) => {
+    const key = process.env.MERMAIL_MCP_TEST_API_KEY;
+    return typeof name === "string" && /^[a-z][a-z0-9_]{0,79}$/.test(name) &&
+      (!key || !name.includes(key)) ? name : "[redacted-or-invalid]";
+  };
+  return `uncovered: ${missing.map(safeName).join(", ") || "none"}; absent on server: ${stale.map(safeName).join(", ") || "none"}; duplicate server entries: ${duplicates.map(safeName).join(", ") || "none"}`;
 }
 
 function initializePayload(id) {
@@ -2291,6 +2317,8 @@ function initializePayload(id) {
 async function authenticatedMcpRequest(apiKey, body) {
   const response = await fetch(coverage.mcpEndpoint, {
     method: "POST",
+    redirect: "error",
+    signal: AbortSignal.timeout(30_000),
     headers: {
       accept: "application/json, text/event-stream",
       "content-type": "application/json",
@@ -2302,7 +2330,13 @@ async function authenticatedMcpRequest(apiKey, body) {
     errors.push(`authenticated MCP ${body.method} returned HTTP ${response.status}`);
     return null;
   }
-  return response.json();
+  const payload = await response.json();
+  if (payload?.jsonrpc !== "2.0" || payload.id !== body.id || payload.error ||
+      !payload.result || typeof payload.result !== "object") {
+    errors.push(`authenticated MCP ${body.method} returned an invalid response envelope`);
+    return null;
+  }
+  return payload;
 }
 
 async function validatePluginManifests() {

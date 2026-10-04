@@ -11,9 +11,9 @@ import { verifyMarginPacket } from "./build-margin-packet.mjs";
 const CHAINS = new Map([
   ["base", { family: "evm", chainId: 8453n, explorer: "https://basescan.org/tx/" }],
   ["base-sepolia", { family: "evm", chainId: 84532n, explorer: "https://sepolia.basescan.org/tx/" }],
-  ["mainnet-beta", { family: "solana", explorer: "https://explorer.solana.com/tx/" }],
-  ["devnet", { family: "solana", explorer: "https://explorer.solana.com/tx/", query: "?cluster=devnet" }],
-  ["testnet", { family: "solana", explorer: "https://explorer.solana.com/tx/", query: "?cluster=testnet" }],
+  ["mainnet-beta", { family: "solana", genesisHash: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d", explorer: "https://explorer.solana.com/tx/" }],
+  ["devnet", { family: "solana", genesisHash: "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG", explorer: "https://explorer.solana.com/tx/", query: "?cluster=devnet" }],
+  ["testnet", { family: "solana", genesisHash: "4uhcVJyU9pJkvQyS88uRDiswHXSCkY3zQawwpjk2NsNY", explorer: "https://explorer.solana.com/tx/", query: "?cluster=testnet" }],
 ]);
 const SUCCESS_STATUSES = new Set(["completed", "settled", "succeeded", "success"]);
 const PENDING_STATUSES = new Set([
@@ -234,10 +234,17 @@ export function buildFundingCovenant(rawPacket, rawTerms) {
       mode: "owner_fixed",
       sourceRef: textValue(rawConversion.sourceRef, "terms.conversion.sourceRef", 160),
     };
-  } else if (terms.conversion !== undefined) {
-    const rawConversion = object(terms.conversion, "terms.conversion");
-    invariant(rawConversion.mode === "same_asset", "same-asset conversion mode must be same_asset");
-    conversion = { mode: "same_asset" };
+  } else {
+    invariant(
+      decimalToAtomic(priceAmount, 18, "terms.price.amount") ===
+        decimalToAtomic(settlementAmount, 18, "terms.settlement.amount"),
+      "same-asset settlement amount must equal the selected price",
+    );
+    if (terms.conversion !== undefined) {
+      const rawConversion = object(terms.conversion, "terms.conversion");
+      invariant(rawConversion.mode === "same_asset", "same-asset conversion mode must be same_asset");
+      conversion = { mode: "same_asset" };
+    }
   }
 
   const binding = object(terms.binding, "terms.binding");
@@ -985,6 +992,7 @@ async function rpcCall(rpcUrl, method, params, fetchFn) {
   });
   invariant(response.ok, `RPC ${method} returned HTTP ${response.status}`);
   const payload = await response.json();
+  invariant(payload?.jsonrpc === "2.0" && payload.id === 1, `RPC ${method} returned an invalid envelope`);
   invariant(!payload.error, `RPC ${method} failed`);
   invariant(payload.result !== undefined && payload.result !== null, `RPC ${method} returned no result`);
   return payload.result;
@@ -1048,6 +1056,18 @@ export async function observePublicSettlement(rawCovenant, transactionHash, opti
     const latest = hexQuantity(latestBlock, "latest block");
     invariant(latest >= blockNumber, "latest block predates the receipt");
     const block = await rpcCall(rpcUrl, "eth_getBlockByNumber", [receipt.blockNumber, false], fetchFn);
+    const canonicalHash = normalizeTransactionHash(block.hash, chain, "block.hash");
+    invariant(
+      normalizeTransactionHash(transaction.blockHash, chain, "transaction.blockHash") === canonicalHash &&
+        normalizeTransactionHash(receipt.blockHash, chain, "receipt.blockHash") === canonicalHash,
+      "RPC transaction or receipt is not in the canonical block",
+    );
+    invariant(hexQuantity(block.number, "block.number") === blockNumber, "RPC canonical block number mismatch");
+    invariant(
+      array(block.transactions, "block.transactions").some((entry) =>
+        typeof entry === "string" && entry.toLowerCase() === hash),
+      "RPC canonical block does not include the selected transaction",
+    );
     const settledAt = new Date(Number(hexQuantity(block.timestamp, "block.timestamp")) * 1000).toISOString();
 
     let destination;
@@ -1074,6 +1094,7 @@ export async function observePublicSettlement(rawCovenant, transactionHash, opti
       const sender = normalizeAddress(transaction.from, chain, "transaction.from");
       const input = textValue(transaction.input, "transaction.input", 4096).toLowerCase();
       invariant(/^0xa9059cbb[0-9a-f]{128}$/.test(input), "token settlement must be one exact ERC-20 transfer call");
+      invariant(/^0{24}$/.test(input.slice(10, 34)), "ERC-20 destination has noncanonical address padding");
       destination = normalizeAddress(`0x${input.slice(34, 74)}`, chain, "ERC-20 destination");
       amountAtomic = BigInt(`0x${input.slice(74, 138)}`).toString();
       const tokenTransfers = array(receipt.logs, "receipt.logs").filter((log) =>
@@ -1087,8 +1108,11 @@ export async function observePublicSettlement(rawCovenant, transactionHash, opti
         if (!isObject(log) || typeof log.address !== "string" || !Array.isArray(log.topics)) return false;
         const topics = log.topics.map((topic) => String(topic).toLowerCase());
         if (topics.length !== 3 || topics[0] !== ERC20_TRANSFER_TOPIC) return false;
-        if (!/^0x[0-9a-f]{64}$/.test(topics[1]) || !/^0x[0-9a-f]{64}$/.test(topics[2])) return false;
+        if (!/^0x0{24}[0-9a-f]{40}$/.test(topics[1]) || !/^0x0{24}[0-9a-f]{40}$/.test(topics[2])) return false;
         return log.removed !== true &&
+          typeof log.blockHash === "string" && log.blockHash.toLowerCase() === canonicalHash &&
+          log.blockNumber === receipt.blockNumber &&
+          typeof log.transactionHash === "string" && log.transactionHash.toLowerCase() === hash &&
           log.address.toLowerCase() === expected.assetId &&
           `0x${topics[1].slice(-40)}` === sender &&
           `0x${topics[2].slice(-40)}` === destination;
@@ -1128,6 +1152,8 @@ export async function observePublicSettlement(rawCovenant, transactionHash, opti
     });
   }
 
+  const genesisHash = await rpcCall(rpcUrl, "getGenesisHash", [], fetchFn);
+  invariant(genesisHash === CHAINS.get(chain).genesisHash, "RPC Solana cluster does not match covenant");
   const transaction = await rpcCall(
     rpcUrl,
     "getTransaction",
@@ -1188,16 +1214,30 @@ export async function observePublicSettlement(rawCovenant, transactionHash, opti
       recipientAccounts.add(destinationIndex);
     }
     let netIncrease = 0n;
+    // Bind the owner aggregate, including outgoing debits from other accounts
+    // of the selected mint. Crediting one account cannot hide a second debit.
+    for (const balance of [...before, ...after]) {
+      if (balance.owner === expected.destination && balance.mint === expected.assetId) {
+        integer(balance.accountIndex, "SPL recipient accountIndex", { max: accountKeys.length - 1 });
+        recipientAccounts.add(balance.accountIndex);
+      }
+    }
     for (const accountIndex of recipientAccounts) {
+      invariant(before.filter((entry) => entry.accountIndex === accountIndex).length <= 1 &&
+        after.filter((entry) => entry.accountIndex === accountIndex).length <= 1,
+      "SPL recipient balance entries are ambiguous");
       const prior = before.find((entry) => entry.accountIndex === accountIndex);
       const current = after.find((entry) => entry.accountIndex === accountIndex);
       invariant(
-        !prior || (prior.owner === expected.destination && prior.mint === expected.assetId),
+        (!prior || (prior.owner === expected.destination && prior.mint === expected.assetId)) &&
+          (!current || (current.owner === expected.destination && current.mint === expected.assetId)),
         "SPL recipient ownership or mint changed during the transaction",
       );
+      for (const balance of [prior, current].filter(Boolean)) {
+        invariant(balance.uiTokenAmount?.decimals === observedDecimals, "SPL recipient balance decimals conflict");
+      }
       const priorAmount = prior ? normalizeAtomic(prior.uiTokenAmount?.amount, "SPL previous balance") : 0n;
-      const currentAmount = normalizeAtomic(current.uiTokenAmount?.amount, "SPL current balance");
-      invariant(currentAmount >= priorAmount, "SPL recipient balance decreased");
+      const currentAmount = current ? normalizeAtomic(current.uiTokenAmount?.amount, "SPL current balance") : 0n;
       netIncrease += currentAmount - priorAmount;
     }
     invariant(netIncrease === amountAtomic, "SPL transfer amount differs from recipient net balance increase");
