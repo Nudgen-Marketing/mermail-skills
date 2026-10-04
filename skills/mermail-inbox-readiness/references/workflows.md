@@ -22,7 +22,7 @@ Four sequences. Stop at the first one that cannot complete and report why.
 1. Compose a probe whose recipient is a mailbox in this workspace, normally the mailbox itself.
 2. Use a unique, human-readable subject, for example `Mermail readiness probe <date>-<suffix>`, and a body that states it is a self-test.
 3. Preview exact `from`, `to`, subject, and body. Wait for fresh approval. `save_draft` while the body is still being revised.
-4. `send_email` once with `body.from` = mailbox email, explicit `to`, `body.text` and/or `body.html`, and one idempotency key.
+4. After approval, re-read the selected mailbox and recipient availability. If a target is unavailable or any previewed mailbox/from/to/subject/body changes, invalidate the approval, show the complete corrected preview, and end the turn. Reuse or a self-send is still a changed action; wait for a new user approval. With an unchanged, available action, `send_email` once with `body.from` = mailbox email, explicit `to`, `body.text` and/or `body.html`, and one idempotency key.
 5. Poll `search_emails` (or `list_emails`) against the probe subject in a narrow window with capped retries. State the cap before starting.
 6. On arrival, `get_email` and quote `sender_authentication.status` and `scan_status` verbatim.
 7. On no arrival within the cap, report `probe_missing` and `degraded`. Do not extend the wait and do not send a second probe without a new approval.
