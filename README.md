@@ -12,6 +12,7 @@ Install one focused skill:
 
 ```bash
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-email-preflight
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-scheduling-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
@@ -155,6 +156,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
+| `mermail-email-preflight` | Preflight an email or batch before sending: merge tags and fallbacks, links and buttons, content, attachments, dates, recipients, and plan limits; PASS / WARN / FAIL report, test copy to yourself, send only after explicit approval |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, webhooks, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
