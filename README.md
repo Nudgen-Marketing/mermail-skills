@@ -153,6 +153,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
 | `mermail-cli` | Install and use the CLI for deterministic shell automation |
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
+| `mermail-candidate-submission-guard` | Verify role-specific candidate representation consent, surface duplicate-submission risk, and prepare clarification drafts without auto-sending |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, webhooks, storage, and usage |
