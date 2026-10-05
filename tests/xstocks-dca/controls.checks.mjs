@@ -78,6 +78,16 @@ export default [
     const native = { id: "n1", sender: "owner@example.com", subject: email(m).subject, date: at(1), text: "PAUSE" };
     assert.deepEqual(evaluateControls(m, genesis(m), [native]).map((record) => record.kind), ["control_seen", "paused"]);
   }],
+  ["get_email bodies work, and quoted receipts in HTML replies are ignored", () => {
+    const m = mandate();
+    const quoted = '<div class="gmail_quote">On Mon, Oct 6 Standing Order &lt;desk@mermail.app&gt; wrote:<blockquote>'
+      + "Reply PAUSE or STOP to halt this desk. A reply can never resume it, raise a limit or change an asset.</blockquote></div>";
+    const reply = (id, html) => ({ id, sender: "owner@example.com", subject: email(m).subject, date: at(1), body: html, body_format: "html" });
+    assert.deepEqual(evaluateControls(m, genesis(m), [reply("h1", `<div dir="ltr">PAUSE</div><br>${quoted}`)]).map((r) => r.kind), ["control_seen", "paused"]);
+    assert.deepEqual(evaluateControls(m, genesis(m), [reply("h2", `<div dir="ltr">thanks, all good</div>${quoted}`)]).map((r) => r.data.action), ["none"]);
+    const plain = { id: "p1", sender: "owner@example.com", subject: email(m).subject, date: at(1), body: "STOP\n\n> Reply PAUSE or STOP", body_format: "text" };
+    assert.deepEqual(evaluateControls(m, genesis(m), [plain]).map((r) => r.kind), ["control_seen", "revoked"]);
+  }],
   ["controls are processed in received order", () => {
     const m = mandate();
     const records = evaluateControls(m, genesis(m), [

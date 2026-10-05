@@ -1,4 +1,4 @@
-import { addressOf, folderOf, senderOf } from "./controls.mjs";
+import { addressOf, bodyTextOf, folderOf, senderOf } from "./mail.mjs";
 import { DcaError, canonical, parseInstant, sha256Hex } from "./core.mjs";
 
 export const LEDGER_SCHEMA = "mermail-xstocks-dca/ledger@1";
@@ -71,28 +71,13 @@ export function extractLedgerBlocks(text) {
   return [...String(text ?? "").matchAll(pattern)].map((match) => parseBlock(match[1]));
 }
 
-export function htmlToText(html) {
-  return String(html ?? "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|tr|pre)>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
-}
-
 // Ledger records are only trusted from mail the desk itself sent. Anyone can email the desk a
 // well-formed chain (the hashes are unkeyed), so inbound mail is never a source of records.
 export function blocksFromEmails(emails, { from, folder } = {}) {
   const sender = from === undefined ? null : from.toLowerCase();
   const trusted = (email) => (sender === null || addressOf(senderOf(email)) === sender)
     && (folder === undefined || folderOf(email) === folder);
-  return emails.filter(trusted).flatMap((email) => {
-    const text = String(email?.text ?? "");
-    return text.includes(`\`\`\`${LEDGER_FENCE}`) ? extractLedgerBlocks(text) : extractLedgerBlocks(htmlToText(email?.html));
-  });
+  return emails.filter(trusted).flatMap((email) => extractLedgerBlocks(bodyTextOf(email)));
 }
 
 export function rebuildLedger(blocks, expectedMandateId) {

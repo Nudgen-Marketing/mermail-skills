@@ -1,5 +1,8 @@
 import { parseInstant } from "./core.mjs";
+import { addressOf, bodyTextOf, receivedAtOf, senderOf } from "./mail.mjs";
 import { mandateId, shortId } from "./mandate.mjs";
+
+export { addressOf } from "./mail.mjs";
 
 // Email is untrusted and unauthenticated (Mermail exposes no sender verdict). It may only
 // reduce authority: PAUSE or STOP. Anything that reads like a request for more authority is
@@ -23,23 +26,8 @@ export function parseControl(text) {
   return hit ? { action: "escalation", keyword: hit[1].toLowerCase() } : { action: "none" };
 }
 
-// Strict on purpose: a header we cannot read unambiguously (several addresses, an address
-// hidden in a quoted display name) belongs to nobody, so it can never match the owner or the desk.
-const BARE_ADDRESS = /^[^\s<>",;]+@[^\s<>",;]+$/;
-const NAMED_ADDRESS = /^[^<>,;]*<([^\s<>",;]+@[^\s<>",;]+)>$/;
-
-export function addressOf(from) {
-  const text = String(from ?? "").trim();
-  if (BARE_ADDRESS.test(text)) return text.toLowerCase();
-  const named = NAMED_ADDRESS.exec(text);
-  return named ? named[1].toLowerCase() : "";
-}
-
-// Accept Mermail message objects as returned by list/search/get_email (sender, date, folder_id)
-// as well as the shorter from/receivedAt/folder names.
-export const senderOf = (email) => email?.from ?? email?.sender;
-export const receivedAtOf = (email) => email?.receivedAt ?? email?.date;
-export const folderOf = (email) => email?.folder ?? email?.folder_id;
+// Bodies are read as plain text with quoted history removed, capped at 10,000 characters.
+const CONTROL_BODY_LIMIT = 10_000;
 
 export function evaluateControls(mandate, ledger, emails) {
   const tag = `#${shortId(mandateId(mandate))}`;
@@ -53,7 +41,7 @@ export function evaluateControls(mandate, ledger, emails) {
     if (!String(email.subject ?? "").includes(tag) || addressOf(senderOf(email)) === desk) continue;
     seen.add(email.id);
     const fromOwner = addressOf(senderOf(email)) === owner;
-    const parsed = parseControl(email.text);
+    const parsed = parseControl(bodyTextOf(email, { dropQuotes: true, limit: CONTROL_BODY_LIMIT }));
     records.push({ kind: "control_seen", data: { emailId: email.id, fromOwner, action: parsed.action } });
     if (parsed.action === "escalation") {
       records.push({ kind: "escalation_ignored", data: { emailId: email.id, keyword: parsed.keyword, fromOwner } });

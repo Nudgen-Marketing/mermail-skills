@@ -80,6 +80,16 @@ export default [
     ];
     assert.deepEqual(blocksFromEmails(emails, { from: m.mailbox.email, folder: "sent" }), l);
   }],
+  ["records are read from get_email bodies in either format", () => {
+    const { m, l } = sample();
+    const text = l.map(ledgerBlock).join("\n");
+    const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const emails = [
+      { sender: "desk@mermail.app", folder_id: "sent", body: text.slice(0, text.indexOf("```mermail-dca-ledger", 10)), body_format: "text" },
+      { sender: "desk@mermail.app", folder_id: "sent", body: `<pre>${escaped}</pre>`, body_format: "html" },
+    ];
+    assert.deepEqual(rebuildLedger(blocksFromEmails(emails, { from: m.mailbox.email, folder: "sent" }), mandateId(m)).ledger, l);
+  }],
   ["rebuild accepts shuffled and duplicated receipts", () => {
     const { m, l } = sample();
     const result = rebuildLedger([l[4], l[1], l[0], l[3], l[1], l[2], l[4]], mandateId(m));
