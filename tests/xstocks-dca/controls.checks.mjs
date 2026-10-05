@@ -73,6 +73,11 @@ export default [
       email(m, { id: "old" }),
     ]), []);
   }],
+  ["Mermail message fields (sender, date) work as-is", () => {
+    const m = mandate();
+    const native = { id: "n1", sender: "owner@example.com", subject: email(m).subject, date: at(1), text: "PAUSE" };
+    assert.deepEqual(evaluateControls(m, genesis(m), [native]).map((record) => record.kind), ["control_seen", "paused"]);
+  }],
   ["controls are processed in received order", () => {
     const m = mandate();
     const records = evaluateControls(m, genesis(m), [

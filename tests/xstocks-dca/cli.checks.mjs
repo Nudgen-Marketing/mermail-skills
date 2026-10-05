@@ -118,7 +118,7 @@ export default [
     await w.cli(["mark-mailed", "--id", id, "--through", String(ticket.throughSeq)]);
     assert.equal((await buyFirstSlice(w, id)).code, 0);
     const receipt = (await w.cli(["outbox", "--id", id])).output;
-    const mailed = [{ from: "desk@mermail.app", text: receipt.text }, { from: "desk@mermail.app", html: ticket.html }];
+    const mailed = [{ sender: "desk@mermail.app", folder_id: "sent", text: receipt.text }, { sender: "desk@mermail.app", folder_id: "sent", html: ticket.html }];
     const head = (await w.cli(["verify", "--id", id, "--against", await w.write("mailed", mailed)])).output;
     assert.equal(head.ok, true);
     assert.deepEqual(head.mailed, { ok: true, comparedThroughSeq: 3 });

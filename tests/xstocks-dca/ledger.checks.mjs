@@ -72,6 +72,14 @@ export default [
     ];
     assert.deepEqual(blocksFromEmails(emails, { from: m.mailbox.email }), l);
   }],
+  ["Mermail message fields work as-is and only the Sent folder counts", () => {
+    const { m, l } = sample();
+    const emails = [
+      { sender: "desk@mermail.app", folder_id: "sent", text: l.map(ledgerBlock).join("\n") },
+      { sender: "desk@mermail.app", folder_id: "inbox", text: ledgerBlock(l[0]).replace("genesis", "resumed") },
+    ];
+    assert.deepEqual(blocksFromEmails(emails, { from: m.mailbox.email, folder: "sent" }), l);
+  }],
   ["rebuild accepts shuffled and duplicated receipts", () => {
     const { m, l } = sample();
     const result = rebuildLedger([l[4], l[1], l[0], l[3], l[1], l[2], l[4]], mandateId(m));

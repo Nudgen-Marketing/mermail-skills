@@ -231,13 +231,13 @@ const COMMANDS = {
     const desk = await readDesk(await deskDir(flags));
     const verdict = verifyChain(desk.ledger, mandateId(desk.mandate));
     if (typeof flags.against !== "string") return verdict;
-    return { ...verdict, mailed: compareLedgers(desk.ledger, blocksFromEmails(await readJson(flags.against, io), { from: desk.mandate.mailbox.email })) };
+    return { ...verdict, mailed: compareLedgers(desk.ledger, blocksFromEmails(await readJson(flags.against, io), { from: desk.mandate.mailbox.email, folder: "sent" })) };
   },
 
   async rebuild(flags, io) {
     const mandate = await readJson(flags.mandate, io);
     const id = assertMandate(mandate);
-    const result = rebuildLedger(blocksFromEmails(await readJson(flags.input, io), { from: mandate.mailbox.email }), id);
+    const result = rebuildLedger(blocksFromEmails(await readJson(flags.input, io), { from: mandate.mailbox.email, folder: "sent" }), id);
     if (!result.ok) return result;
     const dir = path.join(resolveHome(flags.home), id);
     let exists = true;

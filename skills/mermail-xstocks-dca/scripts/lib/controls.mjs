@@ -35,18 +35,24 @@ export function addressOf(from) {
   return named ? named[1].toLowerCase() : "";
 }
 
+// Accept Mermail message objects as returned by list/search/get_email (sender, date, folder_id)
+// as well as the shorter from/receivedAt/folder names.
+export const senderOf = (email) => email?.from ?? email?.sender;
+export const receivedAtOf = (email) => email?.receivedAt ?? email?.date;
+export const folderOf = (email) => email?.folder ?? email?.folder_id;
+
 export function evaluateControls(mandate, ledger, emails) {
   const tag = `#${shortId(mandateId(mandate))}`;
   const owner = mandate.owner.email.toLowerCase();
   const desk = mandate.mailbox.email.toLowerCase();
   const seen = new Set(ledger.filter((entry) => entry.kind === "control_seen").map((entry) => entry.data.emailId));
   const records = [];
-  const ordered = [...emails].sort((a, b) => parseInstant(a.receivedAt) - parseInstant(b.receivedAt));
+  const ordered = [...emails].sort((a, b) => parseInstant(receivedAtOf(a)) - parseInstant(receivedAtOf(b)));
   for (const email of ordered) {
     if (!email?.id || seen.has(email.id)) continue;
-    if (!String(email.subject ?? "").includes(tag) || addressOf(email.from) === desk) continue;
+    if (!String(email.subject ?? "").includes(tag) || addressOf(senderOf(email)) === desk) continue;
     seen.add(email.id);
-    const fromOwner = addressOf(email.from) === owner;
+    const fromOwner = addressOf(senderOf(email)) === owner;
     const parsed = parseControl(email.text);
     records.push({ kind: "control_seen", data: { emailId: email.id, fromOwner, action: parsed.action } });
     if (parsed.action === "escalation") {

@@ -1,4 +1,4 @@
-import { addressOf } from "./controls.mjs";
+import { addressOf, folderOf, senderOf } from "./controls.mjs";
 import { DcaError, canonical, parseInstant, sha256Hex } from "./core.mjs";
 
 export const LEDGER_SCHEMA = "mermail-xstocks-dca/ledger@1";
@@ -85,9 +85,11 @@ export function htmlToText(html) {
 
 // Ledger records are only trusted from mail the desk itself sent. Anyone can email the desk a
 // well-formed chain (the hashes are unkeyed), so inbound mail is never a source of records.
-export function blocksFromEmails(emails, { from } = {}) {
+export function blocksFromEmails(emails, { from, folder } = {}) {
   const sender = from === undefined ? null : from.toLowerCase();
-  return emails.filter((email) => sender === null || addressOf(email?.from) === sender).flatMap((email) => {
+  const trusted = (email) => (sender === null || addressOf(senderOf(email)) === sender)
+    && (folder === undefined || folderOf(email) === folder);
+  return emails.filter(trusted).flatMap((email) => {
     const text = String(email?.text ?? "");
     return text.includes(`\`\`\`${LEDGER_FENCE}`) ? extractLedgerBlocks(text) : extractLedgerBlocks(htmlToText(email?.html));
   });
