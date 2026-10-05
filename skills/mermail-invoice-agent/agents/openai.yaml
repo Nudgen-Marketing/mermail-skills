@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Agent"
+  short_description: "Invoice intake, payment reminders, and approved wallet settlement"
+  default_prompt: "Use $mermail-invoice-agent to scan Mermail for invoices, build a payment queue, draft reminders, and settle only after I approve exact terms."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
