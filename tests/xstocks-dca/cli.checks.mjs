@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { run } from "../../skills/mermail-xstocks-dca/scripts/dca.mjs";
 import { mandateId, shortId } from "../../skills/mermail-xstocks-dca/scripts/lib/mandate.mjs";
-import { SPIKE_TX, allVerified, at, mandate, spikeTx } from "./fixtures.mjs";
+import { SPIKE_TX, SPY_MINT, allVerified, at, mandate, spikeTx } from "./fixtures.mjs";
 
 async function workspace() {
   const home = await mkdtemp(path.join(os.tmpdir(), "dca-home-"));
@@ -141,6 +141,21 @@ export default [
     const lateId = await openDesk(late, lateDesk);
     const stale = await buyFirstSlice(late, lateId, { now: "2026-10-06T10:00:30Z" });
     assert.equal(stale.output.detail, "fill_unproven: tx_before_intent");
+  }],
+  ["plan and statement take paybox_get_portfolio output verbatim", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    const row = (tokenAddress, balance, balanceUsd) => ({ networkId: 1399811149, tokenAddress, balance, balanceUsd });
+    const before = await w.write("before", { items: [row("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "3005776", "3.0054")] });
+    const verification = await w.write("verification", allVerified());
+    const planned = await w.cli(["plan", "--id", id, "--portfolio", before, "--verification-file", verification]);
+    assert.deepEqual(planned.output.actions.map((action) => action.type), ["buy"]);
+    assert.equal((await buyFirstSlice(w, id)).code, 0);
+    const after = await w.write("after", { items: [row(SPY_MINT, "31979", "0.2492")] });
+    const statement = await w.cli(["statement", "--id", id, "--portfolio", after, "--verification-file", verification]);
+    assert.equal(statement.code, 0, JSON.stringify(statement.output));
+    assert.equal(statement.output.statement.legs[0].valueUsd, "0.2492");
+    assert.equal(statement.output.statement.totals.pnlUsd, "-0.0008");
   }],
   ["two ticks cannot hold the desk at once", async () => {
     const w = await workspace();

@@ -13,6 +13,23 @@ export function effectiveMultiplier(scaled, now) {
   return scaled.currentMultiplier;
 }
 
+// paybox_get_portfolio output is passed through verbatim, so the model never retypes a balance.
+const SOLANA_NETWORK_ID = 1399811149;
+
+function portfolioRow(portfolio, wallet, token) {
+  return (portfolio?.items ?? []).find((item) => item.networkId === SOLANA_NETWORK_ID && item.tokenAddress === token
+    && (item.wallet_address === undefined || item.wallet_address === wallet)) ?? null;
+}
+
+export const usdcFromPortfolio = (portfolio, wallet) => String(portfolioRow(portfolio, wallet, USDC_MINT)?.balance ?? "0");
+
+export function marksFromPortfolio(portfolio, wallet, mints) {
+  return Object.fromEntries(mints.map((mint) => {
+    const row = portfolioRow(portfolio, wallet, mint);
+    return [mint, { holdingRaw: String(row?.balance ?? "0"), valueUsd: String(row?.balanceUsd ?? "0") }];
+  }));
+}
+
 const balanceRow = (rows, owner, mint) => (rows ?? []).find((row) => row.owner === owner && row.mint === mint) ?? null;
 
 // A fill is only real when the confirmed transaction shows the wallet's USDC going down and

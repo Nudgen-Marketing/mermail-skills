@@ -12,7 +12,7 @@ import { assertMandate, mandateId, shortId, usdcUnits, validateMandate } from ".
 import { fetchTransaction, observeCatalog } from "./lib/network.mjs";
 import { budgetOf, deriveState, intentAllowed, plan } from "./lib/planner.mjs";
 import { describeMandate, renderEmail } from "./lib/render.mjs";
-import { buildStatement, fillFromTransaction } from "./lib/settlement.mjs";
+import { buildStatement, fillFromTransaction, marksFromPortfolio, usdcFromPortfolio } from "./lib/settlement.mjs";
 import { createDesk, findDesk, readDesk, resolveHome, withLock, writeLedger, writeState } from "./lib/store.mjs";
 
 // Block time and the local clock can disagree by a little; two minutes is generous for Solana.
@@ -119,7 +119,9 @@ const COMMANDS = {
     const verification = typeof flags["verification-file"] === "string"
       ? await readJson(flags["verification-file"], io)
       : await io.observeCatalog(peek.mandate);
-    const usdcRaw = flags["usdc-raw"] === undefined ? null : String(integer(flags["usdc-raw"], "usdc-raw"));
+    let usdcRaw = null;
+    if (typeof flags.portfolio === "string") usdcRaw = usdcFromPortfolio(await readJson(flags.portfolio, io), peek.mandate.wallet.address);
+    else if (flags["usdc-raw"] !== undefined) usdcRaw = String(integer(flags["usdc-raw"], "usdc-raw"));
     const decide = (desk) => plan({ mandate: desk.mandate, ledger: desk.ledger, now, observations: { verification, usdcRaw } });
     if (!flags.commit) return decide(peek);
     return mutate(flags, io, (desk) => {
@@ -205,7 +207,20 @@ const COMMANDS = {
   },
 
   async statement(flags, io) {
-    const marks = await readJson(flags.marks, io);
+    let marks;
+    if (typeof flags.portfolio === "string") {
+      // Holdings come from paybox_get_portfolio verbatim; the multiplier from the live catalog.
+      const { mandate } = await readDesk(await deskDir(flags));
+      const portfolio = await readJson(flags.portfolio, io);
+      const verification = typeof flags["verification-file"] === "string"
+        ? await readJson(flags["verification-file"], io)
+        : await io.observeCatalog(mandate);
+      const mints = mandate.legs.map((leg) => leg.mint);
+      marks = marksFromPortfolio(portfolio, mandate.wallet.address, mints);
+      for (const mint of mints) marks[mint].scaledUiAmount = verification[mint]?.scaledUiAmount ?? null;
+    } else {
+      marks = await readJson(flags.marks, io);
+    }
     return mutate(flags, io, (desk, now) => {
       const statement = buildStatement({ mandate: desk.mandate, ledger: desk.ledger, now, marks });
       return { records: [{ kind: "statement", data: statement }], result: { statement } };

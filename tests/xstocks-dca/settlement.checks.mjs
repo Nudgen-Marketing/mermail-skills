@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildStatement, effectiveMultiplier, fillFromTransaction } from "../../skills/mermail-xstocks-dca/scripts/lib/settlement.mjs";
+import { buildStatement, effectiveMultiplier, fillFromTransaction, marksFromPortfolio, usdcFromPortfolio } from "../../skills/mermail-xstocks-dca/scripts/lib/settlement.mjs";
 import { fill, genesis } from "./chain.mjs";
 import { NVDA_MINT, SPIKE_TX, SPY_MINT, WALLET, at, mandate, spikeTx } from "./fixtures.mjs";
 
@@ -21,6 +21,24 @@ export default [
     assert.deepEqual(fillFromTransaction(failed, { owner: WALLET, mint: SPY_MINT }), { ok: false, reason: "tx_failed" });
     assert.deepEqual(fillFromTransaction(spikeTx(), { owner: "11111111111111111111111111111111", mint: SPY_MINT }), { ok: false, reason: "no_usdc_spent" });
     assert.deepEqual(fillFromTransaction(spikeTx(), { owner: WALLET, mint: NVDA_MINT }), { ok: false, reason: "no_asset_received" });
+  }],
+  ["portfolio output is read verbatim: USDC balance and per-mint marks", () => {
+    const portfolio = {
+      address: WALLET,
+      items: [
+        { balance: "18435440", balanceUsd: "2.2162597193603784", networkId: 1399811149, symbol: "SOL", tokenAddress: "native" },
+        { balance: "2755776", balanceUsd: "2.75550202075008", networkId: 1399811149, symbol: "USDC", tokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" },
+        { balance: "31979", balanceUsd: "0.24924456420933247", networkId: 1399811149, symbol: "SPYx", tokenAddress: SPY_MINT },
+        { balance: "999", balanceUsd: "1", networkId: 8453, symbol: "SPYx", tokenAddress: SPY_MINT },
+      ],
+    };
+    assert.equal(usdcFromPortfolio(portfolio, WALLET), "2755776");
+    assert.deepEqual(marksFromPortfolio(portfolio, WALLET, [SPY_MINT, NVDA_MINT]), {
+      [SPY_MINT]: { holdingRaw: "31979", valueUsd: "0.24924456420933247" },
+      [NVDA_MINT]: { holdingRaw: "0", valueUsd: "0" },
+    });
+    const otherWallet = { items: portfolio.items.map((item) => ({ ...item, wallet_address: "11111111111111111111111111111111" })) };
+    assert.equal(usdcFromPortfolio(otherWallet, WALLET), "0");
   }],
   ["the scaled UI multiplier switches at its effective time", () => {
     assert.equal(effectiveMultiplier(SPY_SCALED, "2026-06-18T03:59:59Z"), "1.003909240011759");
