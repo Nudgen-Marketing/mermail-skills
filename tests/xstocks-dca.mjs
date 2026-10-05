@@ -2,6 +2,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import cliChecks from "./xstocks-dca/cli.checks.mjs";
 import controlsChecks from "./xstocks-dca/controls.checks.mjs";
 import core from "./xstocks-dca/core.checks.mjs";
 import ledgerChecks from "./xstocks-dca/ledger.checks.mjs";
@@ -12,7 +13,7 @@ import settlementChecks from "./xstocks-dca/settlement.checks.mjs";
 
 // Engine checks for scripts/dca.mjs. These exercise the deterministic money logic,
 // not a live wallet: network access is replaced by recorded fixtures.
-const SUITES = { core, mandate: mandateChecks, ledger: ledgerChecks, controls: controlsChecks, planner: plannerChecks, settlement: settlementChecks, render: renderChecks };
+const SUITES = { core, mandate: mandateChecks, ledger: ledgerChecks, controls: controlsChecks, planner: plannerChecks, settlement: settlementChecks, render: renderChecks, cli: cliChecks };
 
 export async function runEngineChecks() {
   let total = 0;
