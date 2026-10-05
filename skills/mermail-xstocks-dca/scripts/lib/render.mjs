@@ -23,6 +23,9 @@ const PRIORITY = [
 ];
 const usdc = (raw) => fromBaseUnits(raw, 6);
 const reason = (code) => REASONS[code] ?? code;
+// Ledger JSON inside <pre> keeps its quotes so the record stays copyable verbatim; only the
+// characters that could open markup are encoded.
+const escapePre = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const escapeHtml = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // Human-readable lines can carry untrusted text (provider error reasons). They are flattened
 // to one line without backticks so nothing in them can open a ledger block in our own mail.
@@ -100,7 +103,11 @@ function statementTable(statement) {
 export function renderEmail({ mandate, entries, budget = null }) {
   const tag = `#${shortId(mandateId(mandate))}`;
   const top = [...entries].sort((a, b) => PRIORITY.indexOf(a.kind) - PRIORITY.indexOf(b.kind))[0];
-  const lines = entries.map((entry) => line(entry, mandate)).filter(Boolean).map(flatten);
+  // An order that settled in this same email does not also need its "submitted" line.
+  const settled = new Set(entries.filter((entry) => ["filled", "failed", "uncertain"].includes(entry.kind)).map((entry) => `${entry.slot}:${entry.leg}`));
+  const lines = entries
+    .filter((entry) => !(entry.kind === "submitted" && settled.has(`${entry.slot}:${entry.leg}`)))
+    .map((entry) => line(entry, mandate)).filter(Boolean).map(flatten);
   const statement = entries.findLast((entry) => entry.kind === "statement")?.data ?? null;
   const footer = "Reply PAUSE or STOP to halt this desk. A reply can never resume it, raise a limit or change an asset; only your agent session can.";
   const budgetLine = budget
@@ -119,7 +126,7 @@ export function renderEmail({ mandate, entries, budget = null }) {
     + (statement ? `${statementTable(statement)}<p style="color:#555">${escapeHtml(statementLines(statement).at(-1))}</p>` : "")
     + (budgetLine ? `<p>${escapeHtml(budgetLine)}</p>` : "")
     + `<p style="color:#555">${escapeHtml(footer)}</p>`
-    + `<pre style="font-size:11px;white-space:pre-wrap;word-break:break-all;color:#777">${escapeHtml(blocks.join("\n"))}</pre></div>`;
+    + `<pre style="font-size:11px;white-space:pre-wrap;word-break:break-all;color:#777">${escapePre(blocks.join("\n"))}</pre></div>`;
   return {
     subject: `[${BRAND}] ${title(top, entries, mandate)} ${tag}`,
     text,

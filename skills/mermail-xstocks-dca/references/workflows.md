@@ -33,7 +33,7 @@
    5. `pending_signature` or `pending_approval` → show the one returned handoff URL to the owner and stop buying in this tick.
    6. Error → `dca record --id <shortId> --kind failed --slot <slot> --leg <leg> --reason "<error code>"`.
 5. If `statementDue`: section 5.
-6. `dca outbox --id <shortId>` → if not empty, `send_email` with `mailboxId`, `body { to, from, subject, text, html }` and `idempotencyKey` exactly as returned → after a successful send, `dca mark-mailed --id <shortId> --through <throughSeq>`. If the send fails, leave it; the next tick's outbox includes the same records again.
+6. `dca outbox --id <shortId>` → if not empty, `send_email` with `mailboxId`, `body { to, from, subject, html }` and `idempotencyKey` exactly as returned → after a successful send, `dca mark-mailed --id <shortId> --through <throughSeq>`. If the send fails, leave it; the next tick's outbox includes the same records again.
 7. Reply with one line: what was bought (Solscan links), refused or reconciled, and the budget left.
 
 ## 3. Reconcile a submitted slice

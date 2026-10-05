@@ -64,7 +64,7 @@ In the commands below, `dca` means `node <this skill's directory>/scripts/dca.mj
    4. On `status: success` with `output.value.tx_hash`: `dca record --kind filled --slot S --leg L --tx <tx_hash>`. On `pending_signature` or `pending_approval`: show the one returned handoff URL and leave the slice submitted. On an error: `dca record --kind failed ... --reason "<error code>"`.
 6. **Refill** each `refill` action: if Base USDC covers the shortfall, prepare one native USDC bridge (Base → Solana) with `prepare_bridge` and tell the owner it needs their approval in the Mermail UI. Never treat a bridge quote as approved.
 7. **Statement** when `statementDue` is true: read `paybox_get_portfolio` again and pass it unchanged to `dca statement --id <shortId> --portfolio -`; the engine prorates each holding to what this desk bought and applies the catalog multiplier.
-8. **Mail.** `dca outbox --id <shortId>`; if not empty, `send_email` with `mailboxId`, `body: { to, from, subject, text, html }` and `idempotencyKey`, all exactly as returned; after success, `dca mark-mailed --id <shortId> --through <throughSeq>`.
+8. **Mail.** `dca outbox --id <shortId>`; if not empty, `send_email` with `mailboxId`, `body: { to, from, subject, html }` and `idempotencyKey`, all exactly as returned (the HTML part carries the records; there is no text part); after success, `dca mark-mailed --id <shortId> --through <throughSeq>`.
 
 ### Pause, resume, revoke, audit, recover
 

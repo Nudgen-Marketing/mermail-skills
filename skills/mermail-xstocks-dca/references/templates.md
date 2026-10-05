@@ -35,7 +35,7 @@ Rules the engine enforces (`dca check` lists every violation):
 
 ## Emails
 
-Every email is rendered by `dca outbox`; send it unchanged. Subjects are ASCII and end with `#<shortId>`, which is also how owner replies are matched.
+Every email is rendered by `dca outbox`; send it unchanged. The examples show the readable lines; the sent HTML adds the records. Subjects are ASCII and end with `#<shortId>`, which is also how owner replies are matched.
 
 Mandate ticket:
 
@@ -52,7 +52,7 @@ Fill receipt:
 ```text
 Subject: [Standing Order] Filled SPYx #d9eb83c3
 
-- Order submitted for SPYx (slot 0); waiting for settlement.
+
 - Filled SPYx: 0.25 USDC -> 0.00031979 SPYx raw units (before the xStocks multiplier), tx 5LrQLr...G7rZJC https://solscan.io/tx/5LrQLr2J4rNttraS4Q29T3yfQDJjvNbKFyaurV37QquNS3eSB6t6Vdts4V21r1G493EuTmtLjRi1kgAZcQG7rZJC
 
 Budget: spent 0.25 USDC, in flight 0 USDC, window left 1.25 USDC, total left 1.75 USDC.
@@ -86,7 +86,7 @@ Total: invested 0.25 USDC, mark 0.2492 USD, PnL -0.0008 USD (-0.32%)
 Marks are the Agent Wallet portfolio value of each holding, prorated to what this desk bought. This is an activity record, not a brokerage confirmation or investment advice.
 ```
 
-The HTML part carries the same lines, a statement table and the same records.
+Emails are sent as HTML only: the lines above as a list, a statement table, and the ledger records in a small `<pre>` block with their JSON quotes intact. `dca outbox` also returns a plain `summary` of the lines for the chat reply.
 
 ## Ledger records
 

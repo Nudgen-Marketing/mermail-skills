@@ -23,6 +23,18 @@ export default [
     assert.deepEqual(blocksFromEmails([{ text: mail.text }]), entries);
     assert.deepEqual(blocksFromEmails([{ html: mail.html }]), entries);
   }],
+  ["a receipt drops the in-flight line once the slice settled in the same email", () => {
+    const m = mandate();
+    const mail = renderEmail({ mandate: m, entries: fill(genesis(m), m, at(1), 0, 0).slice(1) });
+    assert.doesNotMatch(mail.text, /Order submitted/);
+    assert.doesNotMatch(mail.html, /Order submitted/);
+  }],
+  ["html keeps ledger JSON copyable (quotes are not entity-encoded)", () => {
+    const m = mandate();
+    const mail = renderEmail({ mandate: m, entries: genesis(m) });
+    assert.match(mail.html, /\{"at":"2026-10-06T10:00:00Z"/);
+    assert.ok(!mail.html.includes("&quot;"));
+  }],
   ["the most important event wins the subject", () => {
     const m = mandate();
     const l = push(fill(genesis(m), m, at(1), 0, 0), at(2), "escalation_ignored", null, null, { emailId: "e", keyword: "resume", fromOwner: false });

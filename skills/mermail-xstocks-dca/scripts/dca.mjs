@@ -185,13 +185,18 @@ const COMMANDS = {
     const pending = desk.ledger.filter((entry) => entry.seq > desk.state.mailedThroughSeq);
     if (!pending.length) return { empty: true };
     const budget = budgetOf(deriveState(desk.mandate, desk.ledger, parseInstant(nowOf(flags, io))));
+    const { subject, text, html, idempotencyKey } = renderEmail({ mandate: desk.mandate, entries: pending, budget });
+    // One part only: the HTML carries the records once, which keeps the send payload small.
     return {
       empty: false,
       to: desk.mandate.owner.email,
       from: desk.mandate.mailbox.email,
       mailboxId: desk.mandate.mailbox.publicId,
       throughSeq: pending.at(-1).seq,
-      ...renderEmail({ mandate: desk.mandate, entries: pending, budget }),
+      subject,
+      html,
+      idempotencyKey,
+      summary: text.split("\n\nLedger records")[0],
     };
   },
 

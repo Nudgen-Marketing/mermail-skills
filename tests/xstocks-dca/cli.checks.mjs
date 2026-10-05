@@ -79,6 +79,10 @@ export default [
     assert.equal(outbox.output.from, "desk@mermail.app");
     assert.match(outbox.output.subject, /^\[Standing Order\] Filled SPYx #/);
     assert.equal(outbox.output.throughSeq, 3);
+    assert.equal(outbox.output.text, undefined, "only the html part is sent");
+    assert.match(outbox.output.html, /```mermail-dca-ledger/);
+    assert.match(outbox.output.summary, /Filled SPYx: 0\.25 USDC/);
+    assert.doesNotMatch(outbox.output.summary, /mermail-dca-ledger/);
     assert.equal((await w.cli(["mark-mailed", "--id", id, "--through", "3"])).code, 0);
     assert.deepEqual((await w.cli(["outbox", "--id", id])).output, { empty: true });
     assert.equal((await w.cli(["status", "--id", id])).output.budget.spentUsdc, "0.25");
@@ -118,7 +122,8 @@ export default [
     await w.cli(["mark-mailed", "--id", id, "--through", String(ticket.throughSeq)]);
     assert.equal((await buyFirstSlice(w, id)).code, 0);
     const receipt = (await w.cli(["outbox", "--id", id])).output;
-    const mailed = [{ sender: "desk@mermail.app", folder_id: "sent", text: receipt.text }, { sender: "desk@mermail.app", folder_id: "sent", html: ticket.html }];
+    const sent = (html) => ({ sender: "desk@mermail.app", folder_id: "sent", body: html, body_format: "html" });
+    const mailed = [sent(receipt.html), sent(ticket.html)];
     const head = (await w.cli(["verify", "--id", id, "--against", await w.write("mailed", mailed)])).output;
     assert.equal(head.ok, true);
     assert.deepEqual(head.mailed, { ok: true, comparedThroughSeq: 3 });
@@ -137,7 +142,7 @@ export default [
     assert.equal(rebuilt.output.head, head.head);
     assert.equal((await other.cli(["status", "--id", id])).output.mandateId, mandateId(m));
     const tampered = structuredClone(mailed);
-    tampered[1].html = tampered[1].html.replaceAll("0.25", "9.25");
+    tampered[1].body = tampered[1].body.replaceAll("0.25", "9.25");
     const third = await workspace();
     const refused = await third.cli(["rebuild", "--input", await third.write("mailed", tampered)]);
     assert.notEqual(refused.output.ok, true, "a tampered ticket must never rebuild a desk");

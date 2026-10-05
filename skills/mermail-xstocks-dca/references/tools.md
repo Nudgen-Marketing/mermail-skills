@@ -10,7 +10,7 @@ This skill owns no MCP tools. It composes the hosted Mermail MCP server (`https:
 | `search_emails` | Owner replies for a tick | `mailboxId`, `query: { subject: "#<shortId>", folder: "inbox", date_start: "<last tick ISO>", require_scan_status: "clean", limit: 25 }` |
 | `list_emails` | Sent mail for audit or rebuild | `mailboxId`, `query: { folder: "sent", limit: 100, page }`; keep rows whose `subject` contains `#<shortId>` |
 | `get_email` | Read one candidate | `mailboxId`, `emailId`, `query: { require_scan_status: "clean", max_body_chars: 10000 }` for inbound; Sent mail without a character cap |
-| `send_email` | Ticket, receipt, refusal, alert, statement | `mailboxId`, `body: { to, from, subject, text, html }`, `idempotencyKey`, all copied from `dca outbox` |
+| `send_email` | Ticket, receipt, refusal, alert, statement | `mailboxId`, `body: { to, from, subject, html }`, `idempotencyKey`, all copied from `dca outbox`; show `summary` in chat |
 
 Messages are passed to the engine as returned (`id`, `sender`, `subject`, `date`, `folder_id`, `body`, `body_format`). The engine also accepts `from`, `receivedAt`, `folder`, `text` and `html`.
 
@@ -52,7 +52,7 @@ xStocks are Token-2022 mints with a scaled UI amount. Raw balances are multiplie
 | `controls` | `--id <shortId> --input <file\|->` (array of messages) | `{ appended }` |
 | `plan` | `--id`, `--portfolio <file\|->` or `--usdc-raw <n>`, `--commit`, optional `--verification-file` | `{ status, slot, actions[], records[], statementDue, budget }`; actions are `buy`, `reconcile`, `refill`, `halt` |
 | `record` | `--id --kind intent\|submitted\|filled\|failed --slot --leg`, plus `--request-id`, `--tx` or `--reason` | `{ appended }`; refuses out-of-order, unplanned, over-cap or unproven records |
-| `outbox` | `--id` | `{ empty }` or `{ to, from, mailboxId, throughSeq, subject, text, html, idempotencyKey }` |
+| `outbox` | `--id` | `{ empty }` or `{ to, from, mailboxId, throughSeq, subject, html, idempotencyKey, summary }` |
 | `mark-mailed` | `--id --through <seq>` | `{ mailedThroughSeq }` |
 | `statement` | `--id`, `--portfolio <file\|->` or `--marks <file\|->` | `{ statement, appended }` |
 | `status` | `--id` | status, budget, integrity, recent records |
