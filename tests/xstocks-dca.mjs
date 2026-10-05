@@ -7,11 +7,12 @@ import core from "./xstocks-dca/core.checks.mjs";
 import ledgerChecks from "./xstocks-dca/ledger.checks.mjs";
 import mandateChecks from "./xstocks-dca/mandate.checks.mjs";
 import plannerChecks from "./xstocks-dca/planner.checks.mjs";
+import renderChecks from "./xstocks-dca/render.checks.mjs";
 import settlementChecks from "./xstocks-dca/settlement.checks.mjs";
 
 // Engine checks for scripts/dca.mjs. These exercise the deterministic money logic,
 // not a live wallet: network access is replaced by recorded fixtures.
-const SUITES = { core, mandate: mandateChecks, ledger: ledgerChecks, controls: controlsChecks, planner: plannerChecks, settlement: settlementChecks };
+const SUITES = { core, mandate: mandateChecks, ledger: ledgerChecks, controls: controlsChecks, planner: plannerChecks, settlement: settlementChecks, render: renderChecks };
 
 export async function runEngineChecks() {
   let total = 0;
