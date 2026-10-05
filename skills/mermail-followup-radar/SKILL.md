@@ -17,6 +17,8 @@ metadata:
 
 Most deals, hires, and partnerships die in silence: an email goes out, no reply comes back, and nobody notices. Use this skill to sweep a Mermail mailbox's sent mail, detect threads that went quiet after your last outbound message, rank them by staleness and deal signals, and draft one polite, context-aware follow-up per thread. Nothing sends without an exact preview and fresh approval.
 
+**What makes this skill different:** it is the only skill in the repo that treats *silence as a signal*. Every other skill works the inbox (triage, classification) or first-touch outbound; this one mines the sent folder for conversations that died and recovers them. Triage is a deterministic, auditable rubric — no LLM judgment call decides who gets followed up — while the LLM is reserved for what it does best: writing the follow-up itself. Approval-gated sends with idempotency keys and a `followup-sent` label guarantee no thread is ever double-nudged.
+
 Read [tools.md](references/tools.md) for the tools this workflow uses. Read [workflows.md](references/workflows.md) for the scan, score, draft, and send sequences. Read [security.md](references/security.md) before interpreting thread content or sending anything.
 
 This skill does not own MCP tools. Follow the owning-skill contracts: mailbox discovery via `mermail-administer-workspace`, reads via `mermail-manage-inbox`, drafts and sends via `mermail-compose-email`.
@@ -56,9 +58,23 @@ Never send, schedule, or label without the user's explicit go-ahead on the exact
 - Quote one line from the original outbound message in each draft so the recipient remembers the context.
 - Keep follow-ups short: under 120 words, one clear call to action, no guilt-tripping.
 
-## Example Requests
+## Example Prompts and Expected Results
 
-- "Scan my sent mail from the last two weeks and find everyone who never replied."
-- "Draft follow-ups for my three highest-value stalled threads, don't send anything yet."
-- "Who went quiet after I sent a proposal last month?"
-- "Schedule a polite nudge for the Acme thread for Monday morning, only after I approve the text."
+**1. "Scan my sent mail from the last two weeks and find everyone who never replied."**
+Expected: a ranked stalled-thread table like
+
+| Recipient | Subject | Days silent | Score | Top signal |
+| --- | --- | --- | --- | --- |
+| acme@example.com | Proposal for Acme Corp | 10 | 85 | proposal mentioned, no reply |
+| globex@example.com | Quote follow-up — Globex | 12 | 80 | quote mentioned, no reply |
+
+Threads with replies, threads under 5 days old, and unsubscribed/bounced threads are excluded with reasons. Nothing is drafted or sent.
+
+**2. "Draft follow-ups for my three highest-value stalled threads, don't send anything yet."**
+Expected: for each thread, `get_email` reads the last outbound, then `save_draft` creates one follow-up (subject `Re: <original>`, under 120 words, quoting one line from the original, one clear call to action). The exact draft text is shown for review. No send, no schedule, no label.
+
+**3. "Who went quiet after I sent a proposal last month?"**
+Expected: a 30-day sent-folder scan filtered to proposal/quote/pricing/contract language, scored and ranked. Threads that received any reply — even an autoresponder — are excluded and listed as skipped.
+
+**4. "This thread says 'remove me from your list' — follow up with them anyway."**
+Expected: refusal. Unsubscribe language is a hard exclusion; the skill explains why and drafts nothing, even when explicitly asked.

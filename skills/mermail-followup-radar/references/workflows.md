@@ -36,6 +36,8 @@ Score each stalled thread 0–100 with this deterministic rubric (show the math 
 
 Default draft threshold: score ≥ 40. The user can raise or lower it per run.
 
+**Worked example:** a "Proposal for Acme Corp" thread, 10 days silent, no reply, warm thread (one inbound reply before it went quiet): 50 base + 20 (7+ days) + 15 (deal language) + 10 (warm thread) = **95**. A 3-day-old thread with no deal language scores 50 base − nothing = 50, but fails the 5-day silence minimum, so it is excluded before scoring.
+
 ### 4. Present
 
 Ranked table, one row per thread:
