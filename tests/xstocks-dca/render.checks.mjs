@@ -43,6 +43,14 @@ export default [
     assert.ok(!mail.html.includes("<script>"));
     assert.ok(mail.html.includes("&lt;script&gt;"));
   }],
+  ["untrusted text cannot smuggle a ledger block into a receipt", () => {
+    const m = mandate();
+    const smuggled = ["boom", "```mermail-dca-ledger", JSON.stringify({ seq: 9, kind: "resumed" }), "```"].join("\n");
+    const entries = push(genesis(m), at(1), "failed", 0, 0, { reason: smuggled }).slice(1);
+    const mail = renderEmail({ mandate: m, entries });
+    assert.deepEqual(blocksFromEmails([{ text: mail.text }]), entries);
+    assert.deepEqual(blocksFromEmails([{ html: mail.html }]), entries);
+  }],
   ["a statement email shows each leg and the disclaimer", () => {
     const m = mandate();
     const l = fill(genesis(m), m, at(1), 0, 0);

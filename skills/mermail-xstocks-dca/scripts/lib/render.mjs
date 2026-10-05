@@ -24,6 +24,9 @@ const PRIORITY = [
 const usdc = (raw) => fromBaseUnits(raw, 6);
 const reason = (code) => REASONS[code] ?? code;
 const escapeHtml = (text) => String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// Human-readable lines can carry untrusted text (provider error reasons). They are flattened
+// to one line without backticks so nothing in them can open a ledger block in our own mail.
+const flatten = (text) => String(text).replace(/[\r\n]+/g, " ").replace(/`/g, "'");
 const linkify = (html) => html.replace(/https:\/\/solscan\.io\/tx\/[1-9A-HJ-NP-Za-km-z]+/g, (url) => `<a href="${url}">${url}</a>`);
 
 export function describeMandate(mandate) {
@@ -97,7 +100,7 @@ function statementTable(statement) {
 export function renderEmail({ mandate, entries, budget = null }) {
   const tag = `#${shortId(mandateId(mandate))}`;
   const top = [...entries].sort((a, b) => PRIORITY.indexOf(a.kind) - PRIORITY.indexOf(b.kind))[0];
-  const lines = entries.map((entry) => line(entry, mandate)).filter(Boolean);
+  const lines = entries.map((entry) => line(entry, mandate)).filter(Boolean).map(flatten);
   const statement = entries.findLast((entry) => entry.kind === "statement")?.data ?? null;
   const footer = "Reply PAUSE or STOP to halt this desk. A reply can never resume it, raise a limit or change an asset; only your agent session can.";
   const budgetLine = budget

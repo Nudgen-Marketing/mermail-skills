@@ -15,6 +15,9 @@ import { describeMandate, renderEmail } from "./lib/render.mjs";
 import { buildStatement, fillFromTransaction } from "./lib/settlement.mjs";
 import { createDesk, findDesk, readDesk, resolveHome, withLock, writeLedger, writeState } from "./lib/store.mjs";
 
+// Block time and the local clock can disagree by a little; two minutes is generous for Solana.
+const FILL_CLOCK_SKEW_MS = 120_000;
+
 function parseArgs(argv) {
   const [command, ...rest] = argv;
   const flags = {};
@@ -151,6 +154,15 @@ const COMMANDS = {
       if (kind === "intent") {
         const denial = intentAllowed(desk.mandate, desk.ledger, nowMs, slot, leg);
         if (denial) throw new DcaError("intent_refused", denial);
+      }
+      if (kind === "filled") {
+        // One transaction proves one fill, and it must not predate the intent it settles.
+        if (desk.ledger.some((entry) => entry.kind === "filled" && entry.data.tx === proof.signature)) {
+          throw new DcaError("fill_unproven", "tx_already_recorded");
+        }
+        const intentAtMs = deriveState(desk.mandate, desk.ledger, nowMs).slots.get(`${slot}:${leg}`).committedAtMs;
+        if (!Number.isInteger(proof.blockTime)) throw new DcaError("fill_unproven", "tx_time_unknown");
+        if (proof.blockTime * 1000 < intentAtMs - FILL_CLOCK_SKEW_MS) throw new DcaError("fill_unproven", "tx_before_intent");
       }
       const data = {
         intent: () => ({ amountInRaw: String(usdcUnits(legSpec.sliceUsdc)), mint: legSpec.mint, symbol: legSpec.symbol }),

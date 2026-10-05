@@ -23,10 +23,16 @@ export function parseControl(text) {
   return hit ? { action: "escalation", keyword: hit[1].toLowerCase() } : { action: "none" };
 }
 
+// Strict on purpose: a header we cannot read unambiguously (several addresses, an address
+// hidden in a quoted display name) belongs to nobody, so it can never match the owner or the desk.
+const BARE_ADDRESS = /^[^\s<>",;]+@[^\s<>",;]+$/;
+const NAMED_ADDRESS = /^[^<>,;]*<([^\s<>",;]+@[^\s<>",;]+)>$/;
+
 export function addressOf(from) {
-  const text = String(from ?? "");
-  const angle = /<([^<>\s]+@[^<>\s]+)>/.exec(text);
-  return (angle ? angle[1] : text).trim().toLowerCase();
+  const text = String(from ?? "").trim();
+  if (BARE_ADDRESS.test(text)) return text.toLowerCase();
+  const named = NAMED_ADDRESS.exec(text);
+  return named ? named[1].toLowerCase() : "";
 }
 
 export function evaluateControls(mandate, ledger, emails) {

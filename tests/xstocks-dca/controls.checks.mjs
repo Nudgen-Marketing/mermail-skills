@@ -39,6 +39,15 @@ export default [
     const m = mandate();
     assert.deepEqual(kinds(evaluateControls(m, genesis(m), [email(m, { from: "Egor <Owner@Example.COM>" })])), ["control_seen", "paused"]);
   }],
+  ["ambiguous From headers are trusted as nobody", () => {
+    assert.equal(addressOf('"<owner@example.com>" <attacker@evil.test>'), "");
+    assert.equal(addressOf("owner@example.com, attacker@evil.test"), "");
+    assert.equal(addressOf("Owner <owner@example.com> <attacker@evil.test>"), "");
+    assert.equal(addressOf("attacker@evil.test <owner@example.com>"), "owner@example.com");
+    const m = mandate();
+    const spoof = email(m, { from: '"<owner@example.com>" <attacker@evil.test>' });
+    assert.deepEqual(evaluateControls(m, genesis(m), [spoof]).map((record) => record.kind), ["control_seen"]);
+  }],
   ["STOP from the owner revokes", () => {
     const m = mandate();
     assert.deepEqual(kinds(evaluateControls(m, genesis(m), [email(m, { text: "STOP" })])), ["control_seen", "revoked"]);

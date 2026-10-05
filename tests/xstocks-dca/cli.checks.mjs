@@ -17,14 +17,20 @@ async function workspace() {
     await writeFile(file, JSON.stringify(value));
     return file;
   };
-  const cli = (argv, { stdin = "", now = at(1) } = {}) =>
+  const cli = (argv, { stdin = "", now = T0 } = {}) =>
     run([...argv, "--home", home], { now: () => now, stdin: async () => stdin, observeCatalog: offline, fetchTransaction: offline });
   return { home, write, cli };
 }
 
+// Desks in these checks start just before the real spike swap (2026-10-05T20:12:50Z) so the
+// recorded fill can be proven from that transaction.
+const T0 = "2026-10-05T20:12:30Z";
 const singleLeg = () => {
   const m = mandate();
   m.legs = [m.legs[0]];
+  m.cadence.anchor = "2026-10-05T20:12:00Z";
+  m.validFrom = "2026-10-05T20:12:00Z";
+  m.expiresAt = "2026-10-06T20:12:00Z";
   return m;
 };
 
@@ -34,15 +40,13 @@ async function openDesk(w, m = singleLeg()) {
   return created.output.shortId;
 }
 
-async function buyFirstSlice(w, id) {
+async function buyFirstSlice(w, id, { slot = "0", now = T0, tx = spikeTx() } = {}) {
   const verification = await w.write("verification", allVerified());
-  const planned = await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", verification, "--commit"]);
+  const planned = await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", verification, "--commit"], { now });
   assert.deepEqual(planned.output.actions.map((action) => action.type), ["buy"]);
-  assert.equal((await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"])).code, 0);
-  assert.equal((await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", "0", "--leg", "0", "--request-id", "mermail-execution-x"])).code, 0);
-  const filled = await w.cli(["record", "--id", id, "--kind", "filled", "--slot", "0", "--leg", "0", "--tx", SPIKE_TX, "--tx-file", await w.write("tx", spikeTx())]);
-  assert.equal(filled.code, 0, JSON.stringify(filled.output));
-  return filled;
+  assert.equal((await w.cli(["record", "--id", id, "--kind", "intent", "--slot", slot, "--leg", "0"], { now })).code, 0);
+  assert.equal((await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", slot, "--leg", "0", "--request-id", `req-${slot}`], { now })).code, 0);
+  return w.cli(["record", "--id", id, "--kind", "filled", "--slot", slot, "--leg", "0", "--tx", SPIKE_TX, "--tx-file", await w.write("tx", tx)], { now });
 }
 
 export default [
@@ -68,6 +72,7 @@ export default [
     const w = await workspace();
     const id = await openDesk(w);
     const filled = await buyFirstSlice(w, id);
+    assert.equal(filled.code, 0, JSON.stringify(filled.output));
     assert.equal(filled.output.appended[0].data.amountOutRaw, "31979");
     const outbox = await w.cli(["outbox", "--id", id]);
     assert.equal(outbox.output.to, "owner@example.com");
@@ -76,7 +81,7 @@ export default [
     assert.equal(outbox.output.throughSeq, 3);
     assert.equal((await w.cli(["mark-mailed", "--id", id, "--through", "3"])).code, 0);
     assert.deepEqual((await w.cli(["outbox", "--id", id])).output, { empty: true });
-    assert.equal((await w.cli(["status", "--id", id, "--now", at(2)])).output.budget.spentUsdc, "0.25");
+    assert.equal((await w.cli(["status", "--id", id])).output.budget.spentUsdc, "0.25");
   }],
   ["the engine refuses to record what it did not plan or cannot prove", async () => {
     const w = await workspace();
@@ -111,7 +116,7 @@ export default [
     const id = await openDesk(w, m);
     const ticket = (await w.cli(["outbox", "--id", id])).output;
     await w.cli(["mark-mailed", "--id", id, "--through", String(ticket.throughSeq)]);
-    await buyFirstSlice(w, id);
+    assert.equal((await buyFirstSlice(w, id)).code, 0);
     const receipt = (await w.cli(["outbox", "--id", id])).output;
     const mailed = [{ from: "desk@mermail.app", text: receipt.text }, { from: "desk@mermail.app", html: ticket.html }];
     const head = (await w.cli(["verify", "--id", id, "--against", await w.write("mailed", mailed)])).output;
@@ -121,6 +126,21 @@ export default [
     const rebuilt = await other.cli(["rebuild", "--mandate", await other.write("mandate", m), "--input", await other.write("mailed", mailed)]);
     assert.equal(rebuilt.output.ok, true);
     assert.equal(rebuilt.output.head, head.head);
+  }],
+  ["one transaction proves one fill, and never a fill older than its intent", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    assert.equal((await buyFirstSlice(w, id)).code, 0);
+    const replay = await buyFirstSlice(w, id, { slot: "1", now: "2026-10-05T20:15:30Z" });
+    assert.equal(replay.code, 2);
+    assert.equal(replay.output.detail, "fill_unproven: tx_already_recorded");
+    const late = await workspace();
+    const lateDesk = singleLeg();
+    lateDesk.cadence.anchor = "2026-10-06T10:00:00Z";
+    lateDesk.validFrom = "2026-10-06T10:00:00Z";
+    const lateId = await openDesk(late, lateDesk);
+    const stale = await buyFirstSlice(late, lateId, { now: "2026-10-06T10:00:30Z" });
+    assert.equal(stale.output.detail, "fill_unproven: tx_before_intent");
   }],
   ["two ticks cannot hold the desk at once", async () => {
     const w = await workspace();
