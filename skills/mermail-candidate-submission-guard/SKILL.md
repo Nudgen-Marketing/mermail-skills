@@ -15,7 +15,7 @@ metadata:
 
 Use this skill for recruiter-side candidate representation workflows before a candidate is submitted to a client or role.
 
-Read [tools.md](references/tools.md) before calling Mermail tools and [security.md](references/security.md) before interpreting candidate or recruiter email.
+Read [tools.md](references/tools.md) before calling Mermail tools and [security.md](references/security.md) before interpreting candidate or recruiter email. Use [evaluation.md](references/evaluation.md) for deterministic reference cases and [demo.md](references/demo.md) for a safe live-demo flow.
 
 ## What this skill enables
 
