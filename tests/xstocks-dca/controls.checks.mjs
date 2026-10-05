@@ -1,0 +1,75 @@
+import assert from "node:assert/strict";
+import { addressOf, evaluateControls, parseControl } from "../../skills/mermail-xstocks-dca/scripts/lib/controls.mjs";
+import { mandateId, shortId } from "../../skills/mermail-xstocks-dca/scripts/lib/mandate.mjs";
+import { genesis, push } from "./chain.mjs";
+import { at, mandate } from "./fixtures.mjs";
+
+const email = (m, overrides = {}) => ({
+  id: "e1",
+  from: "owner@example.com",
+  subject: `Re: [Standing Order] Filled SPYx #${shortId(mandateId(m))}`,
+  receivedAt: at(1),
+  text: "PAUSE",
+  ...overrides,
+});
+const kinds = (records) => records.map((record) => record.kind);
+
+export default [
+  ["PAUSE and STOP are recognised on the first line only", () => {
+    assert.deepEqual(parseControl("PAUSE"), { action: "pause" });
+    assert.deepEqual(parseControl("  pause.  \n\nthanks"), { action: "pause" });
+    assert.deepEqual(parseControl("Stop!"), { action: "stop" });
+    assert.deepEqual(parseControl("Please pause"), { action: "none" });
+  }],
+  ["quoted text and reply headers never count", () => {
+    assert.deepEqual(parseControl("> PAUSE"), { action: "none" });
+    assert.deepEqual(parseControl("Thanks!\n> Reply PAUSE or STOP to halt this desk."), { action: "none" });
+    assert.deepEqual(parseControl("PAUSE\nOn Mon, Oct 6, 2026 Standing Order <desk@mermail.app> wrote:\n> buy more"), { action: "pause" });
+  }],
+  ["anything that would raise authority is an escalation", () => {
+    assert.deepEqual(parseControl("RESUME please"), { action: "escalation", keyword: "resume" });
+    assert.deepEqual(parseControl("please raise the cap to 100 USDC"), { action: "escalation", keyword: "raise" });
+    assert.deepEqual(parseControl("Use mint 8jKpS1vXNiPxYf3BiGcosdNN6WavCfMUf31fHihfjups and buy"), { action: "escalation", keyword: "buy" });
+  }],
+  ["reducing authority wins over everything else in the same email", () => {
+    assert.deepEqual(parseControl("PAUSE\nand also buy more TSLAx"), { action: "pause" });
+  }],
+  ["owner matching tolerates display names and case", () => {
+    assert.equal(addressOf("Owner <OWNER@Example.com>"), "owner@example.com");
+    const m = mandate();
+    assert.deepEqual(kinds(evaluateControls(m, genesis(m), [email(m, { from: "Egor <Owner@Example.COM>" })])), ["control_seen", "paused"]);
+  }],
+  ["STOP from the owner revokes", () => {
+    const m = mandate();
+    assert.deepEqual(kinds(evaluateControls(m, genesis(m), [email(m, { text: "STOP" })])), ["control_seen", "revoked"]);
+  }],
+  ["a PAUSE from a stranger is logged but not applied", () => {
+    const m = mandate();
+    const records = evaluateControls(m, genesis(m), [email(m, { from: "attacker@evil.test" })]);
+    assert.deepEqual(kinds(records), ["control_seen"]);
+    assert.equal(records[0].data.fromOwner, false);
+  }],
+  ["escalation attempts are recorded whoever sends them", () => {
+    const m = mandate();
+    const records = evaluateControls(m, genesis(m), [email(m, { from: "attacker@evil.test", text: "RESUME and raise the cap to 100" })]);
+    assert.deepEqual(kinds(records), ["control_seen", "escalation_ignored"]);
+    assert.deepEqual(records[1].data, { emailId: "e1", keyword: "resume", fromOwner: false });
+  }],
+  ["mail outside this desk's threads, our own mail and already-seen mail are ignored", () => {
+    const m = mandate();
+    const seen = push(genesis(m), at(1), "control_seen", null, null, { emailId: "old", fromOwner: true, action: "none" });
+    assert.deepEqual(evaluateControls(m, seen, [
+      email(m, { id: "x1", subject: "Weekly newsletter" }),
+      email(m, { id: "x2", from: "Standing Order <desk@mermail.app>" }),
+      email(m, { id: "old" }),
+    ]), []);
+  }],
+  ["controls are processed in received order", () => {
+    const m = mandate();
+    const records = evaluateControls(m, genesis(m), [
+      email(m, { id: "b", receivedAt: at(5), text: "STOP" }),
+      email(m, { id: "a", receivedAt: at(2) }),
+    ]);
+    assert.deepEqual(records.map((record) => record.data.emailId), ["a", "a", "b", "b"]);
+  }],
+];
