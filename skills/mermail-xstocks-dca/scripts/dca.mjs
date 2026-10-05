@@ -101,7 +101,8 @@ const COMMANDS = {
     } catch {
       // new desk
     }
-    const { ledger } = appendEntry([], { at: nowOf(flags, io), kind: "genesis", data: { mandateId: id } });
+    // The genesis record carries the mandate itself, so the mailed ticket alone can restore a desk.
+    const { ledger } = appendEntry([], { at: nowOf(flags, io), kind: "genesis", data: { mandateId: id, mandate } });
     await createDesk(dir, mandate, ledger, { mailedThroughSeq: -1 });
     return { created: true, mandateId: id, shortId: shortId(id), dir };
   },
@@ -250,9 +251,16 @@ const COMMANDS = {
   },
 
   async rebuild(flags, io) {
-    const mandate = await readJson(flags.mandate, io);
+    const emails = await readJson(flags.input, io);
+    if (!Array.isArray(emails)) throw new DcaError("input_not_array", "rebuild");
+    let mandate = typeof flags.mandate === "string" ? await readJson(flags.mandate, io) : null;
+    if (!mandate) {
+      const ticket = blocksFromEmails(emails, { folder: "sent" }).find((block) => block?.seq === 0 && block?.kind === "genesis");
+      mandate = ticket?.data?.mandate;
+      if (!mandate) throw new DcaError("mandate_not_found", "no mandate ticket among the Sent messages");
+    }
     const id = assertMandate(mandate);
-    const result = rebuildLedger(blocksFromEmails(await readJson(flags.input, io), { from: mandate.mailbox.email, folder: "sent" }), id);
+    const result = rebuildLedger(blocksFromEmails(emails, { from: mandate.mailbox.email, folder: "sent" }), id);
     if (!result.ok) return result;
     const dir = path.join(resolveHome(flags.home), id);
     let exists = true;

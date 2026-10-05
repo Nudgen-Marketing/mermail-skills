@@ -123,9 +123,16 @@ export default [
     assert.equal(head.ok, true);
     assert.deepEqual(head.mailed, { ok: true, comparedThroughSeq: 3 });
     const other = await workspace();
-    const rebuilt = await other.cli(["rebuild", "--mandate", await other.write("mandate", m), "--input", await other.write("mailed", mailed)]);
-    assert.equal(rebuilt.output.ok, true);
+    // The mandate ticket carries the mandate itself, so the mailbox alone is enough to rebuild.
+    const rebuilt = await other.cli(["rebuild", "--input", await other.write("mailed", mailed)]);
+    assert.equal(rebuilt.output.ok, true, JSON.stringify(rebuilt.output));
     assert.equal(rebuilt.output.head, head.head);
+    assert.equal((await other.cli(["status", "--id", id])).output.mandateId, mandateId(m));
+    const tampered = structuredClone(mailed);
+    tampered[1].html = tampered[1].html.replaceAll("0.25", "9.25");
+    const third = await workspace();
+    const refused = await third.cli(["rebuild", "--input", await third.write("mailed", tampered)]);
+    assert.notEqual(refused.output.ok, true, "a tampered ticket must never rebuild a desk");
   }],
   ["one transaction proves one fill, and never a fill older than its intent", async () => {
     const w = await workspace();
