@@ -262,6 +262,12 @@ const COMMANDS = {
     const id = assertMandate(mandate);
     const result = rebuildLedger(blocksFromEmails(emails, { from: mandate.mailbox.email, folder: "sent" }), id);
     if (!result.ok) return result;
+    // A recovered mandate is spending authority: write nothing until the user confirms this exact one.
+    const summary = { mandateId: id, shortId: shortId(id), preview: describeMandate(mandate), entries: result.ledger.length };
+    if (typeof flags.confirm !== "string") return { ok: false, reason: "confirmation_required", ...summary };
+    if (!/^[0-9a-f]{8,64}$/.test(flags.confirm) || !id.startsWith(flags.confirm)) {
+      return { ok: false, reason: "confirmation_mismatch", ...summary };
+    }
     const dir = path.join(resolveHome(flags.home), id);
     let exists = true;
     try {

@@ -124,7 +124,15 @@ export default [
     assert.deepEqual(head.mailed, { ok: true, comparedThroughSeq: 3 });
     const other = await workspace();
     // The mandate ticket carries the mandate itself, so the mailbox alone is enough to rebuild.
-    const rebuilt = await other.cli(["rebuild", "--input", await other.write("mailed", mailed)]);
+    // A recovered mandate is authority, so nothing is written until the user confirms it.
+    const input = await other.write("mailed", mailed);
+    const preview = await other.cli(["rebuild", "--input", input]);
+    assert.equal(preview.output.reason, "confirmation_required");
+    assert.equal(preview.output.shortId, id);
+    assert.match(preview.output.preview, /0\.25 USDC of SPYx/);
+    assert.equal((await other.cli(["status", "--id", id])).output.error, "id_unknown");
+    assert.equal((await other.cli(["rebuild", "--input", input, "--confirm", "00000000"])).output.reason, "confirmation_mismatch");
+    const rebuilt = await other.cli(["rebuild", "--input", input, "--confirm", id]);
     assert.equal(rebuilt.output.ok, true, JSON.stringify(rebuilt.output));
     assert.equal(rebuilt.output.head, head.head);
     assert.equal((await other.cli(["status", "--id", id])).output.mandateId, mandateId(m));

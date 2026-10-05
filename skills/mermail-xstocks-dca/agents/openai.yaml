@@ -1,0 +1,11 @@
+interface:
+  display_name: "xStocks DCA (Standing Order)"
+  short_description: "Recurring xStocks buys under an approved mandate, with emailed receipts and statements"
+  default_prompt: "Use $mermail-xstocks-dca to run my xStocks standing order: buy the approved slices that are due, prove each fill on-chain, and email the receipt."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
