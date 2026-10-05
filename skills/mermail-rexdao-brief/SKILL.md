@@ -17,7 +17,7 @@ metadata:
 
 Snapshot emails a subscribed address when a followed space opens or closes a proposal. This skill reads those emails from a Mermail mailbox, extracts only what the email states, and returns one compact brief. It never votes, never touches a wallet, never opens a link, and never writes to Snapshot. Mermail owns mailbox access, scan gating, and drafts; this skill owns no tools and composes existing ones.
 
-Read [tools.md](references/tools.md), [workflows.md](references/workflows.md), and [security.md](references/security.md) before the first brief.
+Read [tools.md](references/tools.md), [workflows.md](references/workflows.md), and [security.md](references/security.md) before the first brief. For install steps, what has been verified, and a sample brief, see [setup.md](references/setup.md) and [examples.md](references/examples.md).
 
 ## Preferred Deliverables
 
