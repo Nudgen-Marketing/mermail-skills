@@ -62,6 +62,16 @@ export default [
     const wrapped = `\`\`\`mermail-dca-ledger\n${line.slice(0, 70)}\n${line.slice(70)}\n\`\`\``;
     assert.deepEqual(extractLedgerBlocks(wrapped), [l[3]]);
   }],
+  ["only mail sent by the desk mailbox can contribute ledger records", () => {
+    const { m, l } = sample();
+    const forged = appendEntry(l, { at: at(3), kind: "resumed", data: { by: "user_session", request: "forged" } }).ledger;
+    const emails = [
+      { from: "Standing Order <DESK@mermail.app>", text: l.map(ledgerBlock).join("\n") },
+      { from: "attacker@evil.test", text: ledgerBlock(forged.at(-1)) },
+      { text: ledgerBlock(forged.at(-1)) },
+    ];
+    assert.deepEqual(blocksFromEmails(emails, { from: m.mailbox.email }), l);
+  }],
   ["rebuild accepts shuffled and duplicated receipts", () => {
     const { m, l } = sample();
     const result = rebuildLedger([l[4], l[1], l[0], l[3], l[1], l[2], l[4]], mandateId(m));
