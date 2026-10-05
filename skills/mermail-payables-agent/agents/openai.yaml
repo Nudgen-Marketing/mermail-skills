@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payables Agent"
+  short_description: "Verify vendor invoices and pay them safely from Agent Wallet"
+  default_prompt: "Use $mermail-payables-agent to collect vendor invoices from my Mermail AP inbox, check them against my vendor registry, show me a payment run, and pay only the invoices I approve."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
