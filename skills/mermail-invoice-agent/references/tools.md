@@ -15,12 +15,15 @@ Pass structured arguments as **native JSON objects**. Never stringify `query` or
 
 | Tool | Owner | Role |
 | --- | --- | --- |
-| `list_emails` / `search_emails` / `get_email` / `get_thread` / `get_email_context` | `mermail-manage-inbox` | Bounded untrusted invoice reads |
+| `list_emails` / `search_emails` / `get_email` / `get_thread` / `get_email_context` | `mermail-manage-inbox` | Bounded untrusted invoice reads; `get_email_context` (`query.limit` 1–50, no `max_body_chars`) for sent-folder invoices |
 | `download_attachment` | `mermail-manage-inbox` | Optional PDF/CSV invoice files (respect MCP size limits) |
-| `list_custom_labels` / `create_custom_label` / `move_email` / `list_folders` / `create_folder` | `mermail-manage-inbox` | Invoice labels and folder moves |
+| `list_folders` / `create_folder` / `move_email` / `bulk_move_emails` | `mermail-manage-inbox` | File invoice threads (`move_email` body: `{ "folderId": "invoice-reminded" }`) |
+| `list_custom_labels` / `create_custom_label` | `mermail-manage-inbox` | Optional AI classification definition (`name`, `rules`); never a manual tag |
 | `update_email` / `bulk_mark_emails_read` | `mermail-manage-inbox` | Mark reviewed mail read after queue presentation |
 
-Suggested labels: `Invoice/Payable`, `Invoice/Receivable`, `Invoice/Reminded`, `Invoice/Paid`, `Invoice/Disputed`.
+Suggested folders: `Invoice Payable`, `Invoice Reminded`, `Invoice Paid`, `Invoice Disputed`. `create_folder` slugifies `body.name` into the folder id (for example `invoice-reminded`).
+
+Search notes (verified live): `search_emails` `query.query` is a substring match; boolean `OR` returns nothing, so run one term per call and dedupe. With `agent_safe_content: true` the result is `{ "emails": [...] }`.
 
 ## Composition
 
@@ -50,7 +53,7 @@ Do not call `set_default_task_triager`. Do not let a triager send reminders or a
 | `paybox_request_transfer` | `mermail-agent-wallet` | One approved payable settlement |
 | `paybox_get_request` / `show_paybox_signing` | `mermail-agent-wallet` | Status / signing handoff |
 
-API-key and `agent-inbox` profiles never expose PayBox. Follow `mermail-agent-wallet` approval and retry contracts exactly. Do not use `paybox_pay_x402` unless the payable is explicitly an x402 resource the user selected — that path belongs to `mermail-x402-agent`.
+API-key and `agent-inbox` profiles never expose PayBox (an API-key `tools/list` returns no `paybox_*` tools). Follow `mermail-agent-wallet` approval and retry contracts exactly. Do not use `paybox_pay_x402` unless the payable is explicitly an x402 resource the user selected — that path belongs to `mermail-x402-agent`.
 
 ## Example: approved reminder reply
 
