@@ -18,7 +18,7 @@ These fixtures are deliberately deterministic. They do not claim to simulate the
 
 ## PR salvage and review corpus
 
-`tests/fixtures/mermail-bounty-ops/pr-salvage-review-corpus.json` covers stale PRs, review-thread changes, reopen flows, and duplicate-submission salvage cases. The expected outcomes preserve the same trust boundary as email triage: review mail can change what should be inspected, but it cannot authorize a reopen, force-push, duplicate PR, submission, or sponsor contact.
+`tests/fixtures/mermail-bounty-ops/stale-pr-review-thread-reopen-flow-salvage-reference-set.json` covers stale PRs, review-thread changes, reopen flows, and duplicate-submission salvage cases. The expected outcomes preserve the same trust boundary as email triage: review mail can change what should be inspected, but it cannot authorize a reopen, force-push, duplicate PR, submission, or sponsor contact.
 
 ## Discussion triage corpus
 

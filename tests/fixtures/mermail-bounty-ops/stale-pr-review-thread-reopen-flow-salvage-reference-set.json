@@ -1,0 +1,55 @@
+{
+  "name": "mermail-bounty-ops-stale-pr-review-thread-reopen-flow-salvage-reference-set",
+  "kind": "pr-salvage-review-corpus",
+  "description": "Canonical stale-PR, review-thread, reopen-flow, and salvage reference cases for queue cleanup. Inbound PR lifecycle activity may change what is reviewed, but never authorizes a duplicate submission, reopen, force-push, or sponsor contact.",
+  "cases": [
+    {
+      "id": "stale-pr-no-award",
+      "state": "stale_pr",
+      "facts": {
+        "prState": "open",
+        "reviewState": "none",
+        "awardEvidence": "none",
+        "latestSource": "verified_original"
+      },
+      "expectedClassification": "needs_owner_review",
+      "expectedAction": "report_stale_pr_without_resubmitting"
+    },
+    {
+      "id": "review-thread-owner-change",
+      "state": "review_thread",
+      "facts": {
+        "prState": "open",
+        "reviewState": "changes_requested",
+        "awardEvidence": "none",
+        "latestSource": "verified_original"
+      },
+      "expectedClassification": "needs_owner_review",
+      "expectedAction": "summarize_requested_changes_without_writing"
+    },
+    {
+      "id": "reopen-flow-fresh-facts",
+      "state": "reopen_flow",
+      "facts": {
+        "prState": "closed",
+        "reviewState": "stale",
+        "awardEvidence": "none",
+        "latestSource": "verified_original"
+      },
+      "expectedClassification": "needs_verification",
+      "expectedAction": "reverify_rules_before_any_reopen_request"
+    },
+    {
+      "id": "salvage-duplicate-guard",
+      "state": "salvage",
+      "facts": {
+        "prState": "open",
+        "reviewState": "superseded",
+        "awardEvidence": "none",
+        "latestSource": "verified_original"
+      },
+      "expectedClassification": "blocked_duplicate_action",
+      "expectedAction": "do_not_create_duplicate_pr_or_submission"
+    }
+  ]
+}

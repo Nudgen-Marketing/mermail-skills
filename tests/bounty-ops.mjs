@@ -95,7 +95,7 @@ export async function validateBountyOps(root, scenarios, coverage) {
   const evaluatorRanking = await loadFixture("evaluator-rag-ranking.json");
   const harnessAudit = await loadFixture("harness-compatibility.json");
   const failureModes = await loadFixture("ci-failure-modes.json");
-  const prSalvageReview = await loadFixture("pr-salvage-review-corpus.json");
+  const prSalvageReview = await loadFixture("stale-pr-review-thread-reopen-flow-salvage-reference-set.json");
   const discussionTriage = await loadFixture("discussion-triage-corpus.json");
 
   const referenceSetErrors = (cases) => {
