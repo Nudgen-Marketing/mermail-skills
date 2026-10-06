@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipt Review"
+  short_description: "Review receipt evidence, duplicates, and currency totals"
+  default_prompt: "Use $mermail-receipt-review to review receipts, invoices, and refunds in one selected Mermail mailbox and date range, with separate currency totals and source-linked uncertainty."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
