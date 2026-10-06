@@ -115,4 +115,6 @@ When the user asks to compare quotes, run steps 2 to 5 for each email, then show
 
 ## Expected results
 
-For a quote that omits payment terms, warranty, Incoterms, and country of origin, the agent returns the structured summary, a Medium risk level with the reason, a drafted clarification reply, and then pauses for approval. After the user replies APPROVE, it sends one reply and confirms delivery.
+For a quote that omits payment terms, warranty, Incoterms, and country of origin, the agent returns the structured summary, a risk level with the reason, a drafted clarification reply, and then pauses for approval.
+
+After the user explicitly approves the exact message, the agent attempts exactly one reply through the Mermail reply tool. If the Mermail connector accepts the request, the agent confirms the sent message and identifier when returned. If Mermail rejects the request or returns a validation error, the agent reports the send as blocked, does not claim delivery, does not retry automatically, and preserves the approval gate.
