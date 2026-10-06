@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Guard"
+  short_description: "Review invoice emails with evidence and bounded reads"
+  default_prompt: "Use $mermail-invoice-guard to audit recent payment requests in my selected Mermail inbox and flag issues without sending or paying anything."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

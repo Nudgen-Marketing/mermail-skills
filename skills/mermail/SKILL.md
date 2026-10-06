@@ -13,6 +13,8 @@ metadata:
 
 # Mermail
 
+For an explicit invoice or payment-request risk audit, select `mermail-invoice-guard` for a bounded read-only evidence report. Generic invoice search stays with inbox management; an audit result never authorizes payment.
+
 Route the request before invoking Mermail tools. Read [routing.md](references/routing.md) to select the narrowest installed skill, resolve overlaps, and order a cross-domain workflow.
 
 ## Workflow
