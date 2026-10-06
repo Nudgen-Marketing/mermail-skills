@@ -91,6 +91,8 @@ export async function validateBountyOps(root, scenarios, coverage) {
   };
 
   const referenceSet = await loadFixture("reference-set.json");
+  const analyzerGolden = await loadFixture("deep-analyzer-golden.json");
+  const evaluatorRanking = await loadFixture("evaluator-rag-ranking.json");
   const harnessAudit = await loadFixture("harness-compatibility.json");
   const failureModes = await loadFixture("ci-failure-modes.json");
 
@@ -144,6 +146,43 @@ export async function validateBountyOps(root, scenarios, coverage) {
       errors.push(`${skill}: reference set must identify itself as golden evaluator evidence`);
     }
     errors.push(...referenceSetErrors(referenceSet.cases ?? []).map((error) => `${skill}: ${error}`));
+  }
+
+  if (analyzerGolden) {
+    if (analyzerGolden.kind !== "deep-analyzer-golden-corpus") {
+      errors.push(`${skill}: analyzer golden fixture must identify itself as a deep analyzer corpus`);
+    }
+    const expectedAnalyzerVerdicts = new Map([
+      ["analyzer-candidate", "candidate"],
+      ["analyzer-needs-verification", "needs_verification"],
+      ["analyzer-capital-blocker", "blocked_capital"],
+      ["analyzer-location-blocker", "blocked_location"],
+      ["analyzer-identity-blocker", "blocked_identity"],
+      ["analyzer-expired", "expired"],
+    ]);
+    for (const [caseId, expectedVerdict] of expectedAnalyzerVerdicts) {
+      const matches = (analyzerGolden.cases ?? []).filter((candidate) => candidate.id === caseId);
+      if (matches.length !== 1 || matches[0].expectedVerdict !== expectedVerdict) {
+        errors.push(`${skill}: analyzer golden mismatch for ${caseId}`);
+      }
+    }
+  }
+
+  if (evaluatorRanking) {
+    if (evaluatorRanking.kind !== "rag-evaluator-comparison-fixture") {
+      errors.push(`${skill}: evaluator ranking fixture must identify itself as RAG/evaluator evidence`);
+    }
+    const expectedComparisons = new Map([
+      ["verified-contract-over-unverified-prize", "left"],
+      ["nearer-deadline-among-verified", "left"],
+      ["blocked-item-never-ranked", "right"],
+    ]);
+    for (const [caseId, expectedWinner] of expectedComparisons) {
+      const matches = (evaluatorRanking.comparisons ?? []).filter((candidate) => candidate.id === caseId);
+      if (matches.length !== 1 || matches[0].expectedWinner !== expectedWinner) {
+        errors.push(`${skill}: evaluator ranking mismatch for ${caseId}`);
+      }
+    }
   }
 
   const harnessAuditErrors = async (surfaces) => {

@@ -2,16 +2,19 @@
 
 The bounty-ops skill carries a small checked-in reference set so changes to ranking, safety gates, or harness packaging can be reviewed against stable expectations instead of prose alone.
 
-## Golden analyzer and evaluator reference set
+## Golden analyzer and evaluator reference sets
 
-`tests/fixtures/mermail-bounty-ops/reference-set.json` covers the hard verdicts and one ranking comparison that is easy to regress:
+`tests/fixtures/mermail-bounty-ops/reference-set.json` pins the core verdicts and aggregate ranking expectations.
 
-- a verified fixed contract remains a `candidate`;
-- a much larger but email-only competitive prize remains `needs_verification`;
-- the verified fixed contract must rank ahead of the unverified prize pool;
-- deposit/token-approval, unestablished location, fabricated identity, and expired cases remain blocked and unranked.
+`tests/fixtures/mermail-bounty-ops/deep-analyzer-golden.json` is the analyzer golden corpus. It separately pins candidate, needs-verification, capital, location, identity, and expiry classifications so policy regressions are visible even when ranking does not change.
 
-These fixtures are deliberately deterministic. They do not claim to simulate the language model; they pin the policy-level analyzer and ranking outcomes that the skill documentation requires.
+`tests/fixtures/mermail-bounty-ops/evaluator-rag-ranking.json` is the retrieval/evaluator comparison fixture. It verifies that:
+
+- a verified fixed contract outranks a much larger but email-only competitive prize;
+- nearer valid deadlines win when other verified factors are equal;
+- hard-blocked opportunities are excluded from ranking.
+
+These fixtures are deliberately deterministic. They do not claim to simulate the language model or a vector database; they pin the policy-level analyzer and post-retrieval ranking outcomes that the skill documentation requires.
 
 ## Cross-harness audit
 

@@ -1,0 +1,60 @@
+{
+  "name": "mermail-bounty-ops-rag-evaluator-ranking-reference-set",
+  "kind": "rag-evaluator-comparison-fixture",
+  "description": "Expected ranking behavior after bounded opportunity retrieval and source verification.",
+  "comparisons": [
+    {
+      "id": "verified-contract-over-unverified-prize",
+      "left": {
+        "payoutType": "fixed",
+        "payoutAmount": 400,
+        "verification": "verified_original",
+        "verdict": "candidate"
+      },
+      "right": {
+        "payoutType": "prize_pool",
+        "payoutAmount": 20000,
+        "verification": "email_only",
+        "verdict": "needs_verification"
+      },
+      "expectedWinner": "left",
+      "reason": "verified fixed payment outranks a larger unverified competitive prize"
+    },
+    {
+      "id": "nearer-deadline-among-verified",
+      "left": {
+        "payoutType": "fixed",
+        "payoutAmount": 500,
+        "verification": "verified_original",
+        "verdict": "candidate",
+        "deadlineOrder": 1
+      },
+      "right": {
+        "payoutType": "fixed",
+        "payoutAmount": 500,
+        "verification": "verified_original",
+        "verdict": "candidate",
+        "deadlineOrder": 2
+      },
+      "expectedWinner": "left",
+      "reason": "nearer valid deadline wins when payout, fit, and verification are otherwise equal"
+    },
+    {
+      "id": "blocked-item-never-ranked",
+      "left": {
+        "payoutType": "fixed",
+        "payoutAmount": 5000,
+        "verification": "verified_original",
+        "verdict": "blocked_capital"
+      },
+      "right": {
+        "payoutType": "fixed",
+        "payoutAmount": 300,
+        "verification": "verified_original",
+        "verdict": "candidate"
+      },
+      "expectedWinner": "right",
+      "reason": "hard-blocked opportunities are excluded from ranking"
+    }
+  ]
+}
