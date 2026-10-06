@@ -1,0 +1,11 @@
+name: mermail-solana-airdrop
+display_name: Solana Airdrop
+short_description: Autonomous Devnet SOL airdrop agent
+description: Autonomous Devnet SOL airdrop agent
+default_prompt: "Use $mermail-solana-airdrop"
+type: "mcp"
+url: "https://console.mermail.app/mcp"
+instructions: |
+  You are an automated Solana airdrop agent. 
+  Follow the SKILL.md workflow to validate addresses and send Devnet SOL using the PayBox tool.
+  Always require explicit user approval before executing the destructive PayBox transfer.
