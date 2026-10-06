@@ -17,6 +17,8 @@ import { createDesk, findDesk, readDesk, resolveHome, withLock, writeLedger, wri
 
 // Block time and the local clock can disagree by a little; two minutes is generous for Solana.
 const FILL_CLOCK_SKEW_MS = 120_000;
+// A slice's swap settles within seconds; a transaction much later than its intent belongs to something else.
+const FILL_WINDOW_MS = 30 * 60_000;
 
 function parseArgs(argv) {
   const [command, ...rest] = argv;
@@ -64,11 +66,21 @@ const deskDir = (flags) => findDesk(resolveHome(flags.home), flags.id);
 // Provider failures are recorded as a short code; free text from a tool never reaches the ledger.
 const reasonCode = (text) => (/^[A-Za-z0-9_.:-]{1,80}$/.test(text) ? text : "provider_error");
 
-// Only the owner's own Mermail console can host a signing handoff.
+// Only the owner's own Mermail console can host a signing handoff. Parsed, not prefix-matched,
+// and free of anything that could change how the link reads inside an email.
 function handoff(url) {
   if (url === undefined) return {};
-  if (typeof url !== "string" || !url.startsWith("https://console.mermail.app/")) throw new DcaError("handoff_url_rejected", String(url));
-  return { handoffUrl: url };
+  let parsed = null;
+  try {
+    parsed = typeof url === "string" && !/[\s`"'<>\\]/.test(url) ? new URL(url) : null;
+  } catch {
+    parsed = null;
+  }
+  if (!parsed || parsed.protocol !== "https:" || parsed.hostname !== "console.mermail.app" || parsed.port
+    || parsed.username || parsed.password || parsed.href !== url) {
+    throw new DcaError("handoff_url_rejected", String(url));
+  }
+  return { handoffUrl: parsed.href };
 }
 
 // Inputs that would let a caller skip the live catalog, the chain or the clock exist for tests only.
@@ -190,9 +202,11 @@ const COMMANDS = {
         }
         const intended = deriveState(desk.mandate, desk.ledger, nowMs).slots.get(`${slot}:${leg}`);
         const intentAtMs = intended.committedAtMs;
-        if (BigInt(proof.amountInRaw) > BigInt(intended.amountInRaw)) throw new DcaError("fill_unproven", "amount_exceeds_intent");
+        // Exact-in swaps spend exactly the intent; anything else is not this slice's transaction.
+        if (BigInt(proof.amountInRaw) !== BigInt(intended.amountInRaw)) throw new DcaError("fill_unproven", "amount_mismatch");
         if (!Number.isInteger(proof.blockTime)) throw new DcaError("fill_unproven", "tx_time_unknown");
         if (proof.blockTime * 1000 < intentAtMs - FILL_CLOCK_SKEW_MS) throw new DcaError("fill_unproven", "tx_before_intent");
+        if (proof.blockTime * 1000 > intentAtMs + FILL_WINDOW_MS) throw new DcaError("fill_unproven", "tx_too_late_for_intent");
       }
       const data = {
         intent: () => ({ amountInRaw: String(usdcUnits(legSpec.sliceUsdc)), mint: legSpec.mint, symbol: legSpec.symbol }),

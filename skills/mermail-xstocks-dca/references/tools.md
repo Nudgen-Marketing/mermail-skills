@@ -39,7 +39,7 @@ xStocks are Token-2022 mints with a scaled UI amount. Raw balances are multiplie
 
 ## Solana RPC
 
-`dca record --kind filled` fetches the transaction with `getTransaction` (`encoding: jsonParsed`, `commitment: confirmed`, up to six attempts two seconds apart) from `SOLANA_RPC_URL` (default `https://api.mainnet-beta.solana.com`). A fill is recorded only when the wallet's USDC balance went down and the pinned mint went up in that transaction, the signature was never used for another fill, and the block time is not older than the intent.
+`dca record --kind filled` fetches the transaction with `getTransaction` (`encoding: jsonParsed`, `commitment: confirmed`, up to six attempts two seconds apart) from `SOLANA_RPC_URL` (default `https://api.mainnet-beta.solana.com`). A fill is recorded only when, in that transaction, the wallet spent exactly the intended USDC and received the pinned mint, the signature was never used for another fill, and the block time falls between the intent and thirty minutes after it.
 
 ## Engine CLI
 

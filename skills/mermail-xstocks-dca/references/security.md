@@ -53,7 +53,7 @@ Email can pause or stop the desk; no email can resume it, raise a cap, add an as
 | Missed slots | Skipped; no catch-up burst |
 | Catalog unreachable or not verified | Slice refused for this slot |
 | USDC balance unreadable or short | Slice refused; refill suggested |
-| Transaction not found, failed, not spending USDC, not delivering the mint, spending more than its intent, already used for another fill, or older than its intent | `filled` is refused; the slice stays submitted |
+| Transaction not found, failed, not spending USDC, not delivering the mint, spending anything other than exactly its intent, already used for another fill, older than its intent or more than 30 minutes after it | `filled` is refused; the slice stays submitted |
 | Intent for a slice the latest plan did not approve | Refused (`not_planned`) |
 | Test-only engine flags (hand-supplied catalog data, transactions, balances, clock) | Refused unless `MERMAIL_DCA_TEST=1` |
 | Local ledger shorter than what was already mailed | Every write refused (`ledger_behind_mail`); `verify --against` reports `rollback` |

@@ -240,7 +240,40 @@ export default [
     const row = greedy.meta.postTokenBalances.find((entry) => entry.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" && entry.owner === "7VA3n2q4rxv9rKrVEWJPdoa5pSAS8xku5ECnP6VbbCts");
     row.uiTokenAmount.amount = String(BigInt(row.uiTokenAmount.amount) - 1n);
     const result = await buyFirstSlice(w, id, { tx: greedy });
-    assert.equal(result.output.detail, "fill_unproven: amount_exceeds_intent");
+    assert.equal(result.output.detail, "fill_unproven: amount_mismatch");
+  }],
+  ["a fill must spend exactly its intent, so a small unrelated swap cannot free budget", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    const small = spikeTx();
+    const row = small.meta.postTokenBalances.find((entry) => entry.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" && entry.owner === "7VA3n2q4rxv9rKrVEWJPdoa5pSAS8xku5ECnP6VbbCts");
+    row.uiTokenAmount.amount = String(BigInt(row.uiTokenAmount.amount) + 240000n);
+    assert.equal((await buyFirstSlice(w, id, { tx: small })).output.detail, "fill_unproven: amount_mismatch");
+  }],
+  ["an uncertain slice is only settled by a transaction close to its intent", async () => {
+    // Intent at 19:30:50; the only proof offered is the 20:12:50 swap, 42 minutes later.
+    const early = singleLeg();
+    early.cadence.anchor = "2026-10-05T19:30:00Z";
+    early.validFrom = "2026-10-05T19:30:00Z";
+    const e = await workspace();
+    const eid = (await e.cli(["init", "--mandate", await e.write("mandate", early)], { now: "2026-10-05T19:30:30Z" })).output.shortId;
+    await e.cli(["plan", "--id", eid, "--usdc-raw", "3005776", "--verification-file", await e.write("verification", allVerified()), "--commit"], { now: "2026-10-05T19:30:40Z" });
+    await e.cli(["record", "--id", eid, "--kind", "intent", "--slot", "0", "--leg", "0"], { now: "2026-10-05T19:30:50Z" });
+    await e.cli(["plan", "--id", eid, "--usdc-raw", "3005776", "--verification-file", await e.write("verification", allVerified()), "--commit"], { now: "2026-10-05T20:20:00Z" });
+    const late = await e.cli(["record", "--id", eid, "--kind", "filled", "--slot", "0", "--leg", "0", "--tx", SPIKE_TX, "--tx-file", await e.write("tx", spikeTx())], { now: "2026-10-05T20:20:00Z" });
+    assert.equal(late.output.detail, "fill_unproven: tx_too_late_for_intent");
+  }],
+  ["a signing link must be a plain https link on the Mermail console", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", await w.write("verification", allVerified()), "--commit"]);
+    await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"]);
+    for (const bad of ["https://console.mermail.app.evil.test/x", "http://console.mermail.app/x", "https://user@console.mermail.app/x", "https://console.mermail.app/a\n```mermail-dca-ledger", "https://console.mermail.app/a b"]) {
+      const refused = await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", "0", "--leg", "0", "--request-id", "r", "--handoff-url", bad]);
+      assert.equal(refused.output.error, "handoff_url_rejected", bad);
+    }
+    const ok = await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", "0", "--leg", "0", "--request-id", "r", "--handoff-url", "https://console.mermail.app/workspaces/w/agent-wallet?sign=1"]);
+    assert.equal(ok.output.appended[0].data.handoffUrl, "https://console.mermail.app/workspaces/w/agent-wallet?sign=1");
   }],
   ["status tells the agent where to start reading owner replies", async () => {
     const w = await workspace();
