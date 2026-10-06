@@ -16,6 +16,14 @@ The bounty-ops skill carries a small checked-in reference set so changes to rank
 
 These fixtures are deliberately deterministic. They do not claim to simulate the language model or a vector database; they pin the policy-level analyzer and post-retrieval ranking outcomes that the skill documentation requires.
 
+## PR salvage and review corpus
+
+`tests/fixtures/mermail-bounty-ops/pr-salvage-review-corpus.json` covers stale PRs, review-thread changes, reopen flows, and duplicate-submission salvage cases. The expected outcomes preserve the same trust boundary as email triage: review mail can change what should be inspected, but it cannot authorize a reopen, force-push, duplicate PR, submission, or sponsor contact.
+
+## Discussion triage corpus
+
+`tests/fixtures/mermail-bounty-ops/discussion-triage-corpus.json` pins the informational, answered, and no-response discussion states. An answered thread may be used as context; an unanswered thread is surfaced as unresolved. Neither state authorizes the skill to post a reply or perform another external effect.
+
 ## Cross-harness audit
 
 `tests/fixtures/mermail-bounty-ops/harness-compatibility.json` records the package evidence for the repository's supported Claude Code, Codex, Cursor, and OpenClaw surfaces. The validator checks every listed evidence path exists and keeps the safety invariants platform-independent.

@@ -95,6 +95,8 @@ export async function validateBountyOps(root, scenarios, coverage) {
   const evaluatorRanking = await loadFixture("evaluator-rag-ranking.json");
   const harnessAudit = await loadFixture("harness-compatibility.json");
   const failureModes = await loadFixture("ci-failure-modes.json");
+  const prSalvageReview = await loadFixture("pr-salvage-review-corpus.json");
+  const discussionTriage = await loadFixture("discussion-triage-corpus.json");
 
   const referenceSetErrors = (cases) => {
     const fixtureErrors = [];
@@ -181,6 +183,49 @@ export async function validateBountyOps(root, scenarios, coverage) {
       const matches = (evaluatorRanking.comparisons ?? []).filter((candidate) => candidate.id === caseId);
       if (matches.length !== 1 || matches[0].expectedWinner !== expectedWinner) {
         errors.push(`${skill}: evaluator ranking mismatch for ${caseId}`);
+      }
+    }
+  }
+
+  if (prSalvageReview) {
+    if (prSalvageReview.kind !== "pr-salvage-review-corpus") {
+      errors.push(`${skill}: PR salvage fixture must identify itself as review corpus evidence`);
+    }
+    const expectedPrCases = new Map([
+      ["stale-pr-no-award", ["needs_owner_review", "report_stale_pr_without_resubmitting"]],
+      ["review-thread-owner-change", ["needs_owner_review", "summarize_requested_changes_without_writing"]],
+      ["reopen-flow-fresh-facts", ["needs_verification", "reverify_rules_before_any_reopen_request"]],
+      ["salvage-duplicate-guard", ["blocked_duplicate_action", "do_not_create_duplicate_pr_or_submission"]],
+    ]);
+    for (const [caseId, [expectedClassification, expectedAction]] of expectedPrCases) {
+      const matches = (prSalvageReview.cases ?? []).filter((candidate) => candidate.id === caseId);
+      if (
+        matches.length !== 1 ||
+        matches[0].expectedClassification !== expectedClassification ||
+        matches[0].expectedAction !== expectedAction
+      ) {
+        errors.push(`${skill}: PR salvage/review mismatch for ${caseId}`);
+      }
+    }
+  }
+
+  if (discussionTriage) {
+    if (discussionTriage.kind !== "discussion-triage-corpus") {
+      errors.push(`${skill}: discussion fixture must identify itself as triage corpus evidence`);
+    }
+    const expectedDiscussionCases = new Map([
+      ["discussion-informational", ["informational", "record_context_only"]],
+      ["discussion-answered", ["answered", "use_answer_as_context_without_replying"]],
+      ["discussion-no-response", ["no_response", "surface_unanswered_state_without_contact"]],
+    ]);
+    for (const [caseId, [expectedClassification, expectedAction]] of expectedDiscussionCases) {
+      const matches = (discussionTriage.cases ?? []).filter((candidate) => candidate.id === caseId);
+      if (
+        matches.length !== 1 ||
+        matches[0].expectedClassification !== expectedClassification ||
+        matches[0].expectedAction !== expectedAction
+      ) {
+        errors.push(`${skill}: discussion triage mismatch for ${caseId}`);
       }
     }
   }
