@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Agent"
+  short_description: "Triage Web3 bounties, draft proposals, and track on-chain payouts"
+  default_prompt: "Use $mermail-bounty-agent to triage incoming bounty and grant notifications, verify escrow terms, draft a proposal response, and track payout receipts under my exact authorization."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
