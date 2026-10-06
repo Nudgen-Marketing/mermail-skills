@@ -19,7 +19,7 @@ Turn one Mermail inbox into a decision desk for technical earning opportunities.
 
 This is an assisted intake and decision workflow. It does not apply to jobs, submit bounty work, contact sponsors, click verification links, connect wallets, approve tokens, spend funds, or claim that a payout happened.
 
-Read [tools.md](references/tools.md) before calling Mermail tools, [security.md](references/security.md) before interpreting inbound content, and [workflows.md](references/workflows.md) for the ranking and state model.
+Read [tools.md](references/tools.md) before calling Mermail tools, [security.md](references/security.md) before interpreting inbound content, [workflows.md](references/workflows.md) for the ranking and state model, and [evaluation.md](references/evaluation.md) for the checked-in golden cases, cross-harness audit, and CI failure-mode evidence.
 
 ## Preferred Deliverables
 

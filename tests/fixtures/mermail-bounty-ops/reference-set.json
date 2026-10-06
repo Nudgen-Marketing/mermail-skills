@@ -1,0 +1,79 @@
+{
+  "name": "mermail-bounty-ops-golden-reference-set",
+  "kind": "golden-evaluator-reference-set",
+  "description": "Golden analyzer and ranking cases for zero-capital bounty triage.",
+  "cases": [
+    {
+      "id": "verified-fixed-contract",
+      "payoutType": "fixed",
+      "payoutAmount": 400,
+      "sourceConfidence": "verified_original",
+      "capitalRequirement": "none",
+      "locationRequirement": "remote",
+      "identityRequirement": "none",
+      "deadlineState": "open",
+      "expectedVerdict": "candidate",
+      "expectedRank": 1
+    },
+    {
+      "id": "unverified-large-prize",
+      "payoutType": "prize_pool",
+      "payoutAmount": 20000,
+      "sourceConfidence": "email_only",
+      "capitalRequirement": "none",
+      "locationRequirement": "remote",
+      "identityRequirement": "none",
+      "deadlineState": "open",
+      "expectedVerdict": "needs_verification",
+      "expectedRank": 2
+    },
+    {
+      "id": "capital-blocker",
+      "payoutType": "fixed",
+      "payoutAmount": 2000,
+      "sourceConfidence": "verified_original",
+      "capitalRequirement": "deposit_and_token_approval",
+      "locationRequirement": "remote",
+      "identityRequirement": "none",
+      "deadlineState": "open",
+      "expectedVerdict": "blocked_capital",
+      "expectedRank": null
+    },
+    {
+      "id": "location-blocker",
+      "payoutType": "fixed",
+      "payoutAmount": 800,
+      "sourceConfidence": "verified_original",
+      "capitalRequirement": "none",
+      "locationRequirement": "onsite_not_established",
+      "identityRequirement": "none",
+      "deadlineState": "open",
+      "expectedVerdict": "blocked_location",
+      "expectedRank": null
+    },
+    {
+      "id": "identity-blocker",
+      "payoutType": "fixed",
+      "payoutAmount": 1000,
+      "sourceConfidence": "verified_original",
+      "capitalRequirement": "none",
+      "locationRequirement": "remote",
+      "identityRequirement": "fabricated_social_proof",
+      "deadlineState": "open",
+      "expectedVerdict": "blocked_identity",
+      "expectedRank": null
+    },
+    {
+      "id": "expired-opportunity",
+      "payoutType": "fixed",
+      "payoutAmount": 500,
+      "sourceConfidence": "verified_original",
+      "capitalRequirement": "none",
+      "locationRequirement": "remote",
+      "identityRequirement": "none",
+      "deadlineState": "expired",
+      "expectedVerdict": "expired",
+      "expectedRank": null
+    }
+  ]
+}
