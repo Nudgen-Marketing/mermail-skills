@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Ops"
+  short_description: "Triage zero-capital bounties and paid technical opportunities"
+  default_prompt: "Use $mermail-bounty-ops to triage my Mermail opportunity inbox into a safe zero-capital shortlist."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
