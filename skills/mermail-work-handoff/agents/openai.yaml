@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Work Handoff"
+  short_description: "Hand a finished artifact through Mermail and classify the requester reply."
+  default_prompt: "Use $mermail-work-handoff to prepare one delivery notice, send it only after approval, and record acceptance separately from payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
