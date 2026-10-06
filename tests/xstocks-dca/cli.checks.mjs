@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { appendFile, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { run } from "../../skills/mermail-xstocks-dca/scripts/dca.mjs";
@@ -17,8 +17,8 @@ async function workspace() {
     await writeFile(file, JSON.stringify(value));
     return file;
   };
-  const cli = (argv, { stdin = "", now = T0 } = {}) =>
-    run([...argv, "--home", home], { now: () => now, stdin: async () => stdin, observeCatalog: offline, fetchTransaction: offline });
+  const cli = (argv, { stdin = "", now = T0, test = true } = {}) =>
+    run([...argv, "--home", home], { now: () => now, stdin: async () => stdin, observeCatalog: offline, fetchTransaction: offline, allowTestFlags: test });
   return { home, write, cli };
 }
 
@@ -92,6 +92,7 @@ export default [
     const id = await openDesk(w);
     assert.equal((await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "5", "--leg", "0"])).output.detail, "intent_refused: slot_not_current");
     assert.equal((await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", "0", "--leg", "0", "--request-id", "r"])).output.error, "record_order");
+    await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", await w.write("verification", allVerified()), "--commit"]);
     await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"]);
     await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", "0", "--leg", "0", "--request-id", "r"]);
     const foreign = spikeTx();
@@ -176,6 +177,75 @@ export default [
     assert.equal(statement.code, 0, JSON.stringify(statement.output));
     assert.equal(statement.output.statement.legs[0].valueUsd, "0.2492");
     assert.equal(statement.output.statement.totals.pnlUsd, "-0.0008");
+  }],
+  ["test-only flags are refused outside test mode", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    for (const flag of [["--usdc-raw", "1"], ["--verification-file", "x.json"], ["--now", T0]]) {
+      const refused = await w.cli(["plan", "--id", id, ...flag], { test: false });
+      assert.equal(refused.output.error, "flag_test_only", flag[0]);
+    }
+  }],
+  ["init never replaces a desk it cannot read", async () => {
+    const w = await workspace();
+    const m = singleLeg();
+    const file = await w.write("mandate", m);
+    await w.cli(["init", "--mandate", file]);
+    const ledgerPath = path.join(w.home, mandateId(m), "ledger.jsonl");
+    await appendFile(ledgerPath, "{broken");
+    assert.equal((await w.cli(["init", "--mandate", file])).output.error, "desk_unreadable");
+    assert.match(await readFile(ledgerPath, "utf8"), /\{broken/);
+  }],
+  ["a ledger behind what was already mailed refuses every write", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    await writeFile(path.join(w.home, mandateId(singleLeg()), "state.json"), JSON.stringify({ mailedThroughSeq: 5 }));
+    assert.equal((await w.cli(["controls", "--id", id, "--input", "-"], { stdin: "[]" })).output.error, "ledger_behind_mail");
+  }],
+  ["intent requires the slot to have been planned as a buy", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    assert.equal((await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"])).output.detail, "intent_refused: not_planned");
+    const halted = await w.write("halted", { [SPY_MINT]: { status: "verified", mint: SPY_MINT, identityVerified: true, halted: true } });
+    await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", halted, "--commit"]);
+    assert.equal((await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"])).output.detail, "intent_refused: not_planned");
+  }],
+  ["only a definitive provider answer fails a slice, and its reason is a code", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", await w.write("verification", allVerified()), "--commit"]);
+    await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"]);
+    assert.equal((await w.cli(["record", "--id", id, "--kind", "failed", "--slot", "0", "--leg", "0", "--reason", "timeout"])).output.error, "record_order");
+    await w.cli(["record", "--id", id, "--kind", "submitted", "--slot", "0", "--leg", "0", "--request-id", "r"]);
+    const failed = await w.cli(["record", "--id", id, "--kind", "failed", "--slot", "0", "--leg", "0", "--reason", "denied; rm -rf / `x`"]);
+    assert.equal(failed.output.appended[0].data.reason, "provider_error");
+  }],
+  ["an uncertain slice can still be settled by on-chain proof", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    const verification = await w.write("verification", allVerified());
+    await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", verification, "--commit"]);
+    await w.cli(["record", "--id", id, "--kind", "intent", "--slot", "0", "--leg", "0"]);
+    const later = "2026-10-05T20:30:00Z";
+    const replanned = await w.cli(["plan", "--id", id, "--usdc-raw", "3005776", "--verification-file", verification, "--commit"], { now: later });
+    assert.deepEqual(replanned.output.appended.map((entry) => entry.kind), ["uncertain"]);
+    const filled = await w.cli(["record", "--id", id, "--kind", "filled", "--slot", "0", "--leg", "0", "--tx", SPIKE_TX, "--tx-file", await w.write("tx", spikeTx())], { now: later });
+    assert.equal(filled.code, 0, JSON.stringify(filled.output));
+    assert.equal((await w.cli(["status", "--id", id], { now: later })).output.budget.spentUsdc, "0.25");
+  }],
+  ["a fill may not spend more than its intent", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    const greedy = spikeTx();
+    const row = greedy.meta.postTokenBalances.find((entry) => entry.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" && entry.owner === "7VA3n2q4rxv9rKrVEWJPdoa5pSAS8xku5ECnP6VbbCts");
+    row.uiTokenAmount.amount = String(BigInt(row.uiTokenAmount.amount) - 1n);
+    const result = await buyFirstSlice(w, id, { tx: greedy });
+    assert.equal(result.output.detail, "fill_unproven: amount_exceeds_intent");
+  }],
+  ["status tells the agent where to start reading owner replies", async () => {
+    const w = await workspace();
+    const id = await openDesk(w);
+    assert.equal((await w.cli(["status", "--id", id])).output.controlsSince, T0);
   }],
   ["two ticks cannot hold the desk at once", async () => {
     const w = await workspace();

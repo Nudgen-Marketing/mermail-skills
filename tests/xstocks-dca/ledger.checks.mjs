@@ -90,6 +90,10 @@ export default [
     ];
     assert.deepEqual(rebuildLedger(blocksFromEmails(emails, { from: m.mailbox.email, folder: "sent" }), mandateId(m)).ledger, l);
   }],
+  ["a local ledger shorter than the mailed copy is a rollback", () => {
+    const { l } = sample();
+    assert.deepEqual(compareLedgers(l.slice(0, 1), l), { ok: false, reason: "rollback", seq: 1 });
+  }],
   ["rebuild accepts shuffled and duplicated receipts", () => {
     const { m, l } = sample();
     const result = rebuildLedger([l[4], l[1], l[0], l[3], l[1], l[2], l[4]], mandateId(m));

@@ -5,6 +5,9 @@ import { mandateId, shortId, usdcUnits } from "./mandate.mjs";
 const SLOT_KINDS = new Set(["intent", "submitted", "filled", "failed", "uncertain"]);
 const COMMITTED = new Set(["intent", "submitted", "filled", "uncertain"]);
 const UNRESOLVED = new Set(["intent", "submitted"]);
+// An intent younger than this belongs to a tick that may still be between its swap and its
+// "submitted" record; only an older one is declared uncertain.
+export const INTENT_GRACE_MS = 10 * 60_000;
 
 export const slotAt = (mandate, nowMs) =>
   Math.floor((nowMs - parseInstant(mandate.cadence.anchor)) / parseDuration(mandate.cadence.every));
@@ -119,11 +122,16 @@ export function plan({ mandate, ledger, now, observations = {} }) {
     return true;
   };
 
+  let inFlight = false;
   for (const entry of state.slots.values()) {
     if (entry.status === "submitted") actions.push({ type: "reconcile", slot: entry.slot, leg: entry.leg, requestId: entry.requestId });
-    if (entry.status === "intent") {
+    if (entry.status === "intent" && nowMs - entry.committedAtMs < INTENT_GRACE_MS) inFlight = true;
+    else if (entry.status === "intent") {
       records.push({ kind: "uncertain", slot: entry.slot, leg: entry.leg, data: { reason: "intent_without_request", amountInRaw: entry.amountInRaw } });
     }
+  }
+  if (inFlight && !actions.length && !records.length) {
+    return { ...base, status: "in_progress", slot: null, actions, records, statementDue: false, budget };
   }
   if (actions.length || records.length) {
     return { ...base, status: "reconciling", slot: null, actions, records, statementDue: false, budget };
@@ -146,7 +154,9 @@ export function plan({ mandate, ledger, now, observations = {} }) {
     const refusal = refusalFor(leg, observations.verification?.[leg.mint], state, planned, slice, available);
     if (refusal === "insufficient_funds") {
       const shortfallRaw = String(planned + slice - available);
-      if (notice("refused", slot, index, refusal, { shortfallRaw })) actions.push({ type: "refill", slot, leg: index, shortfallRaw });
+      if (notice("refused", slot, index, refusal, { shortfallRaw })) {
+        actions.push({ type: "refill", slot, leg: index, shortfallRaw, shortfallUsdc: fromBaseUnits(shortfallRaw, 6) });
+      }
       return;
     }
     if (refusal) {

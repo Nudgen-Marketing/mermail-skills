@@ -35,10 +35,12 @@ export default [
     assert.equal(usdcFromPortfolio(portfolio, WALLET), "2755776");
     assert.deepEqual(marksFromPortfolio(portfolio, WALLET, [SPY_MINT, NVDA_MINT]), {
       [SPY_MINT]: { holdingRaw: "31979", valueUsd: "0.24924456420933247" },
-      [NVDA_MINT]: { holdingRaw: "0", valueUsd: "0" },
     });
     const otherWallet = { items: portfolio.items.map((item) => ({ ...item, wallet_address: "11111111111111111111111111111111" })) };
     assert.equal(usdcFromPortfolio(otherWallet, WALLET), "0");
+    assert.equal(usdcFromPortfolio({ error: "PAYBOX_UNAVAILABLE" }, WALLET), null, "an unreadable portfolio is not a zero balance");
+    const unpriced = { items: [{ ...portfolio.items[2], balanceUsd: null }] };
+    assert.deepEqual(marksFromPortfolio(unpriced, WALLET, [SPY_MINT]), {}, "a holding without a price is not a mark");
   }],
   ["the scaled UI multiplier switches at its effective time", () => {
     assert.equal(effectiveMultiplier(SPY_SCALED, "2026-06-18T03:59:59Z"), "1.003909240011759");
@@ -60,9 +62,14 @@ export default [
     const s = buildStatement({ mandate: m, ledger: fill(genesis(m), m, at(1), 0, 1, "1430"), now: at(2), marks: {} });
     assert.equal(s.legs[1].valueUsd, null);
     assert.equal(s.legs[1].pnlUsd, null);
-    assert.deepEqual(s.legs[1].flags, ["mark_unavailable"]);
+    assert.deepEqual(s.legs[1].flags, ["mark_unavailable", "multiplier_unavailable"]);
     assert.equal(s.totals.valueUsd, null);
     assert.equal(s.totals.investedUsdc, "0.25");
+  }],
+  ["statement flags a holding whose multiplier could not be read", () => {
+    const m = mandate();
+    const s = buildStatement({ mandate: m, ledger: fill(genesis(m), m, at(1), 0, 0), now: at(2), marks: { [SPY_MINT]: { holdingRaw: "31979", valueUsd: "0.2492" } } });
+    assert.deepEqual(s.legs[0].flags, ["multiplier_unavailable"]);
   }],
   ["statement flags holdings that fell below what the desk bought", () => {
     const m = mandate();

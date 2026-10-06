@@ -1,10 +1,11 @@
 # Scheduling
 
-Skills do not start daemons. A tick runs whenever something invokes the agent with this skill; the engine makes every tick idempotent, so a scheduler may fire early, late or twice.
+Skills do not start daemons. A tick runs whenever something invokes the agent with this skill; the engine makes every tick idempotent, so a scheduler may fire early or late, and a repeated tick in the same slot buys nothing.
 
 - **One slot, one slice.** `slot = floor((now - anchor) / every)`. A second tick in the same slot buys nothing.
 - **No catch-up.** If the host was off for five slots, the next tick buys only the current slot.
-- **One tick at a time.** Each desk holds a lock while it writes; a lock older than five minutes is treated as a crashed tick.
+- **One tick at a time.** Each engine command holds the desk lock while it writes (a lock older than five minutes is treated as a crashed command). Between a tick's intent and its submitted record, a second tick's plan answers `in_progress` and buys nothing; only an intent older than ten minutes is declared `uncertain`.
+- **After a pending slice.** A tick that reconciles a submitted slice re-plans before buying, so the current slot is not lost.
 
 Use the same `--home` (desk directory) for every tick of a mandate.
 

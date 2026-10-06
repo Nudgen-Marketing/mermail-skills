@@ -1,10 +1,11 @@
 // Helpers for Mermail message objects as returned by list_emails, search_emails and get_email
 // (sender, date, folder_id, body + body_format), also accepting from/receivedAt/folder/text/html.
 
-// Strict on purpose: a header we cannot read unambiguously (several addresses, an address
-// hidden in a quoted display name) belongs to nobody, so it can never match the owner or the desk.
+// Strict on purpose: a header we cannot read unambiguously (several addresses, stray brackets)
+// belongs to nobody, so it can never match the owner or the desk. A quoted display name is read
+// the way a mail client reads it: the address is the one in the trailing angle brackets.
 const BARE_ADDRESS = /^[^\s<>",;]+@[^\s<>",;]+$/;
-const NAMED_ADDRESS = /^[^<>,;]*<([^\s<>",;]+@[^\s<>",;]+)>$/;
+const NAMED_ADDRESS = /^(?:"[^"]*"|[^<>,;"]*)\s*<([^\s<>",;]+@[^\s<>",;]+)>$/;
 
 export function addressOf(from) {
   const text = String(from ?? "").trim();

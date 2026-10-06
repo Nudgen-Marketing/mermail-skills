@@ -52,9 +52,21 @@ export default [
     assert.equal(p.status, "reconciling");
     assert.deepEqual(p.actions, [{ type: "reconcile", slot: 0, leg: 0, requestId: "req-1" }]);
   }],
-  ["an intent without a request id becomes uncertain, never a retry", () => {
+  ["a fresh intent belongs to a tick still in flight: no records, no buys", () => {
     const m = mandate();
     const p = run(m, push(genesis(m), at(1), "intent", 0, 0, { amountInRaw: "250000" }), at(4));
+    assert.equal(p.status, "in_progress");
+    assert.deepEqual(p.records, []);
+    assert.deepEqual(p.actions, []);
+  }],
+  ["refill actions carry the shortfall in USDC for the bridge quote", () => {
+    const m = mandate();
+    const p = run(m, genesis(m), at(1), { verification: allVerified(), usdcRaw: "300000" });
+    assert.equal(p.actions.find((action) => action.type === "refill").shortfallUsdc, "0.2");
+  }],
+  ["an intent without a request id becomes uncertain, never a retry", () => {
+    const m = mandate();
+    const p = run(m, push(genesis(m), at(1), "intent", 0, 0, { amountInRaw: "250000" }), at(15));
     assert.deepEqual(p.records, [{ kind: "uncertain", slot: 0, leg: 0, data: { reason: "intent_without_request", amountInRaw: "250000" } }]);
     assert.deepEqual(buys(p), []);
   }],
@@ -112,7 +124,7 @@ export default [
     const p = run(m, genesis(m), at(1), { verification: allVerified(), usdcRaw: "300000" });
     assert.deepEqual(buys(p).map((buy) => buy.leg), [0]);
     assert.deepEqual(p.records, [{ kind: "refused", slot: 0, leg: 1, data: { reason: "insufficient_funds", shortfallRaw: "200000" } }]);
-    assert.deepEqual(p.actions.filter((action) => action.type === "refill"), [{ type: "refill", slot: 0, leg: 1, shortfallRaw: "200000" }]);
+    assert.deepEqual(p.actions.filter((action) => action.type === "refill"), [{ type: "refill", slot: 0, leg: 1, shortfallRaw: "200000", shortfallUsdc: "0.2" }]);
     assert.deepEqual(refusals(run(m, genesis(m), at(1), { verification: allVerified() })),
       ["0:balance_unavailable", "1:balance_unavailable"]);
   }],

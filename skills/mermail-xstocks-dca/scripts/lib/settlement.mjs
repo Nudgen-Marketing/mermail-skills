@@ -21,13 +21,22 @@ function portfolioRow(portfolio, wallet, token) {
     && (item.wallet_address === undefined || item.wallet_address === wallet)) ?? null;
 }
 
-export const usdcFromPortfolio = (portfolio, wallet) => String(portfolioRow(portfolio, wallet, USDC_MINT)?.balance ?? "0");
+// A portfolio that did not come back as a list of holdings is unreadable, not empty.
+export function usdcFromPortfolio(portfolio, wallet) {
+  if (!Array.isArray(portfolio?.items)) return null;
+  return String(portfolioRow(portfolio, wallet, USDC_MINT)?.balance ?? "0");
+}
 
+// Only priced holdings become marks; anything else is reported as mark_unavailable.
 export function marksFromPortfolio(portfolio, wallet, mints) {
-  return Object.fromEntries(mints.map((mint) => {
+  const marks = {};
+  for (const mint of mints) {
     const row = portfolioRow(portfolio, wallet, mint);
-    return [mint, { holdingRaw: String(row?.balance ?? "0"), valueUsd: String(row?.balanceUsd ?? "0") }];
-  }));
+    if (row && row.balance !== undefined && row.balanceUsd !== undefined && row.balanceUsd !== null) {
+      marks[mint] = { holdingRaw: String(row.balance), valueUsd: String(row.balanceUsd) };
+    }
+  }
+  return marks;
 }
 
 const balanceRow = (rows, owner, mint) => (rows ?? []).find((row) => row.owner === owner && row.mint === mint) ?? null;
@@ -81,6 +90,7 @@ function legRow(leg, index, ledger, marks, now) {
     const portion = acquiredRaw > holding ? holding : acquiredRaw;
     value = holding === 0n ? 0n : (toScaled(mark.valueUsd) * portion) / holding;
   }
+  if (fills.length > 0 && !mark?.scaledUiAmount) flags.push("multiplier_unavailable");
   const pnl = value === null ? null : value - invested;
   const row = {
     symbol: leg.symbol,

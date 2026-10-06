@@ -20,7 +20,7 @@ Messages are passed to the engine as returned (`id`, `sender`, `subject`, `date`
 | --- | --- | --- |
 | `get_paybox_connection` | Readiness, once per session | none; `ACTIVE` with `autonomous_signing.state: ready` runs unattended |
 | `paybox_list_credentials` | Pick the Solana wallet | none; keep `credential_id`, `metadata.address`, `approval_mode`, `max_slippage_bps` |
-| `paybox_get_portfolio` | USDC balance before a tick, marks for a statement | `address: <wallet>`; pass the JSON output unchanged to `dca plan --portfolio -` or `dca statement --portfolio -` |
+| `paybox_get_portfolio` | USDC balance before a tick, marks for a statement | `address: <wallet>`; save the JSON output unchanged and pass the file to `dca plan --portfolio <file>` or `dca statement --portfolio <file>` |
 | `paybox_request_swap` | One slice | `credential_id`, `src_chain: "solana:mainnet"`, `src_token: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"`, `dst_token: <action.mint>`, `amount: <action.amountRaw>`, `swap_direction: "exact-amount-in"`, `slippage_bps: <action.slippageBps>` |
 | `paybox_get_request` | Reconcile a submitted slice | `request_id` |
 | `list_bridge_routes`, `prepare_bridge`, `get_bridge_status` | Refill Solana USDC from Base | `prepare_bridge { credentialId, sourceChain, destinationChain, recipient, amount, idempotencyKey }`; the owner approves the quote in the Mermail UI; poll with `get_bridge_status`, never by preparing again |
@@ -43,19 +43,21 @@ xStocks are Token-2022 mints with a scaled UI amount. Raw balances are multiplie
 
 ## Engine CLI
 
-`node <skill directory>/scripts/dca.mjs <command> [flags] --home <desk home>`. Output is JSON. Exit `0` is a decision (including refusals inside a plan), `2` a coded refusal of the command itself (`{ "error", "detail" }`), `1` an internal error. `--now <ISO>` overrides the clock. The desk home defaults to `$MERMAIL_DCA_HOME` or `./.mermail-dca`.
+`node <skill directory>/scripts/dca.mjs <command> [flags]`. Output is JSON. Exit `0` is a decision (including refusals inside a plan), `2` a coded refusal of the command itself (`{ "error", "detail" }`), `1` an internal error. The desk home is `~/.mermail-dca` unless `--home <dir>` or `MERMAIL_DCA_HOME` says otherwise. Inputs are files written with the agent's file tool (`-` reads stdin for scripted use); never build a shell command out of tool output.
 
 | Command | Flags | Result |
 | --- | --- | --- |
-| `check` | `--mandate <file\|->` | `{ valid, errors? \| mandateId, shortId, preview }`; writes nothing |
-| `init` | `--mandate <file\|->` | `{ created, mandateId, shortId, dir }`; idempotent |
-| `controls` | `--id <shortId> --input <file\|->` (array of messages) | `{ appended }` |
-| `plan` | `--id`, `--portfolio <file\|->` or `--usdc-raw <n>`, `--commit`, optional `--verification-file` | `{ status, slot, actions[], records[], statementDue, budget }`; actions are `buy`, `reconcile`, `refill`, `halt` |
-| `record` | `--id --kind intent\|submitted\|filled\|failed --slot --leg`, plus `--request-id`, `--tx` or `--reason` | `{ appended }`; refuses out-of-order, unplanned, over-cap or unproven records |
+| `check` | `--mandate <file>` | `{ valid, errors? \| mandateId, shortId, preview }`; writes nothing |
+| `init` | `--mandate <file>` | `{ created, mandateId, shortId, dir }`; idempotent for an existing desk, refuses (`desk_unreadable`) to replace one it cannot read |
+| `status` | `--id <shortId>` | status, budget, integrity, `controlsSince`, recent records |
+| `controls` | `--id --input <file>` (array of messages) | `{ appended }` |
+| `plan` | `--id --portfolio <file>`, `--commit` | `{ status, slot, actions[], records[], statementDue, budget, controlsSince }`; actions are `buy`, `reconcile`, `refill` (`shortfallRaw`, `shortfallUsdc`), `halt` |
+| `record` | `--id --kind intent\|submitted\|filled\|failed --slot --leg`; `submitted` takes `--request-id` and optional `--handoff-url` (a `https://console.mermail.app/` link); `filled` takes `--tx`; `failed` takes `--reason <status code>` | `{ appended }`; refuses unplanned intents, out-of-order records, `failed` without a provider answer, and fills the chain does not prove |
 | `outbox` | `--id` | `{ empty }` or `{ to, from, mailboxId, throughSeq, subject, html, idempotencyKey, summary }` |
 | `mark-mailed` | `--id --through <seq>` | `{ mailedThroughSeq }` |
-| `statement` | `--id`, `--portfolio <file\|->` or `--marks <file\|->` | `{ statement, appended }` |
-| `status` | `--id` | status, budget, integrity, recent records |
-| `verify` | `--id`, optional `--against <file\|->` (Sent messages) | chain verdict, plus comparison with the mailed copy |
-| `rebuild` | `--input <file\|->` (Sent messages), optional `--mandate <file>`, `--confirm <shortId>` | without `--confirm`: `confirmation_required` and the mandate preview, nothing written; with it: the rebuilt desk or a fail-closed reason |
+| `statement` | `--id --portfolio <file>` | `{ statement, appended }` |
+| `verify` | `--id`, optional `--against <file>` (Sent messages) | chain verdict, plus `diverged` / `rollback` against the mailed copy |
+| `rebuild` | `--input <file>` (Sent messages), optional `--mandate <file>`, `--confirm <shortId>` | without `--confirm`: `confirmation_required` and the mandate preview, nothing written; with it: the rebuilt desk or a fail-closed reason |
 | `resume`, `revoke` | `--id --user-request "<the user's words>"` | `{ appended }` |
+
+Test-only flags, refused unless `MERMAIL_DCA_TEST=1`: `--verification-file` (catalog observations), `--tx-file` (a transaction instead of the RPC), `--usdc-raw` (a balance instead of the portfolio), `--marks` (statement marks instead of the portfolio), `--now` (the clock).

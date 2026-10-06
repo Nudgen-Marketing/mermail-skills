@@ -1,4 +1,4 @@
-import { parseInstant } from "./core.mjs";
+import { isInstant, parseInstant } from "./core.mjs";
 import { addressOf, bodyTextOf, receivedAtOf, senderOf } from "./mail.mjs";
 import { mandateId, shortId } from "./mandate.mjs";
 
@@ -35,7 +35,11 @@ export function evaluateControls(mandate, ledger, emails) {
   const desk = mandate.mailbox.email.toLowerCase();
   const seen = new Set(ledger.filter((entry) => entry.kind === "control_seen").map((entry) => entry.data.emailId));
   const records = [];
-  const ordered = [...emails].sort((a, b) => parseInstant(receivedAtOf(a)) - parseInstant(receivedAtOf(b)));
+  // A message without a readable date or body (still being scanned, or content omitted) is left
+  // unmarked so a later tick reads it; it must never be recorded as "seen" with no action.
+  const readable = emails.filter((email) => isInstant(receivedAtOf(email)) && !email?.content_omitted
+    && [email?.text, email?.html, email?.body].some((part) => typeof part === "string"));
+  const ordered = readable.sort((a, b) => parseInstant(receivedAtOf(a)) - parseInstant(receivedAtOf(b)));
   for (const email of ordered) {
     if (!email?.id || seen.has(email.id)) continue;
     if (!String(email.subject ?? "").includes(tag) || addressOf(senderOf(email)) === desk) continue;

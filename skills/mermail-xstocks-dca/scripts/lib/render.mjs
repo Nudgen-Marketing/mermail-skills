@@ -18,9 +18,11 @@ const REASONS = {
   intent_without_request: "a purchase may have been sent without a recorded request",
 };
 const PRIORITY = [
-  "escalation_ignored", "revoked", "paused", "uncertain", "failed", "refused", "filled", "statement",
+  "escalation_ignored", "revoked", "paused", "uncertain", "failed", "sign", "refused", "filled", "statement",
   "skipped", "resumed", "genesis", "submitted", "control_seen", "intent",
 ];
+// A slice waiting for the owner's signature outranks routine news; a plain "submitted" does not.
+const rank = (entry) => PRIORITY.indexOf(entry.kind === "submitted" && entry.data.handoffUrl ? "sign" : entry.kind);
 const usdc = (raw) => fromBaseUnits(raw, 6);
 const reason = (code) => REASONS[code] ?? code;
 // Ledger JSON inside <pre> keeps its quotes so the record stays copyable verbatim; only the
@@ -43,7 +45,9 @@ function line(entry, mandate) {
   const data = entry.data;
   switch (entry.kind) {
     case "genesis": return `Standing order active: ${describeMandate(mandate)}. Receipts go to ${mandate.owner.email}.`;
-    case "submitted": return `Order submitted for ${leg.symbol} (slot ${entry.slot}); waiting for settlement.`;
+    case "submitted": return data.handoffUrl
+      ? `Sign ${leg.symbol} (slot ${entry.slot}) in the Mermail Agent Wallet: ${data.handoffUrl}`
+      : `Order submitted for ${leg.symbol} (slot ${entry.slot}); waiting for settlement.`;
     case "filled": return `Filled ${leg.symbol}: ${usdc(data.amountInRaw)} USDC -> ${fromBaseUnits(data.amountOutRaw, data.decimals)} ${leg.symbol} raw units (before the xStocks multiplier), tx ${data.tx.slice(0, 6)}...${data.tx.slice(-6)} https://solscan.io/tx/${data.tx}`;
     case "failed": return `Not filled ${leg.symbol} (slot ${entry.slot}): ${data.reason}. Nothing is retried in this slot.`;
     case "uncertain": return `Needs attention ${leg.symbol} (slot ${entry.slot}): ${reason(data.reason)}. The slot is closed and still counted against the budget.`;
@@ -53,7 +57,12 @@ function line(entry, mandate) {
     case "resumed": return "Resumed from your agent session.";
     case "revoked": return data.by === "email" ? "Stopped by your reply. This standing order is permanently revoked." : "Revoked from your agent session.";
     case "escalation_ignored": return `Ignored an email that asked to ${data.keyword}. Email can only pause or stop this desk; changes need your agent session.`;
-    case "control_seen": return data.fromOwner && data.action === "none" ? "Your reply was read. Only PAUSE or STOP have an effect." : null;
+    case "control_seen":
+      if (data.fromOwner && data.action === "none") return "Your reply was read. Only PAUSE or STOP have an effect.";
+      if (!data.fromOwner && (data.action === "pause" || data.action === "stop")) {
+        return `A ${data.action.toUpperCase()} request did not come from ${mandate.owner.email}; nothing changed. Reply from that address to halt the desk.`;
+      }
+      return null;
     case "statement": return `Statement issued: invested ${data.totals.investedUsdc} USDC, mark ${data.totals.valueUsd ?? "n/a"} USD, PnL ${data.totals.pnlUsd ?? "n/a"} USD.`;
     default: return null;
   }
@@ -73,7 +82,7 @@ function title(top, entries, mandate) {
     case "skipped": return `Idle: ${top.data.reason}`;
     case "resumed": return "Resumed";
     case "genesis": return `Mandate active: ${mandate.legs.map((entry) => entry.symbol).join(", ")}`;
-    case "submitted": return `Order submitted ${leg.symbol}`;
+    case "submitted": return top.data.handoffUrl ? `Sign ${leg.symbol}` : `Order submitted ${leg.symbol}`;
     case "control_seen": return "Reply received";
     default: return "Order pending";
   }
@@ -102,7 +111,7 @@ function statementTable(statement) {
 
 export function renderEmail({ mandate, entries, budget = null }) {
   const tag = `#${shortId(mandateId(mandate))}`;
-  const top = [...entries].sort((a, b) => PRIORITY.indexOf(a.kind) - PRIORITY.indexOf(b.kind))[0];
+  const top = [...entries].sort((a, b) => rank(a) - rank(b))[0];
   // An order that settled in this same email does not also need its "submitted" line.
   const settled = new Set(entries.filter((entry) => ["filled", "failed", "uncertain"].includes(entry.kind)).map((entry) => `${entry.slot}:${entry.leg}`));
   const lines = entries

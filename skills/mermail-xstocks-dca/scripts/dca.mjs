@@ -61,6 +61,19 @@ function nowOf(flags, io) {
 
 const deskDir = (flags) => findDesk(resolveHome(flags.home), flags.id);
 
+// Provider failures are recorded as a short code; free text from a tool never reaches the ledger.
+const reasonCode = (text) => (/^[A-Za-z0-9_.:-]{1,80}$/.test(text) ? text : "provider_error");
+
+// Only the owner's own Mermail console can host a signing handoff.
+function handoff(url) {
+  if (url === undefined) return {};
+  if (typeof url !== "string" || !url.startsWith("https://console.mermail.app/")) throw new DcaError("handoff_url_rejected", String(url));
+  return { handoffUrl: url };
+}
+
+// Inputs that would let a caller skip the live catalog, the chain or the clock exist for tests only.
+const TEST_ONLY_FLAGS = ["verification-file", "tx-file", "usdc-raw", "marks", "now"];
+
 // Every write goes through here: one lock, an integrity check, deterministic records, one save.
 async function mutate(flags, io, build) {
   const dir = await deskDir(flags);
@@ -69,7 +82,11 @@ async function mutate(flags, io, build) {
     const desk = await readDesk(dir);
     const integrity = verifyChain(desk.ledger, mandateId(desk.mandate));
     if (!integrity.ok) throw new DcaError("integrity_failed", `${integrity.reason}@${integrity.seq}`);
-    const { records = [], result = {} } = await build(desk, now);
+    // Records already mailed to the owner can never disappear locally: that is a rollback.
+    if (desk.ledger.length - 1 < desk.state.mailedThroughSeq) {
+      throw new DcaError("ledger_behind_mail", `local head ${desk.ledger.length - 1} < mailed ${desk.state.mailedThroughSeq}`);
+    }
+    const { records = [], result = {}, state = null } = await build(desk, now);
     let ledger = desk.ledger;
     const appended = [];
     for (const record of records) {
@@ -78,6 +95,7 @@ async function mutate(flags, io, build) {
       appended.push(step.entry);
     }
     if (appended.length) await writeLedger(dir, ledger);
+    if (state) await writeState(dir, { ...desk.state, ...state });
     return { ...result, appended };
   });
 }
@@ -95,12 +113,14 @@ const COMMANDS = {
     const mandate = await readJson(flags.mandate, io);
     const id = assertMandate(mandate);
     const dir = path.join(resolveHome(flags.home), id);
+    let existing = null;
     try {
-      const existing = await readDesk(dir);
-      return { created: false, mandateId: id, shortId: shortId(id), dir, entries: existing.ledger.length };
-    } catch {
-      // new desk
+      existing = await readDesk(dir);
+    } catch (error) {
+      // Only a desk that does not exist yet may be created; anything unreadable is left alone.
+      if (error.code !== "ENOENT") throw new DcaError("desk_unreadable", `${dir}: ${error.message}`);
     }
+    if (existing) return { created: false, mandateId: id, shortId: shortId(id), dir, entries: existing.ledger.length };
     // The genesis record carries the mandate itself, so the mailed ticket alone can restore a desk.
     const { ledger } = appendEntry([], { at: nowOf(flags, io), kind: "genesis", data: { mandateId: id, mandate } });
     await createDesk(dir, mandate, ledger, { mailedThroughSeq: -1 });
@@ -124,10 +144,12 @@ const COMMANDS = {
     if (typeof flags.portfolio === "string") usdcRaw = usdcFromPortfolio(await readJson(flags.portfolio, io), peek.mandate.wallet.address);
     else if (flags["usdc-raw"] !== undefined) usdcRaw = String(integer(flags["usdc-raw"], "usdc-raw"));
     const decide = (desk) => plan({ mandate: desk.mandate, ledger: desk.ledger, now, observations: { verification, usdcRaw } });
-    if (!flags.commit) return decide(peek);
+    if (!flags.commit) return { ...decide(peek), controlsSince: peek.ledger[0].at };
     return mutate(flags, io, (desk) => {
       const result = decide(desk);
-      return { records: result.records, result };
+      // The buys this plan approved are the only intents `record` will accept for this slot.
+      const plannedBuys = result.actions.filter((action) => action.type === "buy").map((action) => `${action.slot}:${action.leg}`);
+      return { records: result.records, result: { ...result, controlsSince: desk.ledger[0].at }, state: { plannedBuys } };
     });
   },
 
@@ -152,29 +174,34 @@ const COMMANDS = {
       if (!legSpec) throw new DcaError("leg_unknown", String(leg));
       const nowMs = parseInstant(now);
       const current = deriveState(desk.mandate, desk.ledger, nowMs).slots.get(`${slot}:${leg}`)?.status ?? null;
-      const allowedAfter = { intent: [null], submitted: ["intent"], filled: ["submitted"], failed: ["intent", "submitted"] }[kind];
+      // "failed" needs a definitive provider answer (a submitted request); an intent with no answer
+      // stays committed and becomes "uncertain". A proven fill may settle an uncertain slice.
+      const allowedAfter = { intent: [null], submitted: ["intent"], filled: ["submitted", "uncertain"], failed: ["submitted"] }[kind];
       if (!allowedAfter.includes(current)) throw new DcaError("record_order", `${kind} after ${current ?? "nothing"}`);
       if (kind === "intent") {
         const denial = intentAllowed(desk.mandate, desk.ledger, nowMs, slot, leg);
         if (denial) throw new DcaError("intent_refused", denial);
+        if (!(desk.state.plannedBuys ?? []).includes(`${slot}:${leg}`)) throw new DcaError("intent_refused", "not_planned");
       }
       if (kind === "filled") {
         // One transaction proves one fill, and it must not predate the intent it settles.
         if (desk.ledger.some((entry) => entry.kind === "filled" && entry.data.tx === proof.signature)) {
           throw new DcaError("fill_unproven", "tx_already_recorded");
         }
-        const intentAtMs = deriveState(desk.mandate, desk.ledger, nowMs).slots.get(`${slot}:${leg}`).committedAtMs;
+        const intended = deriveState(desk.mandate, desk.ledger, nowMs).slots.get(`${slot}:${leg}`);
+        const intentAtMs = intended.committedAtMs;
+        if (BigInt(proof.amountInRaw) > BigInt(intended.amountInRaw)) throw new DcaError("fill_unproven", "amount_exceeds_intent");
         if (!Number.isInteger(proof.blockTime)) throw new DcaError("fill_unproven", "tx_time_unknown");
         if (proof.blockTime * 1000 < intentAtMs - FILL_CLOCK_SKEW_MS) throw new DcaError("fill_unproven", "tx_before_intent");
       }
       const data = {
         intent: () => ({ amountInRaw: String(usdcUnits(legSpec.sliceUsdc)), mint: legSpec.mint, symbol: legSpec.symbol }),
-        submitted: () => ({ requestId: required(flags["request-id"], "request-id") }),
+        submitted: () => ({ requestId: required(flags["request-id"], "request-id"), ...handoff(flags["handoff-url"]) }),
         filled: () => ({
           tx: proof.signature, amountInRaw: proof.amountInRaw, amountOutRaw: proof.amountOutRaw, decimals: proof.decimals,
           blockTime: proof.blockTime, mint: legSpec.mint, symbol: legSpec.symbol,
         }),
-        failed: () => ({ reason: required(flags.reason, "reason").slice(0, 300) }),
+        failed: () => ({ reason: reasonCode(required(flags.reason, "reason")) }),
       }[kind]();
       return { records: [{ kind, slot, leg, data }] };
     });
@@ -243,6 +270,7 @@ const COMMANDS = {
       budget: budgetOf(state),
       entries: desk.ledger.length,
       mailedThroughSeq: desk.state.mailedThroughSeq,
+      controlsSince: desk.ledger[0].at,
       integrity: verifyChain(desk.ledger, mandateId(desk.mandate)),
       recent: desk.ledger.slice(-5).map(({ seq, at, kind, slot, leg, data }) => ({ seq, at, kind, slot, leg, reason: data.reason ?? null })),
     };
@@ -309,6 +337,8 @@ export async function run(argv, io = defaultIo()) {
     const { command, flags } = parseArgs(argv);
     const handler = COMMANDS[command];
     if (!handler) throw new DcaError("command_unknown", String(command));
+    const testFlag = TEST_ONLY_FLAGS.find((flag) => flags[flag] !== undefined);
+    if (testFlag && !io.allowTestFlags) throw new DcaError("flag_test_only", `--${testFlag} needs MERMAIL_DCA_TEST=1`);
     return { code: 0, output: await handler(flags, io) };
   } catch (error) {
     if (error instanceof DcaError) return { code: 2, output: { error: error.code, detail: error.message } };
@@ -326,6 +356,7 @@ function defaultIo() {
     },
     observeCatalog,
     fetchTransaction,
+    allowTestFlags: process.env.MERMAIL_DCA_TEST === "1",
   };
 }
 

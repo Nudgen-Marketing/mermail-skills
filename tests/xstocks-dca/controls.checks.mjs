@@ -39,8 +39,18 @@ export default [
     const m = mandate();
     assert.deepEqual(kinds(evaluateControls(m, genesis(m), [email(m, { from: "Egor <Owner@Example.COM>" })])), ["control_seen", "paused"]);
   }],
+  ["messages without a readable body or date are left for a later tick, not marked seen", () => {
+    const m = mandate();
+    const omitted = { ...email(m, { id: "o1" }), text: undefined, content_omitted: true };
+    const undated = email(m, { id: "o2", receivedAt: undefined });
+    assert.deepEqual(evaluateControls(m, genesis(m), [omitted, undated, email(m, { id: "o3" })]).map((r) => `${r.kind}:${r.data.emailId}`),
+      ["control_seen:o3", "paused:o3"]);
+  }],
+  ["quoted display names are parsed like a mail client would", () => {
+    assert.equal(addressOf('"Last, First" <owner@example.com>'), "owner@example.com");
+    assert.equal(addressOf('"<owner@example.com>" <attacker@evil.test>'), "attacker@evil.test");
+  }],
   ["ambiguous From headers are trusted as nobody", () => {
-    assert.equal(addressOf('"<owner@example.com>" <attacker@evil.test>'), "");
     assert.equal(addressOf("owner@example.com, attacker@evil.test"), "");
     assert.equal(addressOf("Owner <owner@example.com> <attacker@evil.test>"), "");
     assert.equal(addressOf("attacker@evil.test <owner@example.com>"), "owner@example.com");

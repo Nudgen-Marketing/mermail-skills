@@ -102,5 +102,8 @@ export function compareLedgers(local, mailed) {
     const hash = mailedHashes.get(entry.seq);
     if (hash !== undefined && hash !== entry.hash) return { ok: false, reason: "diverged", seq: entry.seq };
   }
-  return { ok: true, comparedThroughSeq: Math.max(-1, ...mailedHashes.keys()) };
+  const mailedHead = Math.max(-1, ...mailedHashes.keys());
+  // Records that were mailed but are missing locally mean the desk was rolled back.
+  if (mailedHead >= local.length) return { ok: false, reason: "rollback", seq: local.length };
+  return { ok: true, comparedThroughSeq: mailedHead };
 }

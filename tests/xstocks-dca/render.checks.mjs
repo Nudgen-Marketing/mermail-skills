@@ -35,6 +35,19 @@ export default [
     assert.match(mail.html, /\{"at":"2026-10-06T10:00:00Z"/);
     assert.ok(!mail.html.includes("&quot;"));
   }],
+  ["an assisted-mode slice tells the owner where to sign", () => {
+    const m = mandate();
+    let l = push(genesis(m), at(1), "intent", 0, 0, { amountInRaw: "250000" });
+    l = push(l, at(1), "submitted", 0, 0, { requestId: "r1", handoffUrl: "https://console.mermail.app/workspaces/w/agent-wallet?sign=1" });
+    const mail = renderEmail({ mandate: m, entries: l.slice(1) });
+    assert.match(mail.text, /Sign SPYx \(slot 0\) in the Mermail Agent Wallet: https:\/\/console\.mermail\.app\/workspaces\/w\/agent-wallet\?sign=1/);
+    assert.match(mail.subject, /Sign SPYx/);
+  }],
+  ["a PAUSE from an unrecognised address is reported, not silently dropped", () => {
+    const m = mandate();
+    const l = push(genesis(m), at(1), "control_seen", null, null, { emailId: "x", fromOwner: false, action: "pause" });
+    assert.match(renderEmail({ mandate: m, entries: l.slice(1) }).text, /did not come from owner@example\.com; nothing changed/);
+  }],
   ["the most important event wins the subject", () => {
     const m = mandate();
     const l = push(fill(genesis(m), m, at(1), 0, 0), at(2), "escalation_ignored", null, null, { emailId: "e", keyword: "resume", fromOwner: false });

@@ -1,11 +1,12 @@
 import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { DcaError, canonical } from "./core.mjs";
 
 const STALE_LOCK_MS = 5 * 60_000;
 
-export const resolveHome = (flag) => path.resolve(typeof flag === "string" ? flag : process.env.MERMAIL_DCA_HOME ?? ".mermail-dca");
+export const resolveHome = (flag) => path.resolve(typeof flag === "string" ? flag : process.env.MERMAIL_DCA_HOME ?? path.join(os.homedir(), ".mermail-dca"));
 
 export async function findDesk(home, prefix) {
   if (!/^[0-9a-f]{8,64}$/.test(String(prefix ?? ""))) throw new DcaError("id_malformed", String(prefix));
