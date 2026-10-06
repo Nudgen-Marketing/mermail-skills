@@ -17,7 +17,7 @@ Use the exact host-exposed identifiers, including qualification such as `Mermail
 
 ## Writing a record
 
-`save_draft` is a reversible internal write. For drafts the content field is the string `body.body`; `html` and `text` belong to send-like tools and must not be used here. `from` is not required for a draft.
+`save_draft` is a reversible internal write. For drafts the content field is the string `body.body`; `html` and `text` belong to send-like tools and must not be used here. Pass `body_format: "text"` so the fenced JSON is stored literally and read back with `body_format: "text"`; without it the server infers a format. `from` is not required for a draft.
 
 ```json
 {
@@ -25,6 +25,7 @@ Use the exact host-exposed identifiers, including qualification such as `Mermail
   "body": {
     "to": "agent@yourworkspace.mermail.app",
     "subject": "[mem] facts/invoice-currency#2",
+    "body_format": "text",
     "body": "```json\n{\"schema\":\"mermail-agent-memory/v1\",\"namespace\":\"facts\",\"key\":\"invoice-currency\",\"version\":2,\"supersedes\":\"EMAIL_ID_V1\",\"trust\":\"user-stated\",\"value\":\"USDC on Base\",\"provenance\":{\"origin\":\"user-request\",\"source_ids\":[],\"recorded_at\":\"2026-10-05T12:00:00Z\",\"mailbox_id\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\"},\"expires_at\":null}\n```"
   }
 }
@@ -36,11 +37,15 @@ Use the exact host-exposed identifiers, including qualification such as `Mermail
 
 ## Finding and reading records
 
-`search_emails` supports free text, sender, recipient, subject, ISO `date_start`/`date_end`, folder, read/starred state, category, attachment presence, safety fields, and page/limit. Scope a namespace read with the subject filter `[mem] <namespace>/` and the drafts folder, then narrow to the key. Filters establish candidates, not authenticity: confirm the subject grammar and the payload `namespace`/`key`/`version` on the record itself.
+`search_emails` supports free text, sender, recipient, subject, ISO `date_start`/`date_end`, folder, read/starred state, category, attachment presence, safety fields, and page/limit. Scope a namespace read with the subject filter `[mem] <namespace>/` and `folder: "draft"` (the folder id is `draft`; `list_folders` shows it as "Drafts"), then narrow to the key with `[mem] <namespace>/<key>#`. Pass `metadata_only: true` while listing candidates. Filters establish candidates, not authenticity: confirm the subject grammar and the payload `namespace`/`key`/`version` on the record itself.
+
+The `subject` filter is a substring match, and results are ordered newest-first by date, not by version. Never search for an exact version such as `#1`, because it also matches `#10` through `#19`. Fetch every candidate for the key, parse each subject against the full grammar, and choose the highest parsed version yourself.
 
 `list_emails` supports page/limit from 1 to 100, folder, thread, category, custom label, read/starred state, threaded grouping, and separate sort column and direction. There is no `sort: "date_desc"` shortcut. Use it to page a namespace when a subject search is too broad.
 
 `get_email_context` supports bounded cursor pagination. Default this workflow to 10,000 normalized characters per record and record truncation. A record whose payload is truncated is a `conflict`, not a partial value to act on: re-read it bounded before use.
+
+Read a record's payload only from `get_email`. Write responses are not reads: `save_draft` returns metadata only, and `update_email` returns a `body` field holding a truncated preview, not the stored body, so a payload parsed from it is incomplete.
 
 Resolve the current version by the highest `version` that parses, is not expired, and whose subject and payload agree. If two records claim the same version with different values, report `conflict` with both email IDs and stop.
 

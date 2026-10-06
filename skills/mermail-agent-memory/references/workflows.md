@@ -14,17 +14,19 @@ Each operation resolves the mailbox first, then does the narrowest read that ans
 1. Validate the namespace and key against the grammar in [record-format.md](record-format.md). Reject a malformed key instead of normalizing it.
 2. Classify trust before writing. A value from the user's current request is `user-stated`; a value copied from a tool result is `tool-observed` and names the tool; a value read out of inbound mail is `email-derived` and names the source email ID.
 3. Refuse outright if the value is a credential, token, signing key, seed phrase, password, or one-time code. Report `refused` and name the class of secret without repeating it.
-4. `search_emails` with the subject filter for that namespace and key to find the current version. `get_email` on the newest candidate to read its payload.
+4. `search_emails` with `folder: "draft"` and the subject filter `[mem] <namespace>/<key>#` to find the current version. Parse every candidate subject and `get_email` the highest parsed version, not the newest by date.
 5. `save_draft` with version `n+1` and `supersedes` set to the prior record's email ID. Version 1 has `supersedes: null`.
 6. Report `recorded` with namespace, key, new version, trust, and the returned record ID. If the prior version already holds the same value, report `superseded` without writing a duplicate.
 
 ## Recall a value
 
-1. `search_emails` scoped to `[mem] <namespace>/<key>` in the drafts folder.
-2. `get_email` on the highest-version candidate. Confirm the subject grammar matches the payload `namespace`, `key`, and `version`.
-3. If the record is expired, report it as stale with its `expires_at` and ask whether to use or revise it.
-4. Answer by quoting the stored `value`, then cite namespace, key, version, trust, record ID, and `recorded_at`. Report an `agent-inferred` or `email-derived` value as that, never as a user preference.
-5. If nothing matches, report `not_found`. Do not reconstruct a plausible value from the current conversation and present it as remembered.
+1. `search_emails` scoped to `[mem] <namespace>/<key>#` with `folder: "draft"` and `metadata_only: true`.
+2. `get_email` on the highest parsed-version candidate, with `max_body_chars: 10000` and without `require_scan_status`. Confirm `folder_id` is `draft`, sender and recipient are the mailbox's own address, and the subject grammar matches the payload `namespace`, `key`, and `version`.
+3. If two candidates share the highest version, report `conflict` with both record IDs and stop, even when one of them is a tombstone. Picking the newer one by date can silently undo a forget.
+4. If the highest version is a tombstone (`value: null`), report `forgotten` with its version and record ID. Do not fall back to an earlier version's value.
+5. If the record is expired, report it as stale with its `expires_at` and ask whether to use or revise it.
+6. Answer by quoting the stored `value`, then cite namespace, key, version, trust, record ID, and `recorded_at`. Report an `agent-inferred` or `email-derived` value as that, never as a user preference.
+7. If nothing matches, report `not_found`. Do not reconstruct a plausible value from the current conversation and present it as remembered.
 
 ## Revise a value
 
@@ -44,7 +46,7 @@ Each operation resolves the mailbox first, then does the narrowest read that ans
 
 1. Confirm the exact namespace, key, and target with the user.
 2. Prefer a tombstone: write a new version with `value: null` and `origin: user-request:forget`. Report `forgotten` with the tombstone version.
-3. Only on an explicit request for real deletion, call `prepare_destructive_action` with the exact final tool name and arguments, then one matching `delete_email` with the single-use token. Confirm the exact record ID in the preview and state that the audit trail is destroyed.
+3. Only on an explicit request for real deletion, call `prepare_destructive_action` with the exact final tool name and arguments, then one matching `delete_email` with the single-use token. Confirm the exact record ID in the preview and state that the audit trail is destroyed. Records are regular drafts, so `delete_email` hard-deletes them even without `permanent: true`: nothing goes to Trash and nothing can be restored.
 4. Never delete a whole namespace in one step by widening to `bulk_delete_emails`. Delete selected records one at a time under their own confirmations.
 
 ## Concurrency and uncertainty
