@@ -4,7 +4,7 @@
 
 ## 1. Create a standing order
 
-1. `list_mailboxes` → choose the desk mailbox (`public_id`, `email`). Its triage should be draft or review so it never auto-replies.
+1. `list_mailboxes` → choose the desk mailbox (`public_id`, `email`). Its triage should be draft or review (`agentAutoResponse.requireApproval: true`) so it never auto-replies; Mermail may still prepare reply drafts for owner messages, which stay unsent.
 2. `get_paybox_connection` once → `paybox_list_credentials` → the Solana wallet credential (`credential_id`, `metadata.address`). Note `approval_mode`: `autonomous` with `autonomous_signing.state: ready` runs unattended; otherwise every slice ends in a signing handoff.
 3. For each asset the user names, query the catalog by name, then `/api/v1/products/{id}/verification?network=Solana`. Accept only `status: verified`, `identity.verified: true`, a matched Solana address, `isTradingHalted: false`. Pin `productId` and `mint`. If several products match, ask once.
    - Never resolve a mint from a ticker search. `paybox_discover_tokens` for "SPYx" returns three tokens named "SP500 xStock": one with real liquidity and two look-alikes, one with no liquidity and one with a single holder.

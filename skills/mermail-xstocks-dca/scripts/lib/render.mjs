@@ -91,13 +91,13 @@ function statementLines(statement) {
 }
 
 function statementTable(statement) {
-  const cell = (value) => `<td style="padding:4px 8px;border-bottom:1px solid #ddd">${escapeHtml(value ?? "n/a")}</td>`;
-  const head = ["Asset", "Fills", "Invested USDC", "Shares", "Avg cost", "Mark USD", "PnL USD", "PnL %"]
-    .map((label) => `<th style="text-align:left;padding:4px 8px;border-bottom:2px solid #111">${label}</th>`).join("");
+  // Plain cells keep the payload small: the agent copies this HTML into send_email verbatim.
+  const cell = (value) => `<td>${escapeHtml(value ?? "n/a")}</td>`;
+  const head = ["Asset", "Fills", "Invested USDC", "Shares", "Avg cost", "Mark USD", "PnL USD", "PnL %"].map((label) => `<th align="left">${label}</th>`).join("");
   const rows = statement.legs.map((leg) => `<tr>${[leg.symbol, leg.fills, leg.investedUsdc, leg.units, leg.avgCostUsd, leg.valueUsd, leg.pnlUsd, leg.pnlPct].map(cell).join("")}</tr>`).join("");
   const total = statement.totals;
-  return `<table style="border-collapse:collapse;font-size:13px"><tr>${head}</tr>${rows}`
-    + `<tr>${["Total", "", total.investedUsdc, "", "", total.valueUsd, total.pnlUsd, total.pnlPct].map(cell).join("")}</tr></table>`;
+  return `<table cellpadding="6" style="border-collapse:collapse;font-size:13px"><tr>${head}</tr>${rows}`
+    + `<tr><th align="left">Total</th>${["", total.investedUsdc, "", "", total.valueUsd, total.pnlUsd, total.pnlPct].map(cell).join("")}</tr></table>`;
 }
 
 export function renderEmail({ mandate, entries, budget = null }) {

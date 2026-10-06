@@ -61,7 +61,7 @@ Email can pause or stop the desk; no email can resume it, raise a cap, add an as
 
 ## Known limits
 
-- Mermail exposes no sender verdict (`sender_authentication.status` is `unknown`). A forged PAUSE or STOP from someone who knows the owner address and `#<shortId>` can halt the desk. That is a denial of service; it can never spend or escalate. Recover with `dca resume` or a new mandate.
+- Mermail exposes no sender verdict (`sender_authentication.status` is `unknown`), even when the receiving relay recorded DKIM and DMARC passes in the raw `Authentication-Results` header. Raw headers can be forged, so this skill does not parse them. A forged PAUSE or STOP from someone who knows the owner address and `#<shortId>` can halt the desk. That is a denial of service; it can never spend or escalate. Recover with `dca resume` or a new mandate.
 - The local ledger's hashes are unkeyed: someone with write access to the desk folder could rewrite and re-hash it. The mailed copy is the anchor; run `dca verify --against` with the Sent mail to detect it.
 - Marks are the Agent Wallet's own portfolio values. Statements are activity records, not brokerage confirmations or investment advice.
 - Ticks run only when a scheduler invokes the agent; nothing runs while the host is off.
