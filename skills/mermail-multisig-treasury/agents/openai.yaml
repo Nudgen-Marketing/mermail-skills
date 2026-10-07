@@ -3,3 +3,14 @@ short_description: "Audit decentralized treasury disbursement proposals and stag
 default_prompt: "Use $mermail-multisig-treasury to triage inbound treasury proposals, audit solvency, and stage multi-signer approvals."
 type: "mcp"
 url: "https://console.mermail.app/mcp"
+interface:
+  display_name: "Mermail Multisig Treasury"
+  short_description: "Mermail Multisig Treasury"
+  default_prompt: "Use $mermail-multisig-treasury to triage decentralized treasury proposals, coordinate multi-signature approvals across stakeholders via email, audit solvency and gas reserves, stage transfer proposals, and execute payouts via Mermail Agent Wallet / PayBox with human-in-the-loop safeguards.."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
