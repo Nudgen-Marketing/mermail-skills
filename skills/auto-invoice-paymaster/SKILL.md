@@ -1,9 +1,25 @@
 ---
 name: auto-invoice-paymaster
 description: Autonomous invoice auditor and accounts payable officer that processes incoming vendor invoices via Mermail Inbox and executes on-chain settlements via Mermail Agent Wallet.
-version: 1.0.0
-author: Tolik (Superteam Builder)
-tags: [mermail, mcp, finance, payments, solana, automation, invoicing]
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+  contribution:
+    version: 1.0.0
+    author: Tolik (Superteam Builder)
+    tags:
+      - mermail
+      - mcp
+      - finance
+      - payments
+      - solana
+      - automation
+      - invoicing
 ---
 
 # 🤖 Auto-Invoice Paymaster (Autonomous Accounts Payable Agent)
