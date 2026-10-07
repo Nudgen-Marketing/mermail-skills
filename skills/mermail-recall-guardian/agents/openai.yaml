@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Recall Guardian"
+  short_description: "Match product recalls to inbox purchase evidence"
+  default_prompt: "Use $mermail-recall-guardian to check a product recall against purchase evidence in my Mermail inbox and explain the match safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
