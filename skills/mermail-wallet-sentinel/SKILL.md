@@ -1,15 +1,6 @@
 ---
 name: mermail-wallet-sentinel
-description: >-
-  Monitor the Mermail Agent Wallet for security threats — unexpected token arrivals,
-  dust attacks, suspicious transfer-fee tokens, and balance anomalies — then deliver
-  actionable security alerts and periodic digest reports via email.
-  Use when the user asks to audit wallet safety, check for scam tokens, review
-  incoming airdrops, or set up wallet monitoring. Uses both Agent Wallet (PayBox)
-  reads and inbox/email tools. Never executes transfers, swaps, or destructive
-  wallet operations; this skill is read-only with email output.
-  Do not use for general wallet management, payments, x402 flows, or email-only
-  workflows unrelated to wallet security.
+description: Monitor the Mermail Agent Wallet for security threats — unexpected token arrivals, dust attacks, suspicious transfer-fee tokens, and balance anomalies — then deliver actionable security alerts and periodic digest reports via email. Use when the user asks to audit wallet safety, check for scam tokens, review incoming airdrops, or set up wallet monitoring. Uses both Agent Wallet (PayBox) reads and inbox/email tools. Never executes transfers, swaps, or destructive wallet operations; this skill is read-only with email output. Do not use for general wallet management, payments, x402 flows, or email-only workflows unrelated to wallet security.
 metadata:
   openclaw:
     requires:
@@ -17,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🛡️"
+    emoji: 🛡️
 ---
 
 ## Overview
