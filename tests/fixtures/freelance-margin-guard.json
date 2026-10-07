@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "project": {
+    "name": "Northstar Landing Page"
+  },
+  "sources": [
+    {
+      "id": "accepted-proposal",
+      "type": "email",
+      "messageId": "synthetic-msg-001",
+      "date": "2026-08-10",
+      "quote": "One responsive landing page and two revision rounds; no authenticated app, admin dashboard, or payment processing."
+    },
+    {
+      "id": "approved-rate",
+      "type": "user",
+      "label": "Owner-approved hourly rate",
+      "quote": "15 USD per hour"
+    },
+    {
+      "id": "approved-estimate",
+      "type": "user",
+      "label": "Owner-approved implementation estimate"
+    },
+    {
+      "id": "approved-rush-rule",
+      "type": "user",
+      "label": "Owner-approved rush rule",
+      "quote": "25 percent of added labor fee"
+    },
+    {
+      "id": "later-request",
+      "type": "email",
+      "messageId": "synthetic-msg-002",
+      "date": "2026-08-29",
+      "quote": "Please add an admin dashboard, Stripe payments, login, two more revision rounds, and deliver five days earlier."
+    },
+    {
+      "id": "access-delay-email",
+      "type": "email",
+      "messageId": "synthetic-msg-003",
+      "date": "2026-08-27",
+      "quote": "Staging credentials were supplied two days after the agreed access date."
+    }
+  ],
+  "baseline": {
+    "authoritySourceRefs": [
+      "accepted-proposal"
+    ],
+    "deliverables": [
+      {
+        "id": "landing-page",
+        "label": "Responsive marketing landing page",
+        "sourceRef": "accepted-proposal"
+      }
+    ],
+    "exclusions": [
+      {
+        "text": "No authenticated application or login",
+        "sourceRef": "accepted-proposal"
+      },
+      {
+        "text": "No admin dashboard",
+        "sourceRef": "accepted-proposal"
+      },
+      {
+        "text": "No payment processing integration",
+        "sourceRef": "accepted-proposal"
+      }
+    ],
+    "acceptanceCriteria": [
+      {
+        "text": "Responsive at the agreed desktop, tablet, and mobile breakpoints",
+        "sourceRef": "accepted-proposal"
+      },
+      {
+        "text": "Approved copy and assets are supplied before final QA",
+        "sourceRef": "accepted-proposal"
+      }
+    ],
+    "revisionBudget": {
+      "included": 2,
+      "used": 1,
+      "sourceRef": "accepted-proposal"
+    },
+    "deadline": {
+      "date": "2026-09-20",
+      "sourceRef": "accepted-proposal"
+    },
+    "pricing": {
+      "currency": "USD",
+      "rate": {
+        "amount": 15,
+        "unit": "hour",
+        "sourceRef": "approved-rate"
+      },
+      "hoursPerWorkday": 8,
+      "rushPremium": {
+        "percent": 25,
+        "basis": "added_labor_fee",
+        "sourceRef": "approved-rush-rule"
+      }
+    }
+  },
+  "request": {
+    "sourceRef": "later-request",
+    "requestedDeadline": "2026-09-15",
+    "items": [
+      {
+        "id": "admin-dashboard",
+        "label": "Add an admin dashboard",
+        "kind": "deliverable",
+        "relation": "excluded",
+        "materiality": "material",
+        "implementationDelta": true,
+        "sourceRef": "later-request",
+        "evidenceQuote": "add an admin dashboard",
+        "baselineSourceRefs": [
+          "accepted-proposal"
+        ],
+        "effortHours": {
+          "min": 10,
+          "max": 12,
+          "sourceRef": "approved-estimate"
+        }
+      },
+      {
+        "id": "payment-integration",
+        "label": "Add Stripe payment processing",
+        "kind": "deliverable",
+        "relation": "excluded",
+        "materiality": "material",
+        "implementationDelta": true,
+        "sourceRef": "later-request",
+        "evidenceQuote": "Stripe payments",
+        "baselineSourceRefs": [
+          "accepted-proposal"
+        ],
+        "effortHours": {
+          "min": 8,
+          "max": 10,
+          "sourceRef": "approved-estimate"
+        }
+      },
+      {
+        "id": "authentication",
+        "label": "Add user login and authentication",
+        "kind": "deliverable",
+        "relation": "excluded",
+        "materiality": "material",
+        "implementationDelta": true,
+        "sourceRef": "later-request",
+        "evidenceQuote": "login",
+        "baselineSourceRefs": [
+          "accepted-proposal"
+        ],
+        "effortHours": {
+          "min": 6,
+          "max": 8,
+          "sourceRef": "approved-estimate"
+        }
+      },
+      {
+        "id": "two-revisions",
+        "label": "Provide two additional revision rounds",
+        "kind": "revision",
+        "relation": "exceeds_limit",
+        "materiality": "material",
+        "implementationDelta": true,
+        "units": 2,
+        "sourceRef": "later-request",
+        "evidenceQuote": "two more revision rounds",
+        "baselineSourceRefs": [
+          "accepted-proposal"
+        ],
+        "effortHours": {
+          "min": 4,
+          "max": 6,
+          "sourceRef": "approved-estimate"
+        }
+      },
+      {
+        "id": "accelerated-deadline",
+        "label": "Deliver five calendar days earlier",
+        "kind": "deadline",
+        "relation": "exceeds_limit",
+        "materiality": "material",
+        "implementationDelta": true,
+        "sourceRef": "later-request",
+        "evidenceQuote": "deliver five days earlier",
+        "baselineSourceRefs": [
+          "accepted-proposal"
+        ],
+        "effortHours": {
+          "min": 0,
+          "max": 0,
+          "sourceRef": "approved-estimate"
+        }
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "id": "staging-access",
+      "label": "Staging credentials arrived after the agreed access date",
+      "owner": "client",
+      "delayDays": 2,
+      "sourceRef": "access-delay-email",
+      "evidenceQuote": "supplied two days after"
+    }
+  ]
+}
