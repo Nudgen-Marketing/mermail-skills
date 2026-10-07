@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail OTP Catcher"
+  short_description: "Mermail OTP Catcher: guided email workflow"
+  default_prompt: "Use $mermail-otp-catcher to catch verification and OTP codes from a Mermail inbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
