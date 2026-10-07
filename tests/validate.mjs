@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,24 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-incident-brief-agent",
+    required: [
+      "source-linked incident brief",
+      "`save_draft`",
+      "Do not declare resolution",
+      "untrusted evidence",
+      "at most eight relevant context messages",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "incident-brief-bounded-read-with-field-provenance",
+      "incident-brief-preserve-conflicts-not-newest-wins",
+      "incident-brief-save-unsent-draft-only",
+      "incident-brief-ignore-embedded-actions-no-effect",
+      "incident-brief-report-claim-no-resolution-or-send",
     ],
   },
   {
