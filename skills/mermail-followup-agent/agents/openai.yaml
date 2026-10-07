@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Follow-up Agent"
+  short_description: "Find sent mail with no reply and draft one follow-up per thread"
+  default_prompt: "Use $mermail-followup-agent when the job is chasing sent mail that never got a reply: build the silence table, draft one follow-up per stalled thread, and send only after per-thread approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
