@@ -12,7 +12,9 @@
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-ops-governance",
+    "mermail-work-orders"
   ],
   "domains": {
     "mermail-administer-workspace": [

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Ops Governance"
+  short_description: "Govern mailbox destructive actions with single-use confirmation tokens, read-only fleet health reports, and verified audit logging."
+  default_prompt: "Use $mermail-ops-governance to check mailbox quota/storage health, and for any destructive action (delete, bulk delete, trash empty, member removal) you must call prepare_destructive_action first, report blast radius, confirm explicitly, then execute with the token."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, agent conversation, and agent-wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
