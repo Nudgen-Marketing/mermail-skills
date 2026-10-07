@@ -1,6 +1,14 @@
 ---
 name: ph-bounty-hunter
 description: Scans Mermail inbox for freelance bounty emails, extracts tasks, and auto-pays via Agent Wallet on Solana
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
 ---
 
 # PH Bounty Hunter Skill
