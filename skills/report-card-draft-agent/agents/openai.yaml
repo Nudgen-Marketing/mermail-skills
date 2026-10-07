@@ -1,0 +1,11 @@
+interface:
+  display_name: "Report Card Draft Agent"
+  short_description: "Report Card Draft Agent: guided email workflow"
+  default_prompt: "Use $report-card-draft-agent to use this skill for Report Card Draft Agent.."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
