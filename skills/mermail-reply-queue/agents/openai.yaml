@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Reply Queue"
+  short_description: "Inbox catch-up: list, search, draft, and approve replies"
+  default_prompt: "Use $mermail-reply-queue to catch up on my Mermail inbox, build a prioritized reply queue, draft replies for review, and send only after I approve each message."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
