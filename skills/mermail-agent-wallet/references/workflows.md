@@ -6,10 +6,10 @@ Use the section matching the authenticated user’s current intent. Do not combi
 
 When `tools/list` or a result includes `_meta.ui.resourceUri` / `ui/resourceUri`, or the host already shows a PayBox frame:
 
-1. Preserve that UI handoff and point the user to the frame for Approve, Generate Signing Key, or signing.
+1. Preserve that UI handoff and point the user to the frame for Approve, Generate Signing Key, bridge quote approval, or signing.
 2. Do not also paste a console link while the frame exposes a usable approval/signing action. If no frame appears, it is blank, or it remains on “Waiting / nothing needs you right now” without a usable signing control, paste at most one returned invocation-scoped `signing_handoff.console_url`. Never call `reopen_signing_window` / `paybox_reopen_signing_window` from the model.
 3. Never request a pasted signing key or signature and never invent a MoonPay, approval, signing-plan, or continuation URL.
-4. Stop on pending approval/signing/payment. An external host may keep that original pending tool result in model context even after the MCP App reaches a terminal state.
+4. Stop on pending approval/signing/payment. Never open signing UI for `pending_confirmation` or `pending_settlement`; say Mermail is checking the existing transaction. An external host may keep that original pending tool result in model context even after the MCP App reaches a terminal state.
 5. Reconcile the known provider request once when the user asks for status, confirms completion, or explicitly requests a new wallet action. For transfer, swap, or x402 provider state, call `paybox_get_request` with the known provider `request_id`; do not use `get_paybox_invocation` as proof of settlement because it reports only MCP invocation/audit state.
 6. If the provider request is terminal, close the old action before continuing. If it remains pending and the user explicitly requested **another/new/different** action with exact terms, disclose that the old action is still pending and process the distinct action with a new preview and new write. Never reuse the old request/invocation ID.
 7. If the new instruction repeats the same terms without explicitly saying another/additional action, stop for clarification to prevent a duplicate. Do not start a replacement write merely to poll, resume, or reconcile the old one.
@@ -25,8 +25,9 @@ After one authorized write, classify the exact result before opening UI or claim
 
 - `setup_required`: the operation is saved and unsubmitted. Present only the returned `setup_handoff.console_url` for that operation, or direct the owner to the embedded masked setup field. Never request the scoped key in chat. General Agent Wallet setup alone does not resume the saved invocation; stop until setup completes it.
 - `pending_execution`: execution is queued, not settled. Retain the exact `request_id`, including a `mermail-execution-` prefix when present. On a later user status request, read it with `paybox_get_request`; do not open a signing window or submit another operation to poll.
+- `pending_confirmation` / `pending_settlement`: the original provider request is progressing. Keep checking that request only when the user asks for status. Do not open a signer, submit a second operation, or call the state a success or failure.
 - `recovery_required`: owner action is needed. Preserve the original invocation and report the returned recovery path without resubmitting.
-- `pending_approval` / `pending_signature`: use the returned approval or signing handoff for that same invocation. A browser signing window is appropriate only for an actual signing state.
+- `pending_approval` / `pending_signature`: use the returned approval or signing handoff for that same invocation. For external MCP with app support, call the advertised `show_paybox_signing` tool using the original `signing_handoff.invocation_id`, then end the handoff response so the host renders the signer. A browser signing window is appropriate only for an actual signing state.
 
 Only provider-confirmed terminal success establishes financial completion. A queued request, submitted transaction, timeout, or unknown result remains pending or uncertain and must not release reserved spend or trigger a replacement write.
 
@@ -74,6 +75,16 @@ Use `paybox_request_swap` only for token A → token B. Never substitute a trans
 Apply the shared reconciliation rule before a later explicit swap or transfer. Never let a stale pending result in host chat permanently block a distinct new action, and never treat that new action as permission to resubmit the same swap unless the user explicitly asks for another one.
 
 If the tool is absent, say swap is unavailable; do not invent another payment path.
+
+## Native USDC bridge
+
+Use `list_bridge_routes`, `prepare_bridge`, and `get_bridge_status` only when those OAuth-only tools are exposed for the connected wallet. Preparing a quote does not move funds.
+
+1. Read `list_bridge_routes`, then resolve the exact source chain, destination chain, recipient, amount, and chain-compatible `credentialId`. Preserve the user's selected credential. Amount is a decimal USDC string with no more than six fractional digits.
+2. Preview the exact bridge terms. Create one stable `idempotencyKey` for this request and call `prepare_bridge` once. A wallet grant does not approve the quote, and a conversational reply cannot approve it.
+3. Present the returned quote card or `approvalUrl`. Only the wallet owner may approve those exact terms in the authenticated Mermail UI. Signing fallback continues this original transfer.
+4. Retain the returned `quoteId`. When the user asks for status or finishes the UI step, call `get_bridge_status` with that original ID. Never repeat `prepare_bridge` to recover missing output, refresh a quote that already progressed, or retry a transfer.
+5. Report success only after confirmed delivery on the destination chain. Quote preparation, approval, signing, source-chain confirmation, `pending_confirmation`, and `pending_settlement` remain pending.
 
 ## x402 paid service
 
