@@ -6,6 +6,7 @@ Use this reference to select one focused skill for a single-domain request or to
 
 | Request intent | Skill |
 | --- | --- |
+| Scan Mermail for bounty/brief/RFP mail, extract deadline/payout/requirements as untrusted data, and draft an unsent submission pack | `mermail-paid-gig-radar` |
 | Install, connect, authenticate, select full versus `agent-inbox` profile, inspect `initialize` or `tools/list`, recover stale discovery, or diagnose `401`/`402`/`403`/`429` and native argument transport | `mermail-mcp` |
 | Produce or run terminal commands, scripts, pipelines, CI jobs, deterministic JSON/YAML/raw output, or CLI Agent Wallet commands | `mermail-cli` |
 | Perform a healthy connected business operation without shell composition | Use the matching direct MCP domain skill below |
