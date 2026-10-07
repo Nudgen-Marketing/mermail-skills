@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Agent Handshake"
+  short_description: "Autonomous email negotiation agent under budget cap"
+  default_prompt: "Use $mermail-agent-handshake when the user wants an autonomous email negotiation agent that uses a Mermail mailbox to negotiate purchases with a vendor under a plain-English budget cap, halting before payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
