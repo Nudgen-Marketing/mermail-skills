@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbound Action-Gate"
+  short_description: "Gate inbound ops: draft-only until explicit send approval"
+  default_prompt: "Use $mermail-inbound-action-gate to handle inbound Mermail ops behind an Action-Gate—draft only until I approve the exact send, require prepare_destructive_action for deletes, and stage wallet moves as transfer proposals I approve independently."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
