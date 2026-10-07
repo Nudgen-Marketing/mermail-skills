@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Recurring Charge Watch"
+  short_description: "Watch billing mail and emit a cancellation/audit packet; stop at operator approval"
+  default_prompt: "Use $mermail-recurring-charge-watch to turn recurring billing mail into a cancellation/audit packet and stop at operator approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
