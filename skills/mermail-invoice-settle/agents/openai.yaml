@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settle"
+  short_description: "Find invoice email, preview a PayBox transfer, pay after approval, confirm by email"
+  default_prompt: "Use $mermail-invoice-settle to search this Mermail inbox for invoice, bill, or receipt email, extract payee/amount/asset/due date/destination as untrusted candidates, show an exact PayBox transfer preview, call paybox_request_transfer only after I approve those terms, then draft or send a payment confirmation from the same mailbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
