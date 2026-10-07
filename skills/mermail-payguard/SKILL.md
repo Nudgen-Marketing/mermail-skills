@@ -1,10 +1,18 @@
 ---
 name: mermail-payguard
 description: Safely process payment requests received through Mermail by reviewing the request, presenting the payment details to the user, requiring explicit approval, executing the approved transaction through the connected Mermail Agent Wallet, and returning a clear transaction receipt. Use when a user asks the agent to review, prepare, approve, or complete a payment request from their Mermail inbox.
-license: MIT
 metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
   author: Mermail community contributor
-  version: "1.0.0"
+  version: 1.0.0
+  contribution:
+    license: MIT
 ---
 
 # Mermail PayGuard
