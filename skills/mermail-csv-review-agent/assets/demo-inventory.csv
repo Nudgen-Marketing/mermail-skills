@@ -1,0 +1,11 @@
+asset_id,name,region,status
+001, Camera ,east,active
+002,Microphone,west,active
+003,Tripod,east,paused
+004,Light,east,active
+004,Spare light,west,active
+005, ,east,active
+006,Monitor,west,pending
+007,=HYPERLINK("https://example.test"),east,active
+008,Recorder,east,active
+009,Stand,east,active,unexpected
