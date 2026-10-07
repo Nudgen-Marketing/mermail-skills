@@ -1,6 +1,17 @@
-name: Wallet Sentinel
-description: Security monitoring agent that audits your Mermail Agent Wallet for scam tokens, dust attacks, and suspicious activity, then delivers alerts via email.
+name: "Wallet Sentinel"
+description: "Security monitoring agent that audits your Mermail Agent Wallet for scam tokens, dust attacks, and suspicious activity, then delivers alerts via email."
 default_prompt: "Use $mermail-wallet-sentinel"
 mcp_servers:
-  - url: https://console.mermail.app/mcp
+  - url: "https://console.mermail.app/mcp"
     required: true
+interface:
+  display_name: "mermail-wallet-sentinel"
+  short_description: "mermail-wallet-sentinel: guided email workflow"
+  default_prompt: "Use $mermail-wallet-sentinel to monitor the Mermail Agent Wallet for security threats — unexpected token arrivals, dust attacks, suspicious transfer-fee tokens, and balance anomalies — then deliver actionable security alerts and periodic digest reports via email."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
