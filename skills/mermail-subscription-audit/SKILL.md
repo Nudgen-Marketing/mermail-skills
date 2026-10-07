@@ -1,6 +1,14 @@
 ---
 name: mermail-subscription-audit
 description: Scans a Mermail inbox for recurring billing and subscription emails, extracts merchant, amount, billing cadence, and next charge date, ranks every subscription by annualized cost, flags price increases against prior charges from the same merchant, and drafts cancellation emails for the subscriptions the user picks. Use when a user says things like "audit my subscriptions", "what am I subscribed to", "find my recurring charges", "which subscriptions got more expensive", or "help me cancel <service>".
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
 ---
 
 # Mermail Subscription Audit
