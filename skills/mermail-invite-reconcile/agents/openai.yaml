@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail invite reconciliation"
+  short_description: "Compare single-event ICS invitation versions safely"
+  default_prompt: "Use $mermail-invite-reconcile to reconcile these supplied iCalendar invitation versions without sending or editing anything."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
