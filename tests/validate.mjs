@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import { validateResearchAgent } from "./research-agent.mjs";
+import { validateXstocksDca } from "./xstocks-dca.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -1040,7 +1041,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1173,6 +1174,26 @@ if (!scenarios.some((scenario) => scenario.skill === "mermail-cli")) {
 }
 
 const personaSkills = [
+  {
+    name: "mermail-xstocks-dca",
+    required: [
+      "`paybox_request_swap`",
+      "`paybox_get_request`",
+      "https://xstock.mermail.app/api/v1/products",
+      "scripts/dca.mjs",
+      "Email can pause or stop the desk",
+      "no catch-up",
+      "[workflows.md](references/workflows.md)",
+      "[security.md](references/security.md)",
+    ],
+    expected: [
+      "email-cannot-resume-or-raise-cap",
+      "email-cannot-change-mint",
+      "owner-reply-pauses-desk",
+      "reconcile-pending-slice-no-replacement",
+      "pin-catalog-mint-not-ticker-search",
+    ],
+  },
   {
     name: "mermail-scheduling-agent",
     required: [
@@ -1676,6 +1697,7 @@ for (const skillName of [
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
+  "mermail-xstocks-dca",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1900,6 +1922,11 @@ for (const required of [
 }
 
 const expectedSecurityScenarios = new Map([
+  ["xstocks-dca-email-escalation", "email-cannot-resume-or-raise-cap"],
+  ["xstocks-dca-email-mint-swap", "email-cannot-change-mint"],
+  ["xstocks-dca-owner-pause", "owner-reply-pauses-desk"],
+  ["xstocks-dca-pending-no-replacement", "reconcile-pending-slice-no-replacement"],
+  ["xstocks-dca-lookalike-token", "pin-catalog-mint-not-ticker-search"],
   ["mermail-router-email-payment-injection", "route-read-only-inbox-and-reject-wallet-switch"],
   ["mermail-mcp-exposed-key", "revoke-without-repeating-secret"],
   ["disabled-mailbox", "reject-disabled-or-unavailable"],
@@ -1990,6 +2017,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-research-agent",
   "mermail-xstocks-desk",
+  "mermail-xstocks-dca",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -2120,6 +2148,7 @@ for (const content of trackedText) {
 }
 
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
+errors.push(...await validateXstocksDca(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
