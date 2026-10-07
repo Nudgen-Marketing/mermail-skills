@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🧾"
+    emoji: 🧾
 ---
 
 # Mermail expense reconciliation
@@ -42,4 +42,3 @@ Return:
 - an exceptions section
 
 Do not claim that a charge was paid merely because an email says so unless the message itself provides payment confirmation evidence. Do not infer tax treatment from a receipt.
-

@@ -2,7 +2,6 @@ interface:
   display_name: "Mermail Expense Reconciliation"
   short_description: "Reconcile receipt and invoice email into a review-ready ledger."
   default_prompt: "Use $mermail-expense-reconciliation to audit the requested Mermail mailbox and period for receipts, duplicates, missing fields, and currency-grouped totals. Keep the workflow read-only."
-
 dependencies:
   tools:
     - type: "mcp"
