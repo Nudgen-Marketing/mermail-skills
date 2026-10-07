@@ -108,7 +108,7 @@ Use those respectively with `bulk_mark_emails_read`, `move_email`, and `bulk_mov
 
 ## Folder definitions
 
-Call `list_folders` before create, rename, move, or delete. `create_folder` and `update_folder` use `body.name`. Creation derives the folder id by slugifying the name and rejects a name without alphanumeric characters. Delete only a returned custom folder whose state is deletable; system folders return a non-deletable error.
+Call `list_folders` before create, rename, move, or delete. `create_folder` and `update_folder` use `body.name`. Creation derives the folder id by slugifying the name and rejects a name without alphanumeric characters. Delete only a returned custom folder whose state is deletable; system folders return a non-deletable error. `delete_folder` moves its filed messages to Trash first and returns `movedToTrashCount`.
 
 ## Custom-label definitions
 
