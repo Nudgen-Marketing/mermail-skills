@@ -1,6 +1,6 @@
 ---
 name: mermail-job-pipeline
-description: Run a job-search pipeline from a Mermail inbox: detect recruiting mail, classify application stages, keep a pipeline board current, schedule interview reminders, and draft follow-ups for approval. Use when the user asks to track applications, interviews, offers, rejections, or recruiter follow-ups.
+description: "Run a job-search pipeline from a Mermail inbox: detect recruiting mail, classify application stages, keep a pipeline board current, schedule interview reminders, and draft follow-ups for approval. Use when the user asks to track applications, interviews, offers, rejections, or recruiter follow-ups."
 metadata:
   openclaw:
     requires:
