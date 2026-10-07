@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Webhook Reactor"
+  short_description: "Register mailbox webhooks and react to events under an owner-defined policy"
+  default_prompt: "Use $mermail-webhook-reactor when the task is to register, inspect, test, or remove mailbox webhook subscriptions, review delivery health, or react to delivery events under a policy I define — not to process one live email manually."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
