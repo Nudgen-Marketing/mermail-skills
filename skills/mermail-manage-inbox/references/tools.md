@@ -74,6 +74,8 @@ Read one selected message:
 
 Use `get_email_context` after selecting one message when surrounding conversation matters. `query.limit` is 1–50 (default 20); reuse the opaque returned `next_cursor` as `query.cursor`. Results are oldest-first, sanitized, scan-gated, and bounded. `get_thread` is the broader thread endpoint and may accept `query.bodies` (`full` or `compact`) and `query.focus_email_id` when present in the live schema.
 
+The safe `get_email_context` response can include sanitized outbound records in `folder_id: sent` with `agent_safe_content: true` and an explicit `scan_status: null`. Preserve this separate content policy; do not invent a clean inbound scan. This exception does not apply to an omitted body, a flagged record, or an ordinary `get_email` read whose safety controls withheld content.
+
 ## Attachment contract
 
 `download_attachment` requires exact `mailboxId`, `emailId`, and `attachmentId`. Read the email metadata first and verify the attachment belongs to that selected message. The MCP bridge returns binary content as a resource and rejects binary responses over 1 MiB; for larger authorized downloads, report the MCP limit rather than inventing a different URL or transport.
