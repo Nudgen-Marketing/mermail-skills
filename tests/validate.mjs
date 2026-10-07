@@ -90,6 +90,10 @@ const administerWorkspaceTools = await readFile(
   path.join(administerWorkspaceDir, "references", "tools.md"),
   "utf8",
 );
+const administerWorkspaceWebhooks = await readFile(
+  path.join(administerWorkspaceDir, "references", "webhooks.md"),
+  "utf8",
+);
 for (const required of [
   "## Overview",
   "## Preferred Deliverables",
@@ -135,6 +139,27 @@ for (const [label, content] of [
   ]) {
     if (!content.includes(required)) {
       errors.push(`${label}: missing scoped mailbox-provision contract ${required}`);
+    }
+  }
+}
+for (const [label, content] of [
+  ["mermail-administer-workspace skill", administerWorkspaceSkill],
+  ["mermail-administer-workspace tools reference", administerWorkspaceTools],
+  ["mermail-administer-workspace webhooks reference", administerWorkspaceWebhooks],
+]) {
+  for (const required of [
+    "`list_webhooks`",
+    "`create_webhook`",
+    "`list_webhook_deliveries`",
+    "`retry_webhook_delivery`",
+    "`rotate_webhook_secret`",
+    "`prepare_destructive_action`",
+    "idempotencyKey",
+    "write-only",
+    "only once",
+  ]) {
+    if (!content.includes(required)) {
+      errors.push(`${label}: missing webhook contract ${required}`);
     }
   }
 }
@@ -1015,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1294,6 +1319,16 @@ const personaSkills = [
     ],
     expected: [
       "search-published-catalog-no-auto-selection",
+      "resolve-vietnamese-category-from-live-catalog-read-only",
+      "resolve-english-category-from-live-catalog-read-only",
+      "clarify-ambiguous-live-category-no-fallback",
+      "show-live-supported-categories-no-popular-fallback",
+      "exclude-incomplete-category-provenance",
+      "show-five-preserve-api-order-disclose-more",
+      "fixed-familiar-order-skip-missing-return-fewer",
+      "do-not-choose-ambiguous-familiar-product",
+      "report-live-catalog-unavailable-no-invented-list",
+      "preserve-amount-list-only-no-wallet-or-swap",
       "resolve-ticker-through-catalog-no-buy",
       "verified-standard-wallet-swap-once",
       "reconcile-original-provider-request",
@@ -1401,6 +1436,36 @@ if (
   errors.push("mermail-xstocks-desk: ticker-only scenario must resolve through catalog without buying");
 }
 
+const xstocksRecommendationScenarios = scenarios.filter(
+  (scenario) => scenario.skill === "mermail-xstocks-desk" && scenario.recommendationCase,
+);
+const expectedXstocksRecommendationCases = [
+  "category-vi",
+  "category-en",
+  "category-ambiguous",
+  "category-unsupported",
+  "category-provenance",
+  "category-pagination",
+  "familiar-missing",
+  "familiar-duplicate",
+  "api-error",
+  "amount-no-selection",
+];
+for (const recommendationCase of expectedXstocksRecommendationCases) {
+  const scenario = xstocksRecommendationScenarios.find(
+    (candidate) => candidate.recommendationCase === recommendationCase,
+  );
+  if (
+    !scenario ||
+    scenario.approval !== "none" ||
+    scenario.tools.some((tool) => tool.startsWith("paybox_") || tool === "get_paybox_connection")
+  ) {
+    errors.push(
+      `mermail-xstocks-desk: recommendation case ${recommendationCase} must remain read-only and avoid wallet tools`,
+    );
+  }
+}
+
 const xstocksPendingScenario = scenarios.find(
   (scenario) => scenario.expected === "reconcile-same-request-no-replacement",
 );
@@ -1443,6 +1508,17 @@ if (!xstocksSubmitScenario || !xstocksSubmitScenario.tools.includes("paybox_get_
 }
 
 const xstocksSkill = await readFile(path.join(skillsRoot, "mermail-xstocks-desk", "SKILL.md"), "utf8");
+for (const required of [
+  "Apple, NVIDIA, Microsoft, Amazon, Alphabet, Meta, and Tesla",
+  "A recommendation-only request stops after the list",
+  "`meta.total`, `meta.page`, and `meta.totalPages`",
+  "do not fall back to the familiar-product list",
+  "`recommendations_ready`",
+]) {
+  if (!xstocksSkill.includes(required)) {
+    errors.push(`mermail-xstocks-desk: missing recommendation contract ${required}`);
+  }
+}
 if (
   xstocksSkill.includes("requires host env `JUPITER_API_KEY`") ||
   xstocksSkill.includes("Host `JUPITER_API_KEY` is required") ||
@@ -1773,6 +1849,14 @@ for (const required of [
   "not “awaiting signature.”",
   "classify paid output",
   "vendor session credential",
+  "list_bridge_routes",
+  "prepare_bridge",
+  "get_bridge_status",
+  "show_paybox_signing",
+  "pending_confirmation",
+  "pending_settlement",
+  "quoteId",
+  "idempotencyKey",
 ]) {
   if (!agentWalletCorpus.includes(required)) {
     errors.push(`mermail-agent-wallet: missing contract ${required}`);
@@ -1797,6 +1881,10 @@ for (const required of [
   "paybox_request_transfer",
   "paybox_request_swap",
   "paybox_pay_x402",
+  "list_bridge_routes",
+  "prepare_bridge",
+  "get_bridge_status",
+  "show_paybox_signing",
   "paybox_request_payment",
   "signing_handoff",
   "connect_handoff",
@@ -1948,7 +2036,8 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
 
 const allTools = Object.values(coverage.domains).flat();
 const updatedContracts = [
-  ["mermail-agent-wallet/references/workflows.md", ["credential_id", "approval_mode: autonomous", "setup_required", "pending_execution", "recovery_required", "paybox_get_request"]],
+  ["mermail-agent-wallet/references/workflows.md", ["credential_id", "approval_mode: autonomous", "setup_required", "pending_execution", "pending_confirmation", "pending_settlement", "recovery_required", "show_paybox_signing", "list_bridge_routes", "prepare_bridge", "get_bridge_status", "quoteId", "idempotencyKey"]],
+  ["mermail-administer-workspace/references/webhooks.md", ["list_webhooks", "create_webhook", "list_webhook_deliveries", "test_webhook", "retry_webhook_delivery", "rotate_webhook_secret", "prepare_destructive_action", "idempotencyKey", "write-only"]],
   ["mermail-administer-workspace/references/ai-credits.md", ["observe", "enforce", "charged", "reserved", "remaining", "ai_credits_exhausted", "ai_credit_accounting_unavailable", "ai_action_in_progress"]],
   ["mermail-support-agent/references/workflows.md", ["draft_for_review", "automatic_triage", "update_mailbox_settings", "verification-isolated"]],
   ["mermail-manage-inbox/references/workflows.md", ["movedToTrashCount", "Trash"]],
@@ -1963,11 +2052,18 @@ for (const expected of [
   "preserve-explicit-chain-eligible-credential", "clarify-ambiguous-autonomous-credentials",
   "autonomous-executes-within-user-task-and-grant", "preserve-original-setup-handoff-no-replacement",
   "poll-original-execution-no-signing-or-resubmit", "preserve-original-invocation-and-recovery-path",
+  "keep-checking-original-transaction-no-signer-or-resubmit", "display-signer-for-original-invocation-only",
+  "list-bridge-routes-read-only", "prepare-quote-once-owner-ui-approval-still-required",
+  "chat-and-grant-do-not-replace-owner-quote-approval", "poll-original-quote-id-no-second-prepare",
+  "destination-delivery-required-for-success",
   "admin-updates-mailbox-draft-policy", "admin-updates-mailbox-automatic-policy",
   "reject-non-admin-settings-change", "keep-verification-automation-isolated",
   "do-not-confuse-default-triager-with-mailbox-mode", "report-separate-ai-credit-accounting-and-mode",
   "report-exhaustion-no-automatic-replay", "retain-reservation-and-original-idempotency",
   "inspect-original-action-no-duplicate-generation-or-send", "stop-on-accounting-unavailable-no-bypass",
+  "inspect-webhooks-and-deliveries-read-only", "admin-create-webhook-once-with-token-and-idempotency",
+  "inspect-original-create-no-new-key-or-broader-events", "test-webhook-once-with-token-and-idempotency",
+  "inspect-delivery-before-same-key-retry-no-duplicate", "rotate-once-with-token-never-echo-secrets",
   "confirm-trash-move-and-report-movedToTrashCount",
 ]) {
   if (!scenarios.some((scenario) => scenario.expected === expected)) {
@@ -1978,8 +2074,8 @@ const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
 const duplicates = knownTools.filter((tool, index) => knownTools.indexOf(tool) !== index);
 if (allTools.length !== 82) errors.push(`expected 82 business tools, found ${allTools.length}`);
-if (walletScopedTools.length !== 19) {
-  errors.push(`expected 19 wallet-scoped tool canaries, found ${walletScopedTools.length}`);
+if (walletScopedTools.length !== 23) {
+  errors.push(`expected 23 wallet-scoped tool canaries, found ${walletScopedTools.length}`);
 }
 if (compatibility.catalog?.skills !== skillNames.length) {
   errors.push(`compatibility skill count must be ${skillNames.length}`);
