@@ -1,6 +1,14 @@
 ---
 name: mermail-inbox-triager
 description: Scans a Mermail inbox, categorizes emails as urgent, needs reply, informational, or newsletter, and drafts replies only for items needing a response, saved to the mailbox for user review before sending.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
 ---
 
 # Mermail Inbox Triager
