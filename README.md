@@ -162,6 +162,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
+| `mermail-w9-agent` | Collect contractor W-9s, draft missing-form requests, review received tax forms without transcribing TINs, and label collection status |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
