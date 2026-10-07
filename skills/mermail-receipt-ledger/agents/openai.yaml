@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipt Ledger"
+  short_description: "Ledger receipts and invoices from a Mermail inbox"
+  default_prompt: "Use $mermail-receipt-ledger to build a receipts and invoices ledger from a Mermail mailbox, organize matching mail, and draft an owner digest without auto-sending or making payments."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
