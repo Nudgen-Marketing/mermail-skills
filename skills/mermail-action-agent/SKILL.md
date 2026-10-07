@@ -5,10 +5,10 @@ metadata:
   openclaw:
     requires:
       env:
-       - MERMAIL_API_KEY
+        - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "⚡"
+    emoji: ⚡
 ---
 
 # Mermail Action Agent
