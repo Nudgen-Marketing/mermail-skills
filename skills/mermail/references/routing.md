@@ -26,6 +26,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
+| Save, resume, list, or clear cross-client conversation context through the agent's own mailbox | `mermail-context-bridge` |
 | Run a customer research business: owner-verified orders, protocol comparisons or market reports, approved report delivery, and same-thread follow-ups | `mermail-research-agent` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Run an xStocks trading desk: standing budget/schedule/mint allowlist, PayBox Jupiter plugin DCA, PayBox swap fallback, per-DCA invoice email, or weekly brokerage statement email | `mermail-xstocks-desk` |
