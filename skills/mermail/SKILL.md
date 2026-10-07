@@ -1,6 +1,6 @@
 ---
 name: mermail
-description: Route broad, ambiguous, or cross-domain Mermail requests to the narrowest current workflow across MCP connection, CLI automation, agent inbox identity, inbox management, email composition, workspace admin, triage, mailbox-agent delegation, Composio integrations, scheduling/GTM/support/research/x402/xStocks personas, and Agent Wallet. Use when the user does not already name a focused skill or combines multiple Mermail jobs in one request.
+description: Route broad, ambiguous, or cross-domain Mermail requests to the narrowest current workflow across MCP connection, CLI automation, agent inbox identity, inbox management, email composition, workspace admin, triage, mailbox-agent delegation, Composio integrations, scheduling/GTM/support/research/x402/xStocks personas, and Agent Wallet. Use when the user does not already name a focused skill or combines multiple Mermail jobs in one request. Also route explicit `mermail-decision-gate` requests through the focused entries in routing.md.
 metadata:
   openclaw:
     requires:
@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "📬"
+    emoji: 📬
 ---
 
 # Mermail
