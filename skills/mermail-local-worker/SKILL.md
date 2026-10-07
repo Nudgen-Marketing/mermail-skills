@@ -1,6 +1,6 @@
 ---
 name: mermail-local-worker
-description: Turn a designated Mermail mailbox into a local-inference work queue: poll structured [WORK] task-card emails, run each task on the user's own OpenAI-compatible local endpoint (Ollama, LM Studio, vLLM), and reply the result in the same thread. Use when the user wants Mermail email tasks executed by a self-hosted local model so mail content never leaves the machine, with zero cloud tokens and reproducible runs. Do not use for cloud-model composition, mailbox cleanup, mailbox-agent chat, or triager configuration.
+description: "Turn a designated Mermail mailbox into a local-inference work queue: poll structured [WORK] task-card emails, run each task on the user's own OpenAI-compatible local endpoint (Ollama, LM Studio, vLLM), and reply the result in the same thread. Use when the user wants Mermail email tasks executed by a self-hosted local model so mail content never leaves the machine, with zero cloud tokens and reproducible runs. Do not use for cloud-model composition, mailbox cleanup, mailbox-agent chat, or triager configuration."
 metadata:
   openclaw:
     requires:
@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🖥️"
+    emoji: 🖥️
 ---
 
 # Mermail Local Worker
