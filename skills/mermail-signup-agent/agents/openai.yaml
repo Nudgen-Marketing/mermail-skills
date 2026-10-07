@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Signup Agent"
+  short_description: "Complete third-party signups with a Mermail inbox identity"
+  default_prompt: "Use $mermail-signup-agent when the job is signing an agent up for a third-party service end-to-end with a Mermail mailbox — mailbox resolution, verification mail correlation, and approved activation."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
