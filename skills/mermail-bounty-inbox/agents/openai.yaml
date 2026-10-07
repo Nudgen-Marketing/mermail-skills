@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Inbox"
+  short_description: "Triage bounty/Earn inbound, draft acks, and ledger unambiguous prizes"
+  default_prompt: "Use $mermail-bounty-inbox to triage Superteam Earn, sponsor, and bounty mail in my Mermail inbox, draft short ack replies for review, and build a conservative prize ledger. Do not send and do not use Agent Wallet."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
