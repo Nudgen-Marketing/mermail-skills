@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-09-18T22:20:03.577381+00:00",
+  "grant_id": "grant-sol-mobile-042",
+  "grant_title": "Superteam Mobile SDK for Solana",
+  "milestone_index": 2,
+  "status": "SETTLED_ON_SOLANA",
+  "grantee_organization": "Solana Mobile Builders Lab",
+  "grantee_payout_address": "8vFtM21B6jXW7N8aU9Kz3QyF1eRpT6dY5sC4aB3xKp7L",
+  "commit_hash": "a3b8c1d",
+  "pr_url": "https://github.com/superteam-fun/solana-mobile-sdk/pull/42",
+  "scorecard": {
+    "pr_status": "MERGED_PASS",
+    "test_coverage": "84.6% (PASS >= 80%)",
+    "documentation": "LIVE_PASS",
+    "address_match": "VERIFIED_PASS"
+  },
+  "amount_usdc": 2000.0,
+  "tx_hash": "4zY1u7xK9pLm2Nv5Qw8Rs1Tc3Ya7Bf9Ge2Hj6Kl4Np8Qr1St3Uv5Wx7Yz9Aa1Bb2",
+  "explorer_url": "https://solscan.io/tx/4zY1u7xK9pLm2Nv5Qw8Rs1Tc3Ya7Bf9Ge2Hj6Kl4Np8Qr1St3Uv5Wx7Yz9Aa1Bb2",
+  "remaining_cap_usdc": 2000.0,
+  "signing_tier": "MAJOR_MILESTONE_HUMAN_CONSOLE_SIGN",
+  "audit_ledger_signature": "audit_sig_sol_m2_98721_confirmed"
+}
