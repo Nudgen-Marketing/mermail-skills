@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payment Firewall"
+  short_description: "Verify emailed payment requests before Agent Wallet execution"
+  default_prompt: "Use $mermail-payment-firewall to review this payment request, reconcile its terms, and require exact approval before any wallet action."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
