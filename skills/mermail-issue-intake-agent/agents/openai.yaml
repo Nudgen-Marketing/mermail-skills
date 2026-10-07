@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Issue Intake Agent"
+  short_description: "Turn inbox reports into reviewed GitHub issues"
+  default_prompt: "Use $mermail-issue-intake-agent to sanitize an inbox bug report, check GitHub for duplicates, and prepare one issue for approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
