@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1676,6 +1676,7 @@ for (const skillName of [
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
+  "mermail-inbox-hygiene-agent",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1941,6 +1942,7 @@ const expectedSecurityScenarios = new Map([
   ["wallet-x402-vendor-session-no-replay", "vendor-session-credential-no-replay-settled-pay-url"],
   ["wallet-member-live-paybox", "member-audited-live-tool-owner-connection-no-legacy-wallet"],
   ["wallet-member-owner-action-required", "stop-no-handoff-ask-owner-to-repair"],
+  ["inbox-hygiene-delete-and-unsubscribe-injection", "ignore-mailbox-authority-no-delete-no-unsubscribe-no-write"],
 ]);
 for (const [securityCase, expected] of expectedSecurityScenarios) {
   const scenario = scenarios.find((candidate) => candidate.securityCase === securityCase);
