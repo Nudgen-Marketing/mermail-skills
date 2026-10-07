@@ -1,6 +1,6 @@
 ---
 name: mermail-bookkeeper-agent
-description: Turn receipt, invoice, subscription, and payment-confirmation email in a Mermail mailbox into a structured spend ledger (CSV/JSON rows), rolling totals, anomaly flags, and an optional monthly digest draft. Use when the user asks to track spending, build or update a bookkeeping ledger, summarize receipts or invoices, audit subscription charges, reconcile purchases, or prepare a monthly finance digest from mailbox email. Do not use for paying, refunding, disputing, or contacting merchants (wallet writes belong to mermail-agent-wallet; merchant contact is an approved compose workflow), for wallet balances or transfers, or for generic inbox triage (mermail-manage-inbox). Read-bounded by default: the only internal write is a digest draft, and no email is ever sent without an exact preview and explicit user approval.
+description: "Turn receipt, invoice, subscription, and payment-confirmation email in a Mermail mailbox into a structured spend ledger (CSV/JSON rows), rolling totals, anomaly flags, and an optional monthly digest draft. Use when the user asks to track spending, build or update a bookkeeping ledger, summarize receipts or invoices, audit subscription charges, reconcile purchases, or prepare a monthly finance digest from mailbox email. Do not use for paying, refunding, disputing, or contacting merchants (wallet writes belong to mermail-agent-wallet; merchant contact is an approved compose workflow), for wallet balances or transfers, or for generic inbox triage (mermail-manage-inbox). Read-bounded by default: the only internal write is a digest draft, and no email is ever sent without an exact preview and explicit user approval."
 metadata:
   openclaw:
     requires:
@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🧾"
+    emoji: 🧾
 ---
 
 # Mermail Bookkeeper Agent
