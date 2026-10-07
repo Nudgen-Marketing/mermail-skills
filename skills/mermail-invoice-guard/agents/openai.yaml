@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Guard"
+  short_description: "Screen crypto invoices before any payment"
+  default_prompt: "Use $mermail-invoice-guard to inspect one selected crypto invoice in my Mermail inbox, compare it with my payment policy, and produce a non-payment risk decision."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
