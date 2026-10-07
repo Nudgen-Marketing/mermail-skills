@@ -1,12 +1,6 @@
 ---
 name: mermail-auto-pay
-description: >-
-  Monitor a Mermail inbox for invoice and payment-request emails, extract
-  structured payment details, and settle them through the Mermail Agent Wallet.
-  Use when the main job is detecting unpaid invoices in email, validating
-  extracted amounts against the original message, and executing on-chain
-  payments. Do not use for ordinary compose, inbox organization, or
-  task-triage configuration.
+description: Monitor a Mermail inbox for invoice and payment-request emails, extract structured payment details, and settle them through the Mermail Agent Wallet. Use when the main job is detecting unpaid invoices in email, validating extracted amounts against the original message, and executing on-chain payments. Do not use for ordinary compose, inbox organization, or task-triage configuration.
 metadata:
   openclaw:
     requires:
@@ -14,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "\U0001F4B3"
+    emoji: 💳
 ---
 
 # Mermail Auto-Pay
