@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Earn Ops"
+  short_description: "Bounty-ops inbox for Superteam Earn and sponsor workflows"
+  default_prompt: "Use $mermail-earn-ops when the job is scanning a Mermail inbox for Superteam Earn, sponsor POCs, OTP/login codes, or bounty replies; classifying action vs ignore vs escalate-to-human; drafting builder-voice replies; or optionally inspecting Agent Wallet read-only without paying."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
