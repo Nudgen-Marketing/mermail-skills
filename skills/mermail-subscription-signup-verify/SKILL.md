@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "\U0001F4E7"
+    emoji: 📧
 ---
 
 # Subscription Sign-Up & Verify
