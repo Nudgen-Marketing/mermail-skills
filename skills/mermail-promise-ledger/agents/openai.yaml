@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Promise Ledger"
+  short_description: "Capture, audit, and report every commitment made over email"
+  default_prompt: "Use $mermail-promise-ledger to audit open promises in this inbox and draft status updates for anything at risk."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
