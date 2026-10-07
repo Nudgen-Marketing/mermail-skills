@@ -1,0 +1,11 @@
+interface:
+  display_name: "Decision Inbox"
+  short_description: "Turn email threads into decision-ready briefs. Classify and draft the smallest clarification needed."
+  default_prompt: "Use $mermail-decision-inbox to analyse this email thread and produce a decision brief."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
