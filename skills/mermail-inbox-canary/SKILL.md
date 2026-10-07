@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🐤"
+    emoji: 🐤
 ---
 
 # Mermail Inbox Canary
@@ -98,5 +98,3 @@ This skill does not own MCP tools. Follow the same argument, approval, and retry
 - "Run the inbox canary on the receipts mailbox and tell me if automations are holding mail."
 - "Can mailbox A reach mailbox B in this workspace? Probe it and time the delivery."
 - "Read-only check: is the triage mailbox still enabled and receiving? Don't send anything."
-
-
