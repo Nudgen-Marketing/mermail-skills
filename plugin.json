@@ -1,7 +1,6 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mermail",
-  "displayName": "Mermail",
   "version": "1.5.7",
   "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
   "author": {
@@ -9,8 +8,9 @@
     "email": "contact@mermail.app",
     "url": "https://mermail.app"
   },
-  "homepage": "https://docs.mermail.app",
+  "homepage": "https://docs.mermail.app/ai/skills",
   "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
+  "license": "MIT",
   "keywords": [
     "email",
     "inbox",
