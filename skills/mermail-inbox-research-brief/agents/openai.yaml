@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbox Research Brief"
+  short_description: "Turn Mermail inbox mail into a structured research brief without wallet spend"
+  default_prompt: "Use $mermail-inbox-research-brief to digest my Mermail inbox into a ranked research brief. Inbox and drafts only — no wallet, deposits, or trades."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
