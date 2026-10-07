@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Executive Digest Agent"
+  short_description: "Triage Web3 treasury emails and compile executive digests"
+  default_prompt: "Use $mermail-executive-digest-agent when the job is compiling an executive digest, triaging Web3 treasury notifications, or drafting transaction summary reports without auto-sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
