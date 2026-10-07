@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Renewal Guard"
+  short_description: "Track renewals, price changes, and cancel-by dates safely"
+  default_prompt: "Use $mermail-renewal-guard to review upcoming renewals in my Mermail inbox, build an evidence-linked risk board, and save only the drafts I request without sending anything."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
