@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty & Grant Tracker"
+  short_description: "Classify bounty/grant platform emails and draft calm follow-ups for anything stuck, without ever auto-sending."
+  default_prompt: "Use $mermail-bounty-grant-tracker to check my mailbox for bounty or grant submissions that are stuck and draft follow-ups."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
