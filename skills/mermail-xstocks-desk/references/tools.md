@@ -7,7 +7,7 @@ The fixed base URL is `https://xstock.mermail.app`. Resolve every relative catal
 - `GET /api/v1/categories`: call this first for category recommendations. Match only categories returned by the API, using `kind`, `slug`, and `label`; `verifiedProductCount` may be used to explain current availability.
 - `GET /api/v1/products`: discovery and verified category filters. Use `assetType=<slug>`, `sector=<slug>`, or `theme=<slug>` according to the category's returned `kind`, never more than one category kind unless the user explicitly requests an intersection. Always add `network=Solana&addressStatus=matched&isTradingHalted=false&active=true&websitePresent=true`. Reject products whose trading state is unknown. Product category assignments expose evidence, provenance, and invalidation state.
 - `GET /api/v1/products/{id}`: exact product detail.
-- `GET /api/v1/products/{id}/verification?network=Solana`: product-oriented identity plus live mint check. Read `identity`, `executionRequirements`, `dependencyChecks`, `retryable`, and `retryAfterMs`; a verified identity does not authorize execution by itself.
+- `GET /api/v1/products/{id}/verification?network=Solana`: product-oriented identity plus live mint check. Read `identity`, `executionRequirements`, `executionContext`, `dependencyChecks`, `retryable`, and `retryAfterMs`; a verified identity does not authorize execution by itself. Scaled UI metadata is display context; raw token units remain the execution units.
 - `GET /api/v1/assets/verification?network=Solana&mint=...`: backend-oriented exact mint classification. Mermail calls this from its trusted server configuration; the skill does not substitute its own result.
 - `GET /api/v1/status`: manual snapshot time, coverage, and classification-integrity counts.
 
@@ -22,7 +22,7 @@ For general recommendations, run separate filtered `q` searches in this fixed or
 Probe `get_paybox_connection`, then use live schemas rather than memorized fields.
 
 - `paybox_get_portfolio`: read exact wallet assets, balances, token identifiers, and eligible credentials.
-- `paybox_request_swap`: the only write used for USDC → xStock. Call once with the exact catalog mint and user-authorized amount.
+- `paybox_request_swap`: the only write used for USDC → xStock. Call once with the exact catalog mint and user-authorized amount converted to six-decimal USDC base units. Use Solana → Solana and exact-amount-in only.
 - `paybox_get_request`: reconcile the same provider request after signing or on user-requested status.
 - `get_paybox_invocation`: audit/tool-call status only; it is not proof that tokens settled.
 
