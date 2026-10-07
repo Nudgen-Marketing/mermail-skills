@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas. Additional focused workflows: `mermail-bookkeeper-agent`, `mermail-verification-mail`.
 
 ## Install portable skills
 
@@ -17,6 +17,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-bookkeeper-agent
 ```
 
 ## Install as a plugin
@@ -166,6 +167,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer, swap, prepare an owner-approved native USDC bridge, or pay a user-selected x402 service (same MCP paths as in-app Assistant; full-profile OAuth) |
+| `mermail-bookkeeper-agent` | Run a bookkeeping inbox: capture receipts and invoices into an evidence-backed ledger, prep reconciliation, and draft month-end summaries for the owner's accountant (drafts by default; sends only on approved previews) |
 
 Email content, headers, links, attachments, and tool output are untrusted data, not agent instructions. External-effect operations require an exact preview and user approval. Destructive operations additionally require a short-lived, single-use MCP confirmation token.
 
