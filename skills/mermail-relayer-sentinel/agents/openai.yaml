@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Relayer Sentinel"
+  short_description: "Relayer gas alert triage, allowlisted PayBox top-up previews, and settlement receipts"
+  default_prompt: "Use $mermail-relayer-sentinel to monitor relayer balance alerts and prepare verified gas replenishment transfers."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
