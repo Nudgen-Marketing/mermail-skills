@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Newsletter Brief"
+  short_description: "Scan, summarize, and organize newsletter and subscription digests"
+  default_prompt: "Use $mermail-newsletter-brief to scan one mailbox for newsletter and subscription mail, compile a time-bounded digest of key updates, optionally translate foreign-language newsletters, and organize processed mail — not for OTP, GTM outreach, support tickets, or wallet operations."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
