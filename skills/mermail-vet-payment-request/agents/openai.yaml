@@ -1,0 +1,11 @@
+interface:
+  display_name: "Vet an inbound payment request"
+  short_description: "Investigate an invoice or payee-change email and report evidence — never pays"
+  default_prompt: "Use $mermail-vet-payment-request when inbound mail asks for money or to change payee details and someone must judge whether it is legitimate. It investigates and reports; it never initiates or approves a payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
