@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Inbox Triage"
+  short_description: "Classify inbound opportunity email by entry cost and save the briefing in Mermail"
+  default_prompt: "Use $mermail-bounty-inbox-triage when the job is triaging inbound bounty, grant, hackathon, or paid-opportunity email into a cost-classified briefing and saving or sending that briefing inside the Mermail mailbox, not for ordinary inbox cleanup or general drafting."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
