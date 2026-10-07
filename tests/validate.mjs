@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1674,6 +1674,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-invoice-settle",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -1990,6 +1991,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-research-agent",
   "mermail-xstocks-desk",
+  "mermail-invoice-settle",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
