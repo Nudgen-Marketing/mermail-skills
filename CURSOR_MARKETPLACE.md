@@ -63,9 +63,25 @@ Then in Cursor: **Developer: Reload Window** → open MCP tools → select **Aut
 2. Update landing `/agents` Cursor note from “team marketplace / local” → “install from Cursor Marketplace”.
 3. For later releases: bump `version` in `package.json` + all plugin manifests, push, and request re-index/review (updates are also manually reviewed).
 
+## Cursor Directory
+
+Cursor Directory is the community directory and currently documents web submission of a GitHub repo URL, not a supported CI publish API. Use:
+
+```text
+https://cursor.directory/plugins/new
+```
+
+Submit this repository:
+
+```text
+https://github.com/Nudgen-Marketing/mermail-skills
+```
+
+The workflow [`.github/workflows/cursor-directory.yml`](./.github/workflows/cursor-directory.yml) validates the repo metadata Cursor Directory auto-detects and writes the exact submit URL into the job summary.
+
 ## Parallel discovery (optional)
 
-- [cursor.directory](https://cursor.directory) — community MCP/plugin directory (often suggested while waiting for Marketplace review)
+- [cursor.directory](https://cursor.directory) — community MCP/plugin directory
 - Team marketplace: Cursor Dashboard → Plugins → Import this repo (Teams/Enterprise)
 
 ## References
