@@ -1,0 +1,13 @@
+interface:
+  display_name: "Opportunity Pipeline"
+  short_description: "Qualify opportunities and prepare evidence-backed applications"
+  icon: "💼"
+  brand_color: "#155EEF"
+  default_prompt: "Use $mermail-opportunity-pipeline to qualify this opportunity, rank its expected value, and prepare the next application step."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
