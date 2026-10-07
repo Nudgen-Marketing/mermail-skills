@@ -1,32 +1,11 @@
-# Agent config — mermail-otp-catcher
-
-Use $mermail-otp-catcher
-
-## Model routing
-
-This skill is model-agnostic. Any instruction-following model with MCP tool
-access can run it. Recommended: a model with strong structured-extraction
-ability for the regex + context-disambiguation step.
-
-## MCP dependency
-
-```yaml
-mcpServers:
-  mermail:
-    command: npx
-    args: ["@mermail/mcp-server@latest"]
-    env:
-      MERMAIL_API_KEY: ${MERMAIL_API_KEY}
-```
-
-Hosted alternative: connect via `https://console.mermail.app/mcp`.
-
-## Selection hints (for routers)
-
-Select this skill when the user's message contains any of:
-- "verification code", "verify code", "OTP", "one-time code", "2FA code"
-- "signup code", "confirmation code", "security code"
-- "did my code arrive", "waiting for a code", "check my inbox for"
-
-Do NOT select for: password storage, password generation, SMS codes,
-authenticator-app (TOTP) setup.
+interface:
+  display_name: "Mermail OTP Catcher"
+  short_description: "Mermail OTP Catcher: guided email workflow"
+  default_prompt: "Use $mermail-otp-catcher to catch verification and OTP codes from a Mermail inbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
