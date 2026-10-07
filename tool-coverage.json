@@ -12,7 +12,8 @@
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-invoice-audit"
   ],
   "domains": {
     "mermail-administer-workspace": [
@@ -38,7 +39,16 @@
       "create_mailbox",
       "get_mailbox",
       "update_mailbox_settings",
-      "get_mailbox_storage"
+      "get_mailbox_storage",
+      "list_webhooks",
+      "create_webhook",
+      "get_webhook",
+      "update_webhook",
+      "delete_webhook",
+      "list_webhook_deliveries",
+      "test_webhook",
+      "retry_webhook_delivery",
+      "rotate_webhook_secret"
     ],
     "mermail-manage-inbox": [
       "list_emails",
@@ -113,6 +123,7 @@
       "submit_agent_wallet_transfer",
       "reject_agent_wallet_transfer_proposal",
       "get_paybox_invocation",
+      "show_paybox_signing",
       "paybox_get_portfolio",
       "paybox_get_buy_link",
       "paybox_request_transfer",
@@ -121,12 +132,21 @@
       "paybox_list_credentials",
       "paybox_discover_plugins",
       "paybox_get_contract",
-      "paybox_use_plugin"
+      "paybox_use_plugin",
+      "list_bridge_routes",
+      "prepare_bridge",
+      "get_bridge_status"
     ]
   },
   "destructiveTools": [
     "remove_workspace_member",
     "delete_email_domain",
+    "create_webhook",
+    "update_webhook",
+    "delete_webhook",
+    "test_webhook",
+    "retry_webhook_delivery",
+    "rotate_webhook_secret",
     "delete_email",
     "bulk_delete_emails",
     "empty_trash",
