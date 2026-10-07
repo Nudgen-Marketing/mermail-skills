@@ -1,0 +1,11 @@
+interface:
+  display_name: "Automated Freelance Invoice & Payment Agent Skill"
+  short_description: "Automated Freelance Invoice & Payment Agent Skill"
+  default_prompt: "Use $freelance-invoice-agent to a reusable Mermail Agent Skill that enables an AI agent to act as an automated freelance assistant."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
