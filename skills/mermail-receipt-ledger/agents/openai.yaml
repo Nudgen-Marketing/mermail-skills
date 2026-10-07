@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail receipt ledger"
+  short_description: "Turn receipt emails in a Mermail inbox into a bounded spend ledger."
+  default_prompt: "Use $mermail-receipt-ledger to build a spend ledger from receipt emails in my Mermail inbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
