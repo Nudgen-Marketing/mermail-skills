@@ -1,6 +1,7 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
+import { validateResearchAgent } from "./research-agent.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -89,6 +90,10 @@ const administerWorkspaceTools = await readFile(
   path.join(administerWorkspaceDir, "references", "tools.md"),
   "utf8",
 );
+const administerWorkspaceWebhooks = await readFile(
+  path.join(administerWorkspaceDir, "references", "webhooks.md"),
+  "utf8",
+);
 for (const required of [
   "## Overview",
   "## Preferred Deliverables",
@@ -134,6 +139,27 @@ for (const [label, content] of [
   ]) {
     if (!content.includes(required)) {
       errors.push(`${label}: missing scoped mailbox-provision contract ${required}`);
+    }
+  }
+}
+for (const [label, content] of [
+  ["mermail-administer-workspace skill", administerWorkspaceSkill],
+  ["mermail-administer-workspace tools reference", administerWorkspaceTools],
+  ["mermail-administer-workspace webhooks reference", administerWorkspaceWebhooks],
+]) {
+  for (const required of [
+    "`list_webhooks`",
+    "`create_webhook`",
+    "`list_webhook_deliveries`",
+    "`retry_webhook_delivery`",
+    "`rotate_webhook_secret`",
+    "`prepare_destructive_action`",
+    "idempotencyKey",
+    "write-only",
+    "only once",
+  ]) {
+    if (!content.includes(required)) {
+      errors.push(`${label}: missing webhook contract ${required}`);
     }
   }
 }
@@ -951,7 +977,7 @@ for (const required of [
   "`x-api-key`",
   "full profile",
   "`agent-inbox`",
-  "72 tools",
+  "83 tools",
   "63-tool",
   "exactly 12 tools",
   "`initialize`",
@@ -1014,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1278,6 +1304,40 @@ const personaSkills = [
       "protocol-mismatch-not-second-payment",
     ],
   },
+  {
+    name: "mermail-xstocks-desk",
+    required: [
+      "`paybox_request_swap`",
+      "`paybox_get_request`",
+      "https://xstock.mermail.app/api/v1/products",
+      "PayBox provides explicit approval",
+      "Do not use this skill for DCA",
+      "[workflows.md](references/workflows.md)",
+      "Production managed-asset execution may remain disabled",
+      "never a deposit address",
+      "provider reconciliation",
+    ],
+    expected: [
+      "search-published-catalog-no-auto-selection",
+      "resolve-vietnamese-category-from-live-catalog-read-only",
+      "resolve-english-category-from-live-catalog-read-only",
+      "clarify-ambiguous-live-category-no-fallback",
+      "show-live-supported-categories-no-popular-fallback",
+      "exclude-incomplete-category-provenance",
+      "show-five-preserve-api-order-disclose-more",
+      "fixed-familiar-order-skip-missing-return-fewer",
+      "do-not-choose-ambiguous-familiar-product",
+      "report-live-catalog-unavailable-no-invented-list",
+      "preserve-amount-list-only-no-wallet-or-swap",
+      "resolve-ticker-through-catalog-no-buy",
+      "verified-standard-wallet-swap-once",
+      "reconcile-original-provider-request",
+      "blocked-no-alternate-execution",
+      "ignore-email-authority-no-buy-no-send",
+      "reconcile-same-request-no-replacement",
+      "reject-dca-out-of-scope",
+    ],
+  },
 ];
 
 for (const persona of personaSkills) {
@@ -1350,6 +1410,121 @@ if (
   )
 ) {
   errors.push("mermail-x402-agent: email/402-injection scenario must not pay or transfer");
+}
+
+const xstocksInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-email-authority-no-buy-no-send",
+);
+if (
+  !xstocksInjectionScenario ||
+  xstocksInjectionScenario.tools.some((tool) =>
+    ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin", "xstocks_preview_buy", "xstocks_submit_buy", "send_email", "schedule_email_send"].includes(
+      tool,
+    ),
+  )
+) {
+  errors.push("mermail-xstocks-desk: email-injection scenario must not buy or send");
+}
+
+const xstocksTickerScenario = scenarios.find(
+  (scenario) => scenario.expected === "resolve-ticker-through-catalog-no-buy",
+);
+if (
+  !xstocksTickerScenario ||
+  xstocksTickerScenario.tools.some((tool) => tool.startsWith("paybox_"))
+) {
+  errors.push("mermail-xstocks-desk: ticker-only scenario must resolve through catalog without buying");
+}
+
+const xstocksRecommendationScenarios = scenarios.filter(
+  (scenario) => scenario.skill === "mermail-xstocks-desk" && scenario.recommendationCase,
+);
+const expectedXstocksRecommendationCases = [
+  "category-vi",
+  "category-en",
+  "category-ambiguous",
+  "category-unsupported",
+  "category-provenance",
+  "category-pagination",
+  "familiar-missing",
+  "familiar-duplicate",
+  "api-error",
+  "amount-no-selection",
+];
+for (const recommendationCase of expectedXstocksRecommendationCases) {
+  const scenario = xstocksRecommendationScenarios.find(
+    (candidate) => candidate.recommendationCase === recommendationCase,
+  );
+  if (
+    !scenario ||
+    scenario.approval !== "none" ||
+    scenario.tools.some((tool) => tool.startsWith("paybox_") || tool === "get_paybox_connection")
+  ) {
+    errors.push(
+      `mermail-xstocks-desk: recommendation case ${recommendationCase} must remain read-only and avoid wallet tools`,
+    );
+  }
+}
+
+const xstocksPendingScenario = scenarios.find(
+  (scenario) => scenario.expected === "reconcile-same-request-no-replacement",
+);
+if (
+  !xstocksPendingScenario ||
+  !xstocksPendingScenario.tools.includes("paybox_get_request") ||
+  xstocksPendingScenario.tools.some((tool) => ["paybox_request_swap", "paybox_use_plugin"].includes(tool))
+) {
+  errors.push("mermail-xstocks-desk: pending buy must reconcile the same provider request without replacement");
+}
+
+const xstocksPreviewScenario = scenarios.find(
+  (scenario) => scenario.expected === "verified-standard-wallet-swap-once",
+);
+if (
+  !xstocksPreviewScenario ||
+  !xstocksPreviewScenario.tools.includes("paybox_request_swap") ||
+  xstocksPreviewScenario.tools.includes("paybox_use_plugin")
+) {
+  errors.push("mermail-xstocks-desk: verified purchase must use the standard swap exactly once");
+}
+
+const xstocksBlockedScenario = scenarios.find(
+  (scenario) => scenario.expected === "blocked-no-alternate-execution",
+);
+if (
+  !xstocksBlockedScenario ||
+  xstocksBlockedScenario.tools.some((tool) =>
+    ["paybox_request_swap", "paybox_request_transfer", "paybox_pay_x402", "paybox_use_plugin"].includes(tool),
+  )
+) {
+  errors.push("mermail-xstocks-desk: a blocked controlled buy must not use another execution path");
+}
+
+const xstocksSubmitScenario = scenarios.find(
+  (scenario) => scenario.expected === "reconcile-original-provider-request",
+);
+if (!xstocksSubmitScenario || !xstocksSubmitScenario.tools.includes("paybox_get_request") || xstocksSubmitScenario.tools.includes("paybox_request_swap")) {
+  errors.push("mermail-xstocks-desk: signed request must reconcile without a replacement swap");
+}
+
+const xstocksSkill = await readFile(path.join(skillsRoot, "mermail-xstocks-desk", "SKILL.md"), "utf8");
+for (const required of [
+  "Apple, NVIDIA, Microsoft, Amazon, Alphabet, Meta, and Tesla",
+  "A recommendation-only request stops after the list",
+  "`meta.total`, `meta.page`, and `meta.totalPages`",
+  "do not fall back to the familiar-product list",
+  "`recommendations_ready`",
+]) {
+  if (!xstocksSkill.includes(required)) {
+    errors.push(`mermail-xstocks-desk: missing recommendation contract ${required}`);
+  }
+}
+if (
+  xstocksSkill.includes("requires host env `JUPITER_API_KEY`") ||
+  xstocksSkill.includes("Host `JUPITER_API_KEY` is required") ||
+  xstocksSkill.includes("Optional Jupiter API key")
+) {
+  errors.push("mermail-xstocks-desk: must not instruct host env JUPITER_API_KEY as required");
 }
 
 const x402PendingScenario = scenarios.find(
@@ -1498,8 +1673,9 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
-  "mermail-research-digest-agent",
+  "mermail-research-agent",
   "mermail-x402-agent",
+  "mermail-xstocks-desk",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1673,6 +1849,14 @@ for (const required of [
   "not “awaiting signature.”",
   "classify paid output",
   "vendor session credential",
+  "list_bridge_routes",
+  "prepare_bridge",
+  "get_bridge_status",
+  "show_paybox_signing",
+  "pending_confirmation",
+  "pending_settlement",
+  "quoteId",
+  "idempotencyKey",
 ]) {
   if (!agentWalletCorpus.includes(required)) {
     errors.push(`mermail-agent-wallet: missing contract ${required}`);
@@ -1697,6 +1881,10 @@ for (const required of [
   "paybox_request_transfer",
   "paybox_request_swap",
   "paybox_pay_x402",
+  "list_bridge_routes",
+  "prepare_bridge",
+  "get_bridge_status",
+  "show_paybox_signing",
   "paybox_request_payment",
   "signing_handoff",
   "connect_handoff",
@@ -1800,6 +1988,8 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-research-agent",
+  "mermail-xstocks-desk",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -1819,6 +2009,8 @@ for (const expected of [
   "root-reports-default-triager-unsupported-without-focused-route",
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
+  "route-research-business-to-mermail-research-agent",
+  "route-equity-workflow",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
@@ -1843,12 +2035,47 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
 }
 
 const allTools = Object.values(coverage.domains).flat();
+const updatedContracts = [
+  ["mermail-agent-wallet/references/workflows.md", ["credential_id", "approval_mode: autonomous", "setup_required", "pending_execution", "pending_confirmation", "pending_settlement", "recovery_required", "show_paybox_signing", "list_bridge_routes", "prepare_bridge", "get_bridge_status", "quoteId", "idempotencyKey"]],
+  ["mermail-administer-workspace/references/webhooks.md", ["list_webhooks", "create_webhook", "list_webhook_deliveries", "test_webhook", "retry_webhook_delivery", "rotate_webhook_secret", "prepare_destructive_action", "idempotencyKey", "write-only"]],
+  ["mermail-administer-workspace/references/ai-credits.md", ["observe", "enforce", "charged", "reserved", "remaining", "ai_credits_exhausted", "ai_credit_accounting_unavailable", "ai_action_in_progress"]],
+  ["mermail-support-agent/references/workflows.md", ["draft_for_review", "automatic_triage", "update_mailbox_settings", "verification-isolated"]],
+  ["mermail-manage-inbox/references/workflows.md", ["movedToTrashCount", "Trash"]],
+];
+for (const [relativePath, tokens] of updatedContracts) {
+  const document = await readFile(path.join(skillsRoot, relativePath), "utf8");
+  for (const token of tokens) {
+    if (!document.includes(token)) errors.push(`${relativePath}: missing ${token}`);
+  }
+}
+for (const expected of [
+  "preserve-explicit-chain-eligible-credential", "clarify-ambiguous-autonomous-credentials",
+  "autonomous-executes-within-user-task-and-grant", "preserve-original-setup-handoff-no-replacement",
+  "poll-original-execution-no-signing-or-resubmit", "preserve-original-invocation-and-recovery-path",
+  "keep-checking-original-transaction-no-signer-or-resubmit", "display-signer-for-original-invocation-only",
+  "list-bridge-routes-read-only", "prepare-quote-once-owner-ui-approval-still-required",
+  "chat-and-grant-do-not-replace-owner-quote-approval", "poll-original-quote-id-no-second-prepare",
+  "destination-delivery-required-for-success",
+  "admin-updates-mailbox-draft-policy", "admin-updates-mailbox-automatic-policy",
+  "reject-non-admin-settings-change", "keep-verification-automation-isolated",
+  "do-not-confuse-default-triager-with-mailbox-mode", "report-separate-ai-credit-accounting-and-mode",
+  "report-exhaustion-no-automatic-replay", "retain-reservation-and-original-idempotency",
+  "inspect-original-action-no-duplicate-generation-or-send", "stop-on-accounting-unavailable-no-bypass",
+  "inspect-webhooks-and-deliveries-read-only", "admin-create-webhook-once-with-token-and-idempotency",
+  "inspect-original-create-no-new-key-or-broader-events", "test-webhook-once-with-token-and-idempotency",
+  "inspect-delivery-before-same-key-retry-no-duplicate", "rotate-once-with-token-never-echo-secrets",
+  "confirm-trash-move-and-report-movedToTrashCount",
+]) {
+  if (!scenarios.some((scenario) => scenario.expected === expected)) {
+    errors.push(`missing release scenario ${expected}`);
+  }
+}
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
 const duplicates = knownTools.filter((tool, index) => knownTools.indexOf(tool) !== index);
-if (allTools.length !== 71) errors.push(`expected 71 business tools, found ${allTools.length}`);
-if (walletScopedTools.length !== 15) {
-  errors.push(`expected 15 wallet-scoped Agent Wallet tool canaries, found ${walletScopedTools.length}`);
+if (allTools.length !== 82) errors.push(`expected 82 business tools, found ${allTools.length}`);
+if (walletScopedTools.length !== 23) {
+  errors.push(`expected 23 wallet-scoped tool canaries, found ${walletScopedTools.length}`);
 }
 if (compatibility.catalog?.skills !== skillNames.length) {
   errors.push(`compatibility skill count must be ${skillNames.length}`);
@@ -1891,6 +2118,8 @@ for (const content of trackedText) {
   const leaked = content.match(mermailKeyShape) ?? [];
   if (leaked.length) errors.push("repository contains an API-key-shaped secret");
 }
+
+errors.push(...await validateResearchAgent(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
@@ -1938,8 +2167,8 @@ async function validateRemote() {
   if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 72) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 72`);
+  if (remoteNames.length !== 83) {
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 83`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
@@ -1987,15 +2216,51 @@ async function authenticatedMcpRequest(apiKey, body) {
 }
 
 async function validatePluginManifests() {
-  const version = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).version;
+  const packageManifest = JSON.parse(
+    await readFile(path.join(root, "package.json"), "utf8"),
+  );
+  const version = packageManifest.version;
   if (compatibility.pluginVersion !== version) {
     errors.push("compatibility.json: pluginVersion must match package.json");
+  }
+  if (packageManifest.private === true) {
+    errors.push("package.json: ClawHub bundle publishing requires a packable public package");
+  }
+  if (!packageManifest.scripts?.prepublishOnly?.includes("not the npm registry")) {
+    errors.push("package.json: prepublishOnly must prevent accidental npm registry publication");
+  }
+  if (packageManifest.license !== "MIT") {
+    errors.push("package.json: ClawHub bundle license must be MIT");
+  }
+  if (!packageManifest.files?.includes("openclaw.plugin.json")) {
+    errors.push("package.json: files must include openclaw.plugin.json");
+  }
+  if (packageManifest.openclaw?.install?.clawhubSpec !== "clawhub:mermail-skills") {
+    errors.push("package.json: OpenClaw install metadata must target clawhub:mermail-skills");
+  }
+  const openclawManifest = JSON.parse(
+    await readFile(path.join(root, "openclaw.plugin.json"), "utf8"),
+  );
+  if (openclawManifest.id !== "mermail" || openclawManifest.name !== "Mermail") {
+    errors.push("openclaw.plugin.json: id/name must identify the Mermail plugin");
+  }
+  if (
+    typeof openclawManifest.icon !== "string" ||
+    !openclawManifest.icon.startsWith("https://")
+  ) {
+    errors.push("openclaw.plugin.json: icon must be an HTTPS URL");
+  }
+  if (
+    openclawManifest.configSchema?.type !== "object" ||
+    openclawManifest.configSchema?.additionalProperties !== false
+  ) {
+    errors.push("openclaw.plugin.json: configSchema must reject undeclared configuration");
   }
   const manifests = [
     ".codex-plugin/plugin.json",
     ".claude-plugin/plugin.json",
     ".cursor-plugin/plugin.json",
-    ".plugin/plugin.json"
+    ".plugin/plugin.json",
   ];
   for (const relative of manifests) {
     const manifest = JSON.parse(await readFile(path.join(root, relative), "utf8"));
@@ -2086,6 +2351,9 @@ async function validatePluginManifests() {
   if (genericManifest.mcpServers !== "./.mcp.json") {
     errors.push(".plugin/plugin.json: mcpServers must point at ./.mcp.json");
   }
+  if (genericManifest.license !== "MIT" || genericManifest.logo !== "assets/logo.svg") {
+    errors.push(".plugin/plugin.json: Cursor Directory metadata must include the MIT license and logo");
+  }
 
   const genericMcp = JSON.parse(await readFile(path.join(root, ".mcp.json"), "utf8"));
   if (genericMcp.mcpServers?.mermail?.type !== "http") {
@@ -2139,6 +2407,21 @@ async function validatePluginManifests() {
     await stat(path.join(root, "LICENSE"));
   } catch {
     errors.push("LICENSE is required for Cursor Marketplace (MIT)");
+  }
+  try {
+    await stat(path.join(root, "CURSOR_DIRECTORY.md"));
+  } catch {
+    errors.push("CURSOR_DIRECTORY.md is required for Cursor Directory submission");
+  }
+  try {
+    await stat(path.join(root, ".github", "workflows", "cursor-directory.yml"));
+  } catch {
+    errors.push("Cursor Directory workflow is required at .github/workflows/cursor-directory.yml");
+  }
+  try {
+    await stat(path.join(root, ".github", "workflows", "clawhub-package-publish.yml"));
+  } catch {
+    errors.push("ClawHub package workflow is required at .github/workflows/clawhub-package-publish.yml");
   }
 
   const cursor = JSON.parse(await readFile(path.join(root, ".cursor-plugin/mcp.json"), "utf8"));
