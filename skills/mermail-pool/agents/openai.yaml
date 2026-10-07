@@ -1,0 +1,11 @@
+interface:
+  display_name: "Autonomous Freelance Escrow & Payout Agent"
+  short_description: "Autonomous Freelance Escrow & Payout Agent"
+  default_prompt: "Use $mermail-pool to this skill defines the **Mermail Payout Agent**, an autonomous workflow within the Mermail architecture responsible for escrow release, bounty distribution, and automated subscriber payouts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
