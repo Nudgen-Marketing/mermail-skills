@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Licensing Desk"
+  short_description: "Turn licensing and commission inquiries into owner-priced quotes, licenses, and split payouts"
+  default_prompt: "Use $mermail-licensing-desk when a creator wants inbound sync, beat, sample, artwork, print, or commission inquiries quoted from their rate card, licensed with a hashed license ID, and optionally split to collaborators through Agent Wallet."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
