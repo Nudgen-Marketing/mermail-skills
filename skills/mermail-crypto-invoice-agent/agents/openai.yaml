@@ -1,4 +1,12 @@
 interface:
   display_name: "Mermail Crypto Invoice Agent"
   description: "Automate cryptographic invoicing, USDC payment requests, and receipt confirmations over Mermail."
-  default_prompt: "Draft an itemized invoice for 250 USDC for client services and send it via Mermail."
+  default_prompt: "Use $mermail-crypto-invoice-agent to autonomous cryptographic invoicing, USDC settlement tracking, and payment receipt issuance over email via Mermail."
+  short_description: "Mermail Crypto Invoice Agent"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
