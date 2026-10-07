@@ -34,7 +34,7 @@ This skill orchestrates existing Mermail capabilities and does not own or reassi
 9. Present a concise action queue before taking consequential actions.
 10. When the user asks to work through the queue, select the requested or highest-priority item.
 11. Gather the minimum additional context needed to determine the appropriate next action.
-12. Prepare the next action using the appropriate existing Mermail capability.
+12. If the selected action requires an email reply and the user has not already provided the intended response, ask the user what they want to say. If the user has provided the response, use it as the basis for the reply.
 13. Show an exact preview and obtain fresh user approval before an external effect.
 14. For an approved email reply, create a new standalone draft containing the exact approved recipient, sender, subject, and body. Do not set thread_id or in_reply_to on the new draft.
 15. Send the approved reply using send_email with the new draft's source_draft_id and the original conversation's thread_id.
