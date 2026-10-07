@@ -12,7 +12,8 @@
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-inbound-webhooks"
   ],
   "domains": {
     "mermail-administer-workspace": [
@@ -164,14 +165,19 @@
     "paybox_use_plugin"
   ],
   "externalEffectTools": [
-    "invite_workspace_member",
-    "resend_workspace_invite",
-    "send_email",
-    "reply_to_email",
-    "forward_email",
-    "schedule_email_send",
     "chat_with_mailbox_agent",
+    "connect_composio_toolkit",
+    "create_webhook",
     "execute_composio_tool",
-    "connect_composio_toolkit"
+    "forward_email",
+    "invite_workspace_member",
+    "reply_to_email",
+    "resend_workspace_invite",
+    "retry_webhook_delivery",
+    "rotate_webhook_secret",
+    "schedule_email_send",
+    "send_email",
+    "test_webhook",
+    "update_webhook"
   ]
 }
