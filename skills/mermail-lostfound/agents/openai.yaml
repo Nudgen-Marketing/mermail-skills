@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail LostFound"
+  short_description: "Privacy-first lost-and-found matching for a Mermail inbox"
+  default_prompt: "Use $mermail-lostfound to check the test lost-and-found mailbox for this week's reports. Show candidates but don't email anyone."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
