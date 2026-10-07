@@ -1,3 +1,16 @@
+---
+name: report-card-draft-agent
+description: Use this skill for Report Card Draft Agent.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+---
+
 # Report Card Draft Agent
 
 ## What this skill enables
