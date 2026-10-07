@@ -1,0 +1,41 @@
+{
+  "currency": "USD",
+  "validity_days_default": 14,
+  "rules": {
+    "minimum_engagement": 149,
+    "rush_fee_multiplier": 1.25,
+    "rush_fee_trigger_days": 3
+  },
+  "line_items": [
+    {
+      "service": "website audit",
+      "unit": "flat",
+      "price": 149,
+      "notes": "One-time diagnostic report with prioritized fixes."
+    },
+    {
+      "service": "landing page build",
+      "unit": "flat",
+      "price": 499,
+      "notes": "Single page, one round of revisions."
+    },
+    {
+      "service": "5-page website redesign",
+      "unit": "flat",
+      "price": 1450,
+      "notes": "Design + build, up to 5 pages, two rounds of revisions."
+    },
+    {
+      "service": "monthly care plan",
+      "unit": "monthly",
+      "price": 99,
+      "notes": "Hosting, uptime monitoring, monthly content updates."
+    },
+    {
+      "service": "ai business manager retainer",
+      "unit": "monthly",
+      "price": 499,
+      "notes": "Ongoing AI-run operations: inbox, scheduling, reporting."
+    }
+  ]
+}

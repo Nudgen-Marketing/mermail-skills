@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Quote-to-Paid"
+  short_description: "Price an inbound enquiry against a rate card, draft the quote, then confirm payment"
+  default_prompt: "Use $mermail-quote-to-paid when the job is enquiry triage against a rate card, config-driven quote drafting, or checking Agent Wallet for a payment matching a quote already sent."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
