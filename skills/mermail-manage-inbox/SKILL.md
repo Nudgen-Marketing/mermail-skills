@@ -21,6 +21,7 @@ Read [tools.md](references/tools.md) for the 22 owned MCP operations, exact argu
 
 ## Preferred Deliverables
 
+- For project-request review, use [project-briefs.md](references/project-briefs.md) to produce evidence-backed terms, unresolved conflicts, and unsent clarification text. A quoted budget is not earned income or an accepted contract.
 - A bounded search result with exact mailbox and email/thread ids, filters, sort order, and remaining-page status.
 - A concise message or thread summary grounded in sanitized, scan-gated content rather than raw mailbox payloads.
 - An organization preview naming the exact read/star change, source and destination folder, or frozen bulk id set.
