@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Email Preflight"
+  short_description: "Check merge tags, links, content, and recipients before sending"
+  default_prompt: "Use $mermail-email-preflight before sending any email or batch from a Mermail inbox: render per-recipient previews, check merge tags, links, buttons, content, attachments, dates, recipients, and plan limits, produce a PASS / WARN / FAIL report with safe fixes, send a test copy to the user's own address, and do the real send only after an explicit send-it approval. Never send on FAIL."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
