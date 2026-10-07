@@ -20,7 +20,8 @@ const compatibility = JSON.parse(compatibilityText);
 const scenarios = JSON.parse(scenarioText);
 
 if (!coverage.infrastructureSkills.includes(skill)) errors.push("skill missing from infrastructureSkills");
-if (compatibility.catalog.skills !== 17) errors.push(`expected compatibility catalog.skills 17; got ${compatibility.catalog.skills}`);
+const registeredSkills = new Set([...coverage.infrastructureSkills, ...Object.keys(coverage.domains), ...Object.keys(coverage.walletScopedDomains || {})]);
+if (compatibility.catalog.skills !== registeredSkills.size) errors.push(`expected compatibility catalog.skills ${registeredSkills.size}; got ${compatibility.catalog.skills}`);
 if (!readme.includes(`| \`${skill}\` |`)) errors.push("README skill row missing");
 if (!routing.includes(`| \`${skill}\` |`)) errors.push("routing row missing");
 if (!skillMd.includes("source `email_id`")) errors.push("skill must require source email_id provenance");
