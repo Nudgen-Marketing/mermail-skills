@@ -1,0 +1,11 @@
+interface:
+  display_name: "Crypto Payout Reconciler"
+  short_description: "Triage crypto payout claims from email against an expected payout list. Never auto-pays, never auto-sends."
+  default_prompt: "Use $mermail-crypto-payout-reconciler to reconcile crypto payout claims in this inbox against my expected payout CSV."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
