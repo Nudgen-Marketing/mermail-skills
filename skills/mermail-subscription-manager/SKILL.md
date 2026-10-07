@@ -1,6 +1,14 @@
 ---
 name: mermail-subscription-manager
 description: Detects recurring charges in a Mermail agent inbox, surfaces them to the user, and cancels or disputes them on request. Use when a user wants to find, review, cancel, or get refunds for subscriptions and recurring payments discovered through their Mermail agent inbox and Agent Wallet.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
 ---
 
 # Mermail Subscription & Recurring-Payment Manager
