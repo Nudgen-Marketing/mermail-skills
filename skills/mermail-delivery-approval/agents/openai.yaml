@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Delivery Approval"
+  short_description: "Email a proof-of-work report and gate the final irreversible action behind a one-time owner approval token"
+  default_prompt: "Use $mermail-delivery-approval to deliver evidence of a finished job by email and hold the last external effect until the owner replies APPROVE with the one-time token."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
