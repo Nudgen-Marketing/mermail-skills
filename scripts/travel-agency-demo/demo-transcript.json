@@ -1,0 +1,66 @@
+{
+  "sourceNote": "Simulated terminal walkthrough based on the verified rehearsal recorded for Issue #488 and Pull Request #489.",
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "fps": 6,
+    "codexVersion": "0.160.0"
+  },
+  "sessions": [
+    {
+      "id": "install-first-use",
+      "filename": "mermail-travel-agency-install-first-use.mp4",
+      "targetSeconds": 138,
+      "events": [
+        { "type": "shell", "text": "mkdir travel-agency-demo && cd travel-agency-demo", "after": 1.2 },
+        { "type": "shell", "text": "git clone --branch codex/travel-agency-skill --single-branch https://github.com/Nudgen-Marketing/mermail-skills.git", "after": 2.8 },
+        { "type": "output", "kind": "muted", "lines": ["Cloning into 'mermail-skills'...", "Receiving objects: 100%", "Resolving deltas: 100%"], "lineDelay": 0.55, "after": 1.2 },
+        { "type": "shell", "text": "cd mermail-skills", "after": 0.8 },
+        { "type": "shell", "text": "npx skills add . --skill mermail-travel-agency --agent codex -y --json", "after": 2.2 },
+        { "type": "output", "kind": "muted", "lines": ["codex  Agent detected — installing non-interactively", "Selected 1 skill: mermail-travel-agency", "Installation Summary", "./.agents/skills/mermail-travel-agency", "  copy → Codex"], "lineDelay": 0.65, "after": 1.8 },
+        { "type": "output", "kind": "success", "lines": ["status: installed", "scope: project", "agents: Codex"], "lineDelay": 0.65, "after": 2.5 },
+        { "type": "shell", "text": "codex --no-alt-screen", "after": 2.5 },
+        { "type": "output", "kind": "brand", "lines": ["OpenAI Codex v0.160.0", "model: gpt-5   directory: mermail-skills", "installed skill discovered: mermail-travel-agency"], "lineDelay": 0.65, "after": 2.2 },
+        { "type": "user", "text": "Use $mermail-travel-agency with my selected demo mailbox and the Vietnam Family Escapes demo catalog. Inspect the newest family-travel inquiry, draft one clarification email, and do not send it.", "after": 2.5 },
+        { "type": "thinking", "text": "Reading the installed skill and binding the exact mailbox thread", "seconds": 4.5 },
+        { "type": "output", "kind": "assistant", "lines": ["I found one clean-scanned synthetic inquiry in the selected demo mailbox.", "Subject: Family holiday in Vietnam", "Travelers: two adults and one child", "Preference: relaxed beach destination in November", "Budget: about 20,000,000 VND", "", "The request is missing details that affect catalog matching and price:"], "lineDelay": 0.72, "after": 1.8 },
+        { "type": "output", "kind": "warning", "lines": ["• exact or flexible travel dates", "• departure city", "• child age", "• whether the budget includes destination transport", "• room requirements"], "lineDelay": 0.72, "after": 2.2 },
+        { "type": "output", "kind": "brand", "lines": ["Clarification draft", "", "Hello Alex,", "", "Thanks for sharing your plans. To match the right package, could you", "confirm your travel dates, departure city, your child's age, whether", "the 20 million VND budget includes transport to the destination,", "and whether your family needs one room or two?", "", "Once confirmed, I can prepare suitable options for your review.", "", "Best regards,"], "lineDelay": 0.68, "after": 3.5 },
+        { "type": "output", "kind": "success", "lines": ["Draft saved for review.", "No email was sent."], "lineDelay": 0.75, "after": 5.0 }
+      ]
+    },
+    {
+      "id": "complete-consultation",
+      "filename": "mermail-travel-agency-complete-consultation.mp4",
+      "targetSeconds": 276,
+      "events": [
+        { "type": "output", "kind": "brand", "lines": ["OpenAI Codex v0.160.0", "continuing the verified travel consultation", "clarification draft is awaiting approval"], "lineDelay": 0.7, "after": 2.4 },
+        { "type": "user", "text": "I approve the clarification draft exactly as shown. Reply once in the original thread.", "after": 2.3 },
+        { "type": "thinking", "text": "Freezing sender, recipient, subject, body, and source thread", "seconds": 4.0 },
+        { "type": "output", "kind": "success", "lines": ["Approval matched the frozen clarification draft.", "Replied once in the original thread.", "Authoritative delivery status: delivered."], "lineDelay": 0.85, "after": 1.0 },
+        { "type": "subtitle", "text": "Verified rehearsal replay", "seconds": 4.0 },
+        { "type": "output", "kind": "muted", "lines": ["The recording replays the verified result; no duplicate email was sent."], "lineDelay": 0.5, "after": 3.0 },
+        { "type": "output", "kind": "brand", "lines": ["New customer reply in the same thread", "", "We can travel 12–15 November from Ho Chi Minh City. Our child is", "eight. The 20 million VND budget is for the package only; flights", "can be separate. One room is fine. We prefer a calm itinerary and", "would like one cultural activity."], "lineDelay": 0.72, "after": 3.0 },
+        { "type": "user", "text": "Match the clarified request against the synthetic demo catalog, show every calculation, and save an English proposal draft. Do not send it.", "after": 2.5 },
+        { "type": "thinking", "text": "Checking the catalog revision, child rules, room fit, and budget", "seconds": 5.0 },
+        { "type": "output", "kind": "assistant", "lines": ["Catalog: Vietnam Family Escapes — DEMO ONLY", "Revision: 2026-10-06-demo1", "Prices valid through 31 December 2026", "Availability still requires advisor confirmation.", "", "Eligible option 1 — DAD-FAM-4D", "Da Nang and Hoi An, 4 days / 3 nights", "Adult: 6,500,000 VND", "Child age 8 sharing the room: 70% × 6,500,000 = 4,550,000 VND", "2 × 6,500,000 + 1 × 4,550,000 = 17,550,000 VND"], "lineDelay": 0.78, "after": 2.2 },
+        { "type": "output", "kind": "assistant", "lines": ["Includes: hotel breakfast, airport transfers, one guided Hoi An day,", "and listed admissions.", "Excludes: flights, lunch and dinner, insurance, personal spending,", "and optional activities.", "", "Eligible option 2 — PQC-FAM-4D", "Phu Quoc, 4 days / 3 nights", "Adult: 7,200,000 VND", "Child age 8 sharing the room: 75% × 7,200,000 = 5,400,000 VND", "2 × 7,200,000 + 1 × 5,400,000 = 19,800,000 VND"], "lineDelay": 0.78, "after": 2.2 },
+        { "type": "output", "kind": "assistant", "lines": ["Includes: hotel breakfast, airport transfers, one island tour, and", "listed admissions.", "Excludes: flights, lunch and dinner, insurance, personal spending,", "and optional activities.", "", "Hanoi and Ninh Binh was excluded because it is not a beach match", "and the catalog provides no child-pricing rule."], "lineDelay": 0.78, "after": 3.0 },
+        { "type": "output", "kind": "brand", "lines": ["Proposal TA-DEMO-001-v1 saved as draft", "", "Recipients: controlled synthetic recipient", "Thread: original customer inquiry", "Currency: VND", "Availability: unresolved", "Status: awaiting approval", "Nothing was sent."], "lineDelay": 0.78, "after": 4.0 },
+        { "type": "user", "text": "I approve proposal TA-DEMO-001-v1 with the exact sender, recipients, subject, body, catalog revision, totals, and validity shown. Reply once in the original thread.", "after": 2.8 },
+        { "type": "thinking", "text": "Matching approval to the frozen proposal payload", "seconds": 4.5 },
+        { "type": "output", "kind": "success", "lines": ["Approval matched TA-DEMO-001-v1.", "Replied once in the original thread.", "Authoritative delivery status: delivered."], "lineDelay": 0.9, "after": 1.0 },
+        { "type": "subtitle", "text": "Verified rehearsal replay", "seconds": 4.0 },
+        { "type": "output", "kind": "muted", "lines": ["The recording replays the verified result; no duplicate email was sent."], "lineDelay": 0.5, "after": 3.0 },
+        { "type": "output", "kind": "brand", "lines": ["Customer revision received in the same thread", "", "Thanks. Could you revise the options for a maximum package budget", "of 18 million VND and keep the cultural activity?"], "lineDelay": 0.75, "after": 2.8 },
+        { "type": "user", "text": "Prepare the revised proposal from the same catalog and stop before sending.", "after": 2.2 },
+        { "type": "thinking", "text": "Re-evaluating options and invalidating the earlier approval", "seconds": 4.5 },
+        { "type": "output", "kind": "assistant", "lines": ["Proposal TA-DEMO-001-v2", "", "Da Nang and Hoi An remains eligible: 17,550,000 VND", "Budget remaining: 450,000 VND", "The guided Hoi An cultural day remains included.", "", "Phu Quoc was removed: 19,800,000 VND exceeds the new maximum.", "The earlier approval cannot authorize this changed proposal."], "lineDelay": 0.82, "after": 3.2 },
+        { "type": "output", "kind": "success", "lines": ["TA-DEMO-001-v2 saved as a new draft.", "Status: awaiting fresh approval.", "No email was sent."], "lineDelay": 0.9, "after": 4.0 },
+        { "type": "user", "text": "What happens after the customer accepts the revised option?", "after": 2.0 },
+        { "type": "output", "kind": "assistant", "lines": ["I will prepare a human booking handoff with the approved itinerary,", "travelers, room request, catalog revision, price, validity, exclusions,", "and unresolved availability check.", "", "The consultation does not collect passport or card data and does not", "claim a reservation, payment, refund, hold, or confirmed inventory.", "A booking advisor must verify availability and complete the booking."], "lineDelay": 0.82, "after": 5.0 },
+        { "type": "output", "kind": "brand", "lines": ["Final state", "TA-DEMO-001-v2 is saved and unsent.", "Fresh approval is required before any customer-facing reply."], "lineDelay": 0.85, "after": 6.0 }
+      ]
+    }
+  ]
+}

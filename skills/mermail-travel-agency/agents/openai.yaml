@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Travel Agency"
+  short_description: "Draft reviewed, catalog-backed travel proposals"
+  default_prompt: "Use $mermail-travel-agency to clarify this trip inquiry and prepare a catalog-backed proposal for my review."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
