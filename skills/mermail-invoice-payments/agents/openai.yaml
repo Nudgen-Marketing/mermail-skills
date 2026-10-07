@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Payments"
+  short_description: "Verify vendor invoices against an allowlist and prepare one approved Agent Wallet transfer"
+  default_prompt: "Use $mermail-invoice-payments to verify an inbound vendor invoice against the vendor allowlist and prepare one exact Agent Wallet transfer for approval. If the job is an isolated wallet operation, use $mermail-agent-wallet instead; if it is pay an x402 service and continue the original task, use $mermail-x402-agent instead."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
