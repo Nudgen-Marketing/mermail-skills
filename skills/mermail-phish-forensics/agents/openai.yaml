@@ -1,0 +1,11 @@
+interface:
+  display_name: "Phish Forensics"
+  short_description: "Triage suspicious emails and produce phishing verdict reports with evidence."
+  default_prompt: "Use $mermail-phish-forensics to check my inbox for phishing and report verdicts with evidence."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

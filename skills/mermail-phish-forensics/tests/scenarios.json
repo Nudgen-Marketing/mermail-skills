@@ -1,0 +1,68 @@
+{
+  "scenarios": [
+    {
+      "description": "PayPal suspension lure: lookalike domain, IP-literal link, urgency language",
+      "email": {
+        "attachments": [],
+        "authentication_results": "spf=fail dkim=none dmarc=fail",
+        "body": "Dear customer, unusual activity was detected. Your account will be suspended within 24 hours unless you verify now. Log in to PayPal: <a href=\"http://192.0.2.44/login\">Log in to PayPal</a>",
+        "from": "\"PayPal Security\" <security@paypa1-notify.example>",
+        "id": "msg-001",
+        "reply_to": "support@paypa1-notify.example",
+        "return_path": "bounce@paypa1-notify.example",
+        "subject": "Your PayPal account has been suspended"
+      },
+      "expected_signals": ["HEADER", "LINK", "LANGUAGE", "BRAND"],
+      "expected_verdict": "PHISHING",
+      "id": "brand-impersonation-phish"
+    },
+    {
+      "description": "Fake vendor invoice with double-extension attachment and reply-to mismatch",
+      "email": {
+        "attachments": ["invoice_4481.pdf.exe"],
+        "authentication_results": "spf=pass dkim=none dmarc=none",
+        "body": "Hi, attached is the overdue invoice. Please remit today to avoid late fees. See attached.",
+        "from": "\"Acme Supplies Billing\" <billing@acme-suppIies.example>",
+        "id": "msg-002",
+        "reply_to": "accounts@fast-pay.example",
+        "return_path": "mailer@acme-suppIies.example",
+        "subject": "Re: Q3 invoice #4481 - payment overdue"
+      },
+      "expected_signals": ["HEADER", "ATTACHMENT", "LANGUAGE"],
+      "expected_verdict": "PHISHING",
+      "id": "vendor-invoice-spearphish"
+    },
+    {
+      "description": "Genuine card-not-present alert: matching domains, no links, no urgency",
+      "email": {
+        "attachments": [],
+        "authentication_results": "spf=pass dkim=pass dmarc=pass",
+        "body": "A purchase of $50.00 at TELNYX was made with your card ending 885009. If you did not make this purchase, contact us.",
+        "from": "\"American Express\" <AmericanExpress@welcome.americanexpress.com>",
+        "id": "msg-003",
+        "reply_to": null,
+        "return_path": "bounces@americanexpress.com",
+        "subject": "Your Card may not have been present for a purchase"
+      },
+      "expected_signals": [],
+      "expected_verdict": "LEGITIMATE",
+      "id": "legit-bank-alert"
+    },
+    {
+      "description": "Unknown vendor: obscured tracking link (URL shortener) from a first-time sender",
+      "email": {
+        "attachments": [],
+        "authentication_results": "spf=pass dkim=pass dmarc=pass",
+        "body": "Good news! Your order #88231 shipped via UPS. Track it here: https://bit.ly/3xAbC12",
+        "from": "\"ShopFast\" <noreply@shopfast-store.example>",
+        "id": "msg-004",
+        "reply_to": null,
+        "return_path": "noreply@shopfast-store.example",
+        "subject": "Your order has shipped"
+      },
+      "expected_signals": ["LINK"],
+      "expected_verdict": "SUSPICIOUS",
+      "id": "first-time-vendor-suspicious"
+    }
+  ]
+}
