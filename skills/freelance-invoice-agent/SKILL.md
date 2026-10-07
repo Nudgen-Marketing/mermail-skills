@@ -1,3 +1,16 @@
+---
+name: freelance-invoice-agent
+description: A reusable Mermail Agent Skill that enables an AI agent to act as an automated freelance assistant. It handles client deliverable requests, generates payment requests via Mermail Agent Wallet, verifies incoming transactions, and securely fulfills deliverable delivery via Mermail Inbox upon payment confirmation.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+---
+
 # Automated Freelance Invoice & Payment Agent Skill
 
 A reusable Mermail Agent Skill that enables an AI agent to act as an automated freelance assistant. It handles client deliverable requests, generates payment requests via Mermail Agent Wallet, verifies incoming transactions, and securely fulfills deliverable delivery via Mermail Inbox upon payment confirmation.
