@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "⚡"
+    emoji: ⚡
 ---
 
 # Mermail Invoice & Micro-Bounty Settler
@@ -57,4 +57,3 @@ A 1080p full demonstration showing the live execution of this skill, MCP connect
 - **Hosted Video Demo**: [https://gofile.io/d/UOhCC637](https://gofile.io/d/UOhCC637) (Instant streaming & download)
 - **Direct Stream (Mirror)**: [https://tmpfiles.org/wAwENFb46fNn/demo_video_mermail_skill.mp4](https://tmpfiles.org/wAwENFb46fNn/demo_video_mermail_skill.mp4)
 - **Repository Video Asset**: [assets/demo_video_mermail_skill.mp4](assets/demo_video_mermail_skill.mp4)
-
