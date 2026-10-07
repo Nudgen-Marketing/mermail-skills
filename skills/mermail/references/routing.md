@@ -23,6 +23,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Explicitly create, inspect, update, debug, or delete task triagers, inspect recent runs, or open a triager-linked conversation | `mermail-automate-triage` |
 | Explicitly create, list, inspect, continue, rename, or delete a mailbox-agent conversation, or delegate a mailbox task to the in-app Assistant | `mermail-mail-agent` |
 | Connect or use third-party apps such as GitHub, Slack, Apollo, Notion, or Google Calendar through the authenticated user's Mermail Composio connection | `mermail-composio` |
+| Turn renewal, subscription, trial-ending, invoice, or price-change email into a bounded decision brief or a reviewable vendor draft | `mermail-renewal-guardian` |
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
