@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1173,6 +1173,21 @@ if (!scenarios.some((scenario) => scenario.skill === "mermail-cli")) {
 }
 
 const personaSkills = [
+  {
+    name: "mermail-quote-broker",
+    required: [
+      "Do not auto-send any RFQ",
+      "`save_draft`",
+      "One vendor per email",
+      "Never include the budget ceiling",
+      "`mermail-agent-wallet`",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "rfq-previews-one-vendor-per-email-no-auto-send",
+      "ignore-vendor-authority-flag-no-send-no-payment",
+    ],
+  },
   {
     name: "mermail-scheduling-agent",
     required: [
@@ -1674,6 +1689,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-quote-broker",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -1989,6 +2005,7 @@ for (const skillName of [
   "mermail-composio",
   "mermail-agent-wallet",
   "mermail-research-agent",
+  "mermail-quote-broker",
   "mermail-xstocks-desk",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
@@ -2010,6 +2027,7 @@ for (const expected of [
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
+  "route-rfq-to-mermail-quote-broker",
   "route-equity-workflow",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
