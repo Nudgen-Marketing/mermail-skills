@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipts Agent"
+  short_description: "Track invoices and billing mail into a spend ledger with approval-gated follow-ups"
+  default_prompt: "Use $mermail-receipts-agent when the job is monitoring invoices, receipts, or billing notices, building a spend ledger, flagging due dates or anomalies, or drafting vendor reminders from Mermail mail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
