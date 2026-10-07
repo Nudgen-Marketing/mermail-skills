@@ -3,3 +3,14 @@ short_description: "Audit milestone deliverables and stage PayBox grant disburse
 default_prompt: "Use $mermail-grant-disbursement-agent to audit incoming milestone submissions and stage secure treasury disbursements."
 type: "mcp"
 url: "https://console.mermail.app/mcp"
+interface:
+  display_name: "Mermail Grant Disbursement Agent"
+  short_description: "Mermail Grant Disbursement Agent"
+  default_prompt: "Use $mermail-grant-disbursement-agent to autonomous Grant & Milestone AP Disbursement Copilot on Solana."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
