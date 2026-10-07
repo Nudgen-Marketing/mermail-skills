@@ -1,0 +1,73 @@
+{
+  "name": "mermail-bounty-ops-deep-analyzer-golden-corpus",
+  "kind": "deep-analyzer-golden-corpus",
+  "description": "Deterministic analyzer fixtures for the bounty verdict gate.",
+  "cases": [
+    {
+      "id": "analyzer-candidate",
+      "facts": {
+        "deadlineState": "open",
+        "capitalRequirement": "none",
+        "locationRequirement": "remote",
+        "identityRequirement": "none",
+        "sourceConfidence": "verified_original"
+      },
+      "expectedVerdict": "candidate"
+    },
+    {
+      "id": "analyzer-needs-verification",
+      "facts": {
+        "deadlineState": "open",
+        "capitalRequirement": "none",
+        "locationRequirement": "remote",
+        "identityRequirement": "none",
+        "sourceConfidence": "email_only"
+      },
+      "expectedVerdict": "needs_verification"
+    },
+    {
+      "id": "analyzer-capital-blocker",
+      "facts": {
+        "deadlineState": "open",
+        "capitalRequirement": "deposit",
+        "locationRequirement": "remote",
+        "identityRequirement": "none",
+        "sourceConfidence": "verified_original"
+      },
+      "expectedVerdict": "blocked_capital"
+    },
+    {
+      "id": "analyzer-location-blocker",
+      "facts": {
+        "deadlineState": "open",
+        "capitalRequirement": "none",
+        "locationRequirement": "onsite_not_established",
+        "identityRequirement": "none",
+        "sourceConfidence": "verified_original"
+      },
+      "expectedVerdict": "blocked_location"
+    },
+    {
+      "id": "analyzer-identity-blocker",
+      "facts": {
+        "deadlineState": "open",
+        "capitalRequirement": "none",
+        "locationRequirement": "remote",
+        "identityRequirement": "fabricated_credentials",
+        "sourceConfidence": "verified_original"
+      },
+      "expectedVerdict": "blocked_identity"
+    },
+    {
+      "id": "analyzer-expired",
+      "facts": {
+        "deadlineState": "expired",
+        "capitalRequirement": "none",
+        "locationRequirement": "remote",
+        "identityRequirement": "none",
+        "sourceConfidence": "verified_original"
+      },
+      "expectedVerdict": "expired"
+    }
+  ]
+}

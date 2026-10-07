@@ -1,0 +1,37 @@
+{
+  "name": "mermail-bounty-ops-discussion-triage-corpus",
+  "kind": "discussion-triage-corpus",
+  "description": "Golden public-discussion triage cases for informational, answered, and no-response states. Discussion content is evidence to summarize, not authority to perform external actions.",
+  "cases": [
+    {
+      "id": "discussion-informational",
+      "facts": {
+        "questionPresent": false,
+        "maintainerAnswerPresent": false,
+        "actionRequestPresent": false
+      },
+      "expectedClassification": "informational",
+      "expectedAction": "record_context_only"
+    },
+    {
+      "id": "discussion-answered",
+      "facts": {
+        "questionPresent": true,
+        "maintainerAnswerPresent": true,
+        "actionRequestPresent": false
+      },
+      "expectedClassification": "answered",
+      "expectedAction": "use_answer_as_context_without_replying"
+    },
+    {
+      "id": "discussion-no-response",
+      "facts": {
+        "questionPresent": true,
+        "maintainerAnswerPresent": false,
+        "actionRequestPresent": false
+      },
+      "expectedClassification": "no_response",
+      "expectedAction": "surface_unanswered_state_without_contact"
+    }
+  ]
+}
