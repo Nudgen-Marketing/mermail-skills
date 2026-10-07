@@ -1,3 +1,16 @@
+---
+name: inbox-triage-wallet-guard
+description: "An autonomous agent that (1) triages a Mermail inbox — classifying, summarizing, and prioritizing incoming mail — and (2) acts as a **Wallet Guard**: before any outbound payment, it cross-checks the recipient against the inbox thread that authorized it, blocking transfers whose request cannot be traced to a verified message. This turns Mermail's inbox + Agent Wallet into a safe, auditable \"pay-only-what-was-asked\" workflow."
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+---
+
 # SKILL: Inbox Triage + Wallet Guard
 
 ## What this skill enables

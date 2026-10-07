@@ -1,0 +1,11 @@
+interface:
+  display_name: "Inbox Triage + Wallet Guard"
+  short_description: "Inbox Triage + Wallet Guard"
+  default_prompt: "Use $inbox-triage-wallet-guard to an autonomous agent that (1) triages a Mermail inbox — classifying, summarizing, and prioritizing incoming mail — and (2) acts as a **Wallet Guard**: before any outbound payment, it cross-checks the recipient against the inbox thread that authorized it, blocking transfers whose request cannot be traced to a verified message."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
