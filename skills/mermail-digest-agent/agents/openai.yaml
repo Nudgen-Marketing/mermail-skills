@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Digest Agent"
+  short_description: "Compile a structured intelligence briefing from a Mermail inbox, with optional paid x402 delivery."
+  default_prompt: "Use $mermail-digest-agent to summarise recent email and deliver a structured digest."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
