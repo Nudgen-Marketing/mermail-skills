@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payout Claims"
+  short_description: "Queue bounty, payout, KYC, and tax-form claims from a Mermail inbox"
+  default_prompt: "Use $mermail-payout-claims when bounty-win, payout, Stripe payout, Superteam Earn, KYC, claim-code, or tax-form mail needs a structured claims queue and a draft-by-default operator briefing."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
