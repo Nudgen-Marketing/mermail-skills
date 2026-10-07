@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deal Closer"
+  short_description: "Track and qualify business opportunities across email"
+  default_prompt: "Use $mermail-deal-closer to review an active business opportunity, track its qualification state across the conversation, identify missing information, and prepare the next best action without making commercial commitments."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
