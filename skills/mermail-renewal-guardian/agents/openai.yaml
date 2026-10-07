@@ -2,7 +2,6 @@ interface:
   display_name: "Mermail Renewal Guardian"
   short_description: "Detect renewal risks and verify cancellations safely"
   default_prompt: "Use $mermail-renewal-guardian to complete this Mermail renewal workflow safely."
-
 dependencies:
   tools:
     - type: "mcp"
