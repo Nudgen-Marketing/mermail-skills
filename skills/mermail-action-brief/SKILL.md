@@ -2,10 +2,17 @@
 name: mermail-action-brief
 description: Turn a bounded, user-scoped set of Mermail inbox emails into structured, deadline-aware Action Briefs (sender, requested action, deadline, deliverables, missing info, risks, next step). Read-only — never sends, replies, deletes, or moves email, and never touches Agent Wallet / PayBox. Use when a user wants to know what an email requires of them, or wants recent partnership/collaboration/job/invoice/deadline emails turned into a structured brief. Unofficial community companion skill for Mermail — not part of the Nudgen-Marketing/mermail-skills package.
 metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
   status: unofficial-community-companion
   homepage: https://docs.mermail.app/ai/skills
   mcp_profile: agent-inbox
-  emoji: "🧭"
+  emoji: 🧭
   category: Inbox Intelligence
   tagline: Turn opportunities in your inbox into decisions, never into unauthorized actions.
 ---

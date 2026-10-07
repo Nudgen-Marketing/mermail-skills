@@ -8,4 +8,4 @@ dependencies:
       value: "mermail"
       description: "Mermail hosted MCP server, least-privilege agent-inbox profile (mailbox discovery + bounded email search/read only — no send, destructive, or wallet tools)"
       transport: "streamable_http"
-      url: "https://console.mermail.app/mcp?profile=agent-inbox"
+      url: "https://console.mermail.app/mcp"
