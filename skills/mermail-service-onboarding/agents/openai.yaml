@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Service Onboarding"
+  short_description: "Sign an agent up for a service, verify it by email, pay the plan with Agent Wallet, and file the receipt in one Mermail workflow."
+  default_prompt: "Use $mermail-service-onboarding to onboard the agent to this service safely: service-scoped mailbox, verification mail, optional owner-limited payment, and filed receipt."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
