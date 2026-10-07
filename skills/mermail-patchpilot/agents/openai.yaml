@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail PatchPilot"
+  short_description: "Remediate Mermail software incidents with verified local patches"
+  default_prompt: "Use $mermail-patchpilot when a selected Mermail software incident needs a path-bounded local repository fix, deterministic verification, and an evidence-gated resolution reply."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
