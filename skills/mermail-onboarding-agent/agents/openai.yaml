@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Onboarding Agent"
+  short_description: "Coordinate API signup and safe email verification"
+  default_prompt: "Use $mermail-onboarding-agent to onboard this API service with a reusable mailbox and exact approvals for external effects."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
