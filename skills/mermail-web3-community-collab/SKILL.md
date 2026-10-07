@@ -1,7 +1,6 @@
 ---
 name: mermail-web3-community-collab
 description: Manage the full lifecycle of Web3 project-to-community collaborations through Mermail, from personalized outreach and reply tracking to allocation confirmation and final result reporting.
-
 metadata:
   openclaw:
     requires:
@@ -9,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🤝"
+    emoji: 🤝
 ---
 
 # Web3 Community Collaboration Agent

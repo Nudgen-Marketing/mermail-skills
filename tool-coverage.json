@@ -12,7 +12,8 @@
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-web3-community-collab"
   ],
   "domains": {
     "mermail-administer-workspace": [
@@ -49,7 +50,6 @@
       "retry_webhook_delivery",
       "rotate_webhook_secret"
     ],
-    "mermail-web3-community-collab": [],
     "mermail-manage-inbox": [
       "list_emails",
       "get_email",
