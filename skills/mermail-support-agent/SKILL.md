@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🎧"
+    emoji: 🎧
 ---
 
 # Mermail Support Agent
@@ -70,3 +70,7 @@ This skill does not own MCP tools. Prefer direct MCP for ticket work. Use `merma
 - "Escalate this billing thread to the human owner and say why."
 - "Label this resolved ticket Solved and do not delete it."
 - "Create a draft-only support triager for classification and auto-draft."
+
+## Operator-provided support identity
+
+Before drafting, resolve the product name, dedicated mailbox, and support agent display name from the authenticated user’s configuration. Use the selected mailbox email as `body.from` and the configured agent name in the signature. If a value is missing, ask the user; do not send literal template placeholders. This identity configuration does not change the approval or security rules above.
