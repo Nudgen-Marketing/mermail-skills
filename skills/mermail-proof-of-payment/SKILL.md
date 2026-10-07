@@ -1,6 +1,6 @@
 ---
 name: mermail-proof-of-payment
-description: Email-native proof-of-payment gate. Inbound email claims \"I paid you, tx hash X\". The skill independently verifies the claim on-chain (correct recipient, amount, token contract — not just symbol, confirmed/finalized status, no reuse of an old tx) BEFORE the agent releases a deliverable or books income. Fails closed: unverified = not paid. Catches: fabricated hashes, wrong-recipient txs, amount mismatches, lookalike tokens, replayed old payments.
+description: 'Email-native proof-of-payment gate. Inbound email claims \"I paid you, tx hash X\". The skill independently verifies the claim on-chain (correct recipient, amount, token contract — not just symbol, confirmed/finalized status, no reuse of an old tx) BEFORE the agent releases a deliverable or books income. Fails closed: unverified = not paid. Catches: fabricated hashes, wrong-recipient txs, amount mismatches, lookalike tokens, replayed old payments.'
 metadata:
   openclaw:
     requires:
