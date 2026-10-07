@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,20 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-meeting-followup",
+    required: [
+      "There are no `extract_minutes` or `send_followup` tools",
+      "`reply_to_email`",
+      "`forward_email`",
+      "`save_draft`",
+      "`unassigned`",
+    ],
+    expected: [
+      "meeting-recap-draft-only",
+      "meeting-followup-recipient-injection",
     ],
   },
   {
@@ -1674,6 +1688,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-meeting-followup",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
 ]) {
