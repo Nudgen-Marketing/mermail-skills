@@ -1,3 +1,16 @@
+---
+name: email-task-extractor
+description: "Use this skill for Mermail Skill: Email Task Extractor."
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+---
+
 # Mermail Skill: Email Task Extractor
 
 ## Description

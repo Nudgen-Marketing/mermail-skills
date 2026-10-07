@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Skill: Email Task Extractor"
+  short_description: "Mermail Skill: Email Task Extractor"
+  default_prompt: "Use $email-task-extractor to use this skill for Mermail Skill: Email Task Extractor.."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
