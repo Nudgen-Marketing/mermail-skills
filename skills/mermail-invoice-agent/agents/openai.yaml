@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Agent"
+  short_description: "Extract, reconcile, and chase invoices from email"
+  default_prompt: "Use $mermail-invoice-agent when the job is finding invoices or receipts in a Mermail mailbox, building a reviewable register, chasing an unpaid invoice, or disputing a billing error. It never pays."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
