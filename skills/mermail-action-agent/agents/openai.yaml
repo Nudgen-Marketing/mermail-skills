@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Action Agent"
+  short_description: "Turn Mermail conversations into actionable work."
+  default_prompt: "Use $mermail-action-agent to process my Mermail inbox, prioritize what needs attention, and help me resolve the highest-priority task."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
