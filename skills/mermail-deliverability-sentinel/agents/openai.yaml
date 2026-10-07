@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail OTP Deliverability Sentinel"
+  short_description: "Probe OTP delivery, audit sender auth, seal tamper-evident round records"
+  default_prompt: "Use $mermail-deliverability-sentinel when the job is to monitor OTP or transactional email deliverability: resolve or provision a dedicated probe mailbox, run a timed probe round the user triggers, measure delivery latency against a median-under-30-seconds SLO, audit sender_authentication (unknown is never a pass), mask OTP codes, seal a hash-chained round record as a draft in the mailbox itself, and report a pass/fail card with regressions against the previous sealed round."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import { validateResearchAgent } from "./research-agent.mjs";
+import { validateDeliverabilitySentinel } from "./deliverability-sentinel.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -1040,7 +1041,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -2120,6 +2121,7 @@ for (const content of trackedText) {
 }
 
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
+errors.push(...await validateDeliverabilitySentinel(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
