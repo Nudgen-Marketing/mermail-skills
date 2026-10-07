@@ -1,4 +1,3 @@
----
 interface:
   display_name: "Mermail Subscription Auditor"
   short_description: "Audit a mailbox for receipts and renewals, build a subscription ledger, detect price changes, and draft cancellations."
