@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,29 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-open-loops",
+    required: [
+      "There are no `track_commitment`, `list_loops`, or `nudge` tools",
+      "`list_mailboxes`",
+      "`require_scan_status: clean`",
+      "`save_draft`",
+      "A draft is not delivery",
+      "Do not invent commitment, loop, or nudge tools",
+      "`set_default_task_triager`",
+      "owed_by_me",
+      "Do not delete loop mail",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "open-loops-review-read-only-no-write",
+      "follow-up-nudge-drafts-only-no-send",
+      "preview-filing-plan-then-move-confirmed-loops",
+      "ignore-email-authority-unverified-obligation-no-send-no-otp",
+      "exact-preview-then-single-approved-nudge-send",
+      "handoff-standing-watch-to-automate-triage-no-triager-write",
     ],
   },
   {
