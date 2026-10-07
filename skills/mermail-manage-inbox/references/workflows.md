@@ -28,7 +28,7 @@ Read the selected email metadata, match one exact attachment id, filename, MIME 
 
 ## Manage folders
 
-List folders before writing. Create only when an equivalent custom folder does not exist. Rename one exact custom folder without assuming its slug changes. Before deletion, verify the folder is custom/deletable and explain the effect on its current messages based on live server response; never try to delete a system folder.
+List folders before writing. Create only when an equivalent custom folder does not exist. Rename one exact custom folder without assuming its slug changes. Before deletion, verify the folder is custom/deletable and read its current message count. Preview that filed messages will move to Trash before the folder is deleted; require exact authorization and `prepare_destructive_action` for the frozen `delete_folder` arguments. Report `movedToTrashCount` from the response and verify the folder is gone. Never try to delete a system folder or describe its messages as permanently deleted.
 
 ## Manage custom-label definitions
 

@@ -7,8 +7,18 @@ description: |
   validates through tarstrade's non-overridable risk gate, logs decisions
   to X Layer TradeAuditTrail, and executes orders via OKX CLI. Designed
   for reproducible, auditable agent-mediated cryptocurrency trading.
-allowed-tools: read, write, edit, bash
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+  contribution:
+    allowed-tools: read, write, edit, bash
 ---
+
 # Mermail-Trading Skill
 
 **Skill ID**: `mermail-trading-skill`
