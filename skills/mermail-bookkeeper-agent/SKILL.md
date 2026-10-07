@@ -1,6 +1,6 @@
 ---
 name: mermail-bookkeeper-agent
-description: Run a small-business bookkeeping inbox through Mermail: collect receipts, invoices, and payment confirmations into a structured ledger, keep an evidence trail with exact message references, and draft month-end summaries for the owner's accountant. Use when the job is expense capture, ledger upkeep, reconciliation prep, or periodic accounting digests. Ordinary one-off composition stays with `mermail-compose-email`; generic inbox cleanup stays with `mermail-manage-inbox`; triager configuration stays with `mermail-automate-triage`.
+description: "Run a small-business bookkeeping inbox through Mermail: collect receipts, invoices, and payment confirmations into a structured ledger, keep an evidence trail with exact message references, and draft month-end summaries for the owner's accountant. Use when the job is expense capture, ledger upkeep, reconciliation prep, or periodic accounting digests. Ordinary one-off composition stays with `mermail-compose-email`; generic inbox cleanup stays with `mermail-manage-inbox`; triager configuration stays with `mermail-automate-triage`."
 metadata:
   openclaw:
     requires:
@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🧾"
+    emoji: 🧾
 ---
 
 # Mermail Bookkeeper Agent
