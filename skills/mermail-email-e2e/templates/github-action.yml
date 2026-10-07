@@ -1,0 +1,57 @@
+# .github/workflows/email-e2e.yml: run your app's email flows against Mermail.
+#
+# Secret handling:
+# - Store MERMAIL_API_KEY in the "email-e2e" environment (Settings → Environments) and add required
+#   reviewers, so code from a pull request cannot use the key without a maintainer's approval.
+# - The key is passed only to the steps that need it; dependency installation never sees it.
+# - Pull requests from forks are skipped (GitHub never gives them secrets anyway).
+# Variables: MERMAIL_E2E_MAILBOX (the test mailbox address).
+name: Email E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: email-e2e # one run at a time per test mailbox keeps candidate matching unambiguous
+  cancel-in-progress: false
+
+jobs:
+  email-e2e:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: email-e2e
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies (no secrets)
+        run: npm ci
+      # Start the app under test however your project does it. Give it the key only if it sends through Mermail.
+      - name: Start the app under test
+        run: (npm start &) && npx --yes wait-on http://localhost:4000
+        env:
+          MERMAIL_API_KEY: ${{ secrets.MERMAIL_API_KEY }}
+      - name: Run the email suite
+        run: node .mermail/run-email-e2e.mjs --spec .mermail/email-e2e.json
+        env:
+          MERMAIL_API_KEY: ${{ secrets.MERMAIL_API_KEY }}
+          MERMAIL_E2E_MAILBOX: ${{ vars.MERMAIL_E2E_MAILBOX }}
+      - name: Job summary
+        if: always()
+        run: test -f email-e2e-report/report.md && cat email-e2e-report/report.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: email-e2e-report # OTPs and link tokens are redacted by the runner
+          path: email-e2e-report/
+          retention-days: 7

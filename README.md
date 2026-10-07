@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas, and end-to-end testing of an app's own transactional email.
 
 ## Install portable skills
 
@@ -17,6 +17,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-email-e2e
 ```
 
 ## Install as a plugin
@@ -162,6 +163,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-scheduling-agent` | Book time from a Mermail inbox using Google Calendar |
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
+| `mermail-email-e2e` | End-to-end test your own app's transactional emails in a real inbox (delivery, tokens, links, OTPs, flow completion), fix the code, and gate CI |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
