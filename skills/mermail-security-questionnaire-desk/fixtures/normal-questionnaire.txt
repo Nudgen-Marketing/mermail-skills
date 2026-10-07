@@ -1,0 +1,3 @@
+Q1: Is customer content encrypted at rest?
+SEC-2. How often is the incident response plan reviewed?
+Q3) Is the service SOC 2 certified?
