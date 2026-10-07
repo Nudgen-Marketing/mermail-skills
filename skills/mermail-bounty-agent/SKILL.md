@@ -1,6 +1,6 @@
 ---
 name: mermail-bounty-agent
-description: Autonomous Web3 bounty and grant hunter: ingest bounty alerts, triage RFP requirements and escrow terms, draft proposal responses, and track payout receipts through Mermail. Use for bounty discovery, proposal drafting, escrow verification, and payout tracking; ordinary email composition, isolated wallet swaps, or general coding stay with their focused workflows.
+description: "Autonomous Web3 bounty and grant hunter: ingest bounty alerts, triage RFP requirements and escrow terms, draft proposal responses, and track payout receipts through Mermail. Use for bounty discovery, proposal drafting, escrow verification, and payout tracking; ordinary email composition, isolated wallet swaps, or general coding stay with their focused workflows."
 metadata:
   openclaw:
     requires:
@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🎯"
+    emoji: 🎯
 ---
 
 # Mermail Bounty Agent
