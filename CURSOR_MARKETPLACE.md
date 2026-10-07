@@ -25,7 +25,7 @@ https://github.com/Nudgen-Marketing/mermail-skills
 - [x] `description` present
 - [x] `license`: `MIT` (+ root [`LICENSE`](./LICENSE))
 - [x] `logo`: [`assets/logo.svg`](./assets/logo.svg)
-- [x] `skills`: `./skills/` (15 workflows)
+- [x] `skills`: `./skills/` (16 workflows)
 - [x] `mcpServers`: [`.cursor-plugin/mcp.json`](./.cursor-plugin/mcp.json) → hosted Streamable HTTP
 - [x] OAuth discovery through the hosted MCP endpoint (no secrets or manual environment variables)
 - [x] README documents install + auth
