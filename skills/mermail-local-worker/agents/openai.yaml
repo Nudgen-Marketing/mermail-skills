@@ -1,0 +1,11 @@
+interface:
+  display_name: "Run a Mermail Local Worker"
+  short_description: "Execute [WORK] task-card emails on your own local LLM endpoint"
+  default_prompt: "Use $mermail-local-worker to poll my designated task mailbox for [WORK] cards and run them on my local OpenAI-compatible endpoint, replying results in-thread."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
