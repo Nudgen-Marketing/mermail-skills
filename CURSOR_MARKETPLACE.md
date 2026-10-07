@@ -25,7 +25,7 @@ https://github.com/Nudgen-Marketing/mermail-skills
 - [x] `description` present
 - [x] `license`: `MIT` (+ root [`LICENSE`](./LICENSE))
 - [x] `logo`: [`assets/logo.svg`](./assets/logo.svg)
-- [x] `skills`: `./skills/` (15 workflows)
+- [x] `skills`: `./skills/` (16 workflows)
 - [x] `mcpServers`: [`.cursor-plugin/mcp.json`](./.cursor-plugin/mcp.json) → hosted Streamable HTTP
 - [x] OAuth discovery through the hosted MCP endpoint (no secrets or manual environment variables)
 - [x] README documents install + auth
@@ -51,7 +51,7 @@ Then in Cursor: **Developer: Reload Window** → open MCP tools → select **Aut
 | Plugin name | `mermail` |
 | Display name | Mermail |
 | Short pitch | Give Cursor agents a real Mermail inbox over Streamable HTTP MCP — read, draft, send, triage. |
-| Longer description | Mermail packages 15 Agent Skills plus a hosted Streamable HTTP MCP server (`https://console.mermail.app/mcp`, Official Registry id `app.mermail/mcp`). Install the plugin, authenticate with Mermail OAuth, and use agent inboxes, verification mail, inbox management, compose/send, workspace admin, task triage, mailbox-agent chat, Composio integrations, scheduling, GTM, support, and x402/Agent Wallet workflows. Destructive tools require MCP confirmation tokens. |
+| Longer description | Mermail packages 16 Agent Skills plus a hosted Streamable HTTP MCP server (`https://console.mermail.app/mcp`, Official Registry id `app.mermail/mcp`). Install the plugin, authenticate with Mermail OAuth, and use agent inboxes, verification mail, inbox management, compose/send, workspace admin, task triage, mailbox-agent chat, Composio integrations, scheduling, GTM, support, travel recovery, and x402/Agent Wallet workflows. Destructive tools require MCP confirmation tokens. |
 | Categories / tags | productivity, email, mcp, ai-agent, automation |
 | Homepage | https://docs.mermail.app/ai/skills |
 | Support email | contact@mermail.app |
