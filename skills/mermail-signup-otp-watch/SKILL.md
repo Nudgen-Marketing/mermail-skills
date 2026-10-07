@@ -1,12 +1,6 @@
 ---
 name: mermail-signup-otp-watch
-description: >-
-  Run a closed-loop SaaS signup verification via Mermail — resolve or create a
-  verification mailbox, wait for the expected OTP/verification email, extract
-  the code safely, and hand it back for the next form step. Use when an agent
-  signup is blocked on email verification or a one-time password. Do not use for
-  generic inbox cleanup, composing mail, triage automation, receipts, or wallet
-  payments.
+description: Run a closed-loop SaaS signup verification via Mermail — resolve or create a verification mailbox, wait for the expected OTP/verification email, extract the code safely, and hand it back for the next form step. Use when an agent signup is blocked on email verification or a one-time password. Do not use for generic inbox cleanup, composing mail, triage automation, receipts, or wallet payments.
 metadata:
   openclaw:
     requires:
@@ -14,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🔐"
+    emoji: 🔐
 ---
 
 # Mermail Signup OTP Watch
