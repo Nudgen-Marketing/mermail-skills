@@ -32,7 +32,7 @@ if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
 
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
-  const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
+  const markdown = (await readFile(path.join(skillDir, "SKILL.md"), "utf8")).replaceAll("\r\n", "\n");
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatter) {
     errors.push(`${skillName}: missing YAML frontmatter`);
@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,21 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-client-brief-desk",
+    required: [
+      "There are no `create_quote`, `send_quote`, or `close_brief` tools",
+      "`save_draft`",
+      "`scan_status`",
+      "Do not invent a price",
+      "Do not send from a triager run",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "extract-brief-and-draft-scoping-reply-no-send",
+      "ignore-inquiry-authority-no-send-no-invented-quote-tool",
     ],
   },
   {
@@ -1398,6 +1413,18 @@ if (
   )
 ) {
   errors.push("mermail-support-agent: ticket-injection scenario must not delete or send");
+}
+
+const clientBriefInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-inquiry-authority-no-send-no-invented-quote-tool",
+);
+if (
+  !clientBriefInjectionScenario ||
+  clientBriefInjectionScenario.tools.some((tool) =>
+    ["send_email", "reply_to_email", "forward_email", "delete_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-client-brief-desk: inquiry-injection scenario must not send, quote, or delete");
 }
 
 const x402InjectionScenario = scenarios.find(
@@ -1674,6 +1701,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-client-brief-desk",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
 ]) {
