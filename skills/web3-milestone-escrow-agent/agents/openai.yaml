@@ -1,4 +1,11 @@
 interface:
   display_name: "GitHub Milestone Settlement"
   short_description: "Verify GitHub milestones before approved USDC settlement"
-  default_prompt: "Check my Mermail inbox for a GitHub milestone request, verify the referenced PR is merged, show me the exact settlement preview, and proceed only through the required wallet approval flow."
+  default_prompt: "Use $web3-milestone-escrow-agent to verify GitHub pull-request milestone payment requests received through Mermail and, after independent verification and required user approval, prepare or execute an approved USDC settlement through the user's Mermail Agent Wallet."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"

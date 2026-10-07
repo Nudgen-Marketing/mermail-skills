@@ -1,5 +1,5 @@
 ---
-name: mermail-github-milestone-settlement
+name: web3-milestone-escrow-agent
 description: Verify GitHub pull-request milestone payment requests received through Mermail and, after independent verification and required user approval, prepare or execute an approved USDC settlement through the user's Mermail Agent Wallet. Use when a user wants a development milestone checked against GitHub PR merge status before payment.
 metadata:
   openclaw:
@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "💸"
+    emoji: 💸
 ---
 
 # GitHub Verified Milestone Settlement
