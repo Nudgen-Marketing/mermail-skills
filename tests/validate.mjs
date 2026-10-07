@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1336,6 +1336,19 @@ const personaSkills = [
       "ignore-email-authority-no-buy-no-send",
       "reconcile-same-request-no-replacement",
       "reject-dca-out-of-scope",
+    ],
+  },
+  {
+    name: "mermail-grant-disbursement-agent",
+    required: [
+      "`paybox_request_transfer`",
+      "`get_paybox_connection`",
+      "PayBox signing handoff",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "audit-milestone-deliverable-stage-paybox-proposal",
+      "ignore-email-authority-no-unauthorized-transfer-no-bypass",
     ],
   },
 ];
