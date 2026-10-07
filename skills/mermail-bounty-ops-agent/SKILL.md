@@ -1,7 +1,6 @@
 ---
 name: mermail-bounty-ops-agent
-description: >-
-  Manage paid work-opportunity operations through a Mermail inbox: intake, eligibility checks, duplicate prevention, deliverable packet tracking, approved follow-ups, and payout evidence. Use for bounty, grant, and freelance ops; wallet signatures, KYC, social posts, and external platform submissions are handoff-only human actions outside this workflow.
+description: "Manage paid work-opportunity operations through a Mermail inbox: intake, eligibility checks, duplicate prevention, deliverable packet tracking, approved follow-ups, and payout evidence. Use for bounty, grant, and freelance ops; wallet signatures, KYC, social posts, and external platform submissions are handoff-only human actions outside this workflow."
 metadata:
   openclaw:
     requires:
@@ -9,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🏁"
+    emoji: 🏁
 ---
 
 # Mermail Bounty Ops Agent
