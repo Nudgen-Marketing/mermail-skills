@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Paid Research Desk"
+  short_description: "Unattended paid research desk: triage requests, verify prepayment, deliver cited memos, keep a ledger"
+  default_prompt: "Use $mermail-paid-research-desk to check my Mermail inbox for paid research requests, verify each prepayment, deliver one cited memo per paid job by email, and append every job to the ledger."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
