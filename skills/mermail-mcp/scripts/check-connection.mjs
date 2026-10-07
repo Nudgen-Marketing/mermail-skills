@@ -3,7 +3,7 @@ import process from "node:process";
 
 const endpoint = process.env.MERMAIL_MCP_URL || "https://console.mermail.app/mcp";
 const apiKey = process.env.MERMAIL_API_KEY;
-const currentFullCatalogBaseline = 74;
+const currentFullCatalogBaseline = 83;
 const compatibleFullCatalogFloor = 63;
 const agentInboxTools = [
   "get_api_credit_usage",
@@ -40,7 +40,7 @@ const initialize = await request({
   params: {
     protocolVersion: "2025-03-26",
     capabilities: {},
-    clientInfo: { name: "mermail-skill-check", version: "1.5.5" }
+    clientInfo: { name: "mermail-skill-check", version: "1.5.7" }
   }
 });
 
