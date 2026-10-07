@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Commitment Tracker"
+  short_description: "Evidence-linked promises, deadlines, and follow-ups"
+  default_prompt: "Use $mermail-commitment-tracker to audit selected email commitments and show evidence for each owner, deadline, and status."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
