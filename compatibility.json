@@ -1,6 +1,6 @@
 {
-  "verifiedAt": "2026-08-23",
-  "pluginVersion": "1.5.6",
+  "verifiedAt": "2026-09-30",
+  "pluginVersion": "1.5.7",
   "hostedMcp": {
     "url": "https://console.mermail.app/mcp",
     "transport": "streamable-http",
@@ -13,8 +13,8 @@
   },
   "catalog": {
     "skills": 18,
-    "businessTools": 73,
+    "businessTools": 82,
     "confirmationTools": 1,
-    "walletScopedTools": 19
+    "walletScopedTools": 23
   }
 }
