@@ -1,12 +1,17 @@
 ---
 name: mermail-invoice-triage-agent
-description: Automatically classifies incoming Mermail inbox messages, tags critical alerts, and extracts invoice/OTP metadata into structured JSON.
-author: Armin Sahakian
-tags:
-  - mermail
-  - email-triage
-  - invoice-processing
-  - security-alert
+description: Automatically classifies incoming Mermail inbox messages, tags critical alerts, and extracts invoice/OTP metadata into structured JSON. - mermail - email-triage - invoice-processing - security-alert
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+  contribution:
+    author: Armin Sahakian
+    tags: null
 ---
 
 # Mermail Invoice & Security Triage Agent
