@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Radar"
+  short_description: "Polls bounty boards, scores gigs against your profile, emails you one ranked digest."
+  default_prompt: "Use $mermail-bounty-radar to scan for paid bounties and email me the ranked digest."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
