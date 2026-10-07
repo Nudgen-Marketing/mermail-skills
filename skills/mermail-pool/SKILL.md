@@ -1,3 +1,16 @@
+---
+name: mermail-pool
+description: This skill defines the **Mermail Payout Agent**, an autonomous workflow within the Mermail architecture responsible for escrow release, bounty distribution, and automated subscriber payouts. It integrates Mermail's messaging inbox with on-chain wallet operations to execute trustless, verified payment flows.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MERMAIL_API_KEY
+    primaryEnv: MERMAIL_API_KEY
+    homepage: https://docs.mermail.app/ai/skills
+    emoji: 📬
+---
+
 # Autonomous Freelance Escrow & Payout Agent
 
 ## Overview
