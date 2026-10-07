@@ -9,4 +9,3 @@ dependencies:
       description: "Mermail workspace and mailbox MCP server"
       transport: "streamable_http"
       url: "https://console.mermail.app/mcp"
-

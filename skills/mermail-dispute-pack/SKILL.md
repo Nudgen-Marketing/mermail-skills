@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🧾"
+    emoji: 🧾
 ---
 
 # Mermail dispute pack
@@ -184,4 +184,3 @@ sends, replies, or forwards on its own.
   used here, and the handoff tools this skill must not call.
 - [security.md](references/security.md) — strict intake, sandboxed
   interpretation, prompt-injection handling, and the read budget.
-
