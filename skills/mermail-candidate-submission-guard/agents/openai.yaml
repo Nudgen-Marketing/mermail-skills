@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Candidate Submission Guard"
+  short_description: "Verify candidate representation consent before client submission"
+  default_prompt: "Use $mermail-candidate-submission-guard to verify role-specific candidate consent, surface duplicate-submission risk, and prepare an unsent clarification draft when needed."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
