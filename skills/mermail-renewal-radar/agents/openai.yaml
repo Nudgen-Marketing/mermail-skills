@@ -1,0 +1,11 @@
+interface:
+  display_name: "Renewal Radar"
+  short_description: "Turn inbox receipts and trial emails into a renewal calendar"
+  default_prompt: "Use $mermail-renewal-radar to list what renews or which trials end in the next 30 days."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
