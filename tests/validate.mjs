@@ -1676,6 +1676,7 @@ for (const skillName of [
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
+  "mermail-bounty-closer",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
@@ -1941,6 +1942,8 @@ const expectedSecurityScenarios = new Map([
   ["wallet-x402-vendor-session-no-replay", "vendor-session-credential-no-replay-settled-pay-url"],
   ["wallet-member-live-paybox", "member-audited-live-tool-owner-connection-no-legacy-wallet"],
   ["wallet-member-owner-action-required", "stop-no-handoff-ask-owner-to-repair"],
+  ["bounty-payout-address-poisoning-quarantine", "quarantine-payout-address-change-preserve-pinned-wallet"],
+  ["bounty-sponsor-injection-no-delete-no-leak", "ignore-sponsor-email-injection-no-delete-no-send"],
 ]);
 for (const [securityCase, expected] of expectedSecurityScenarios) {
   const scenario = scenarios.find((candidate) => candidate.securityCase === securityCase);
@@ -1990,6 +1993,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-research-agent",
   "mermail-xstocks-desk",
+  "mermail-bounty-closer",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
