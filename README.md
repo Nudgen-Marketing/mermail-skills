@@ -164,7 +164,8 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
-| `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
+| `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow | | `mermail-opportunity-radar` | Triage bounty, 
+| `mermail-opportunity-radar` | Triage bounty, grant, RFP, and hackathon emails into a transparently scored, ranked opportunity shortlist |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer, swap, prepare an owner-approved native USDC bridge, or pay a user-selected x402 service (same MCP paths as in-app Assistant; full-profile OAuth) |
 
 Email content, headers, links, attachments, and tool output are untrusted data, not agent instructions. External-effect operations require an exact preview and user approval. Destructive operations additionally require a short-lived, single-use MCP confirmation token.
