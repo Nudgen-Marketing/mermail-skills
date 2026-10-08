@@ -116,7 +116,10 @@ jobs:
 
   dry-run:
     needs: validate
-    if: github.event_name == 'pull_request'
+    # Fork PRs receive no GitHub OIDC token, so keep the provenance dry-run
+    # limited to trusted same-repository PRs. The validate job still checks
+    # package metadata and tests for every PR.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       actions: read
       contents: read
