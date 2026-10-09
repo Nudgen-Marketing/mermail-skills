@@ -1,6 +1,6 @@
 # Mermail Agent Skills and Plugin
 
-Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks agent personas.
+Official Mermail workflows for Codex, Claude Code, Cursor, and other Agent Skills-compatible clients. The plugin connects to the hosted Mermail MCP server for agent-inbox provisioning, verification mail, inbox management, email delivery, workspace and webhook administration, task triage, mailbox-agent workflows, and Scheduling / GTM / Support / x402 / xStocks / RFQ Desk agent personas.
 
 ## Install portable skills
 
@@ -17,6 +17,7 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-gtm-agent
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-support-agent
 npx -y skills add Nudgen-Marketing/mermail-skills --skill mermail-x402-agent -g -y --agent '*'
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-rfq-desk
 ```
 
 ## Install as a plugin
