@@ -2118,5 +2118,34 @@
     ],
     "approval": "none",
     "expected": "reconciliation-followup-draft-not-delivery"
+  },
+  {
+    "prompt": "Report payment statuses without invoices: USD 10 capture, EUR 20 pending, USD 4 failed and a USD 100 offer. Do not send anything.",
+    "skill": "mermail-reconcile-receipts",
+    "tools": ["search_emails", "get_email"],
+    "approval": "none",
+    "expected": "separate-cash-appendix-no-fake-invoice-no-cross-currency-or-status-netting"
+  },
+  {
+    "prompt": "These clean receipts are copies of one event, with an earlier authorization and a later explicit capture; retain every source.",
+    "skill": "mermail-reconcile-receipts",
+    "tools": ["search_emails", "get_email"],
+    "approval": "none",
+    "expected": "deduplicate-exact-event-retain-history-count-current-capture-once"
+  },
+  {
+    "prompt": "Two USD 10 partial payments share an order but have different event IDs; there is also a distinct USD 3 refund. Show reported flows.",
+    "skill": "mermail-reconcile-receipts",
+    "tools": ["search_emails", "get_email"],
+    "approval": "none",
+    "expected": "keep-two-payment-events-and-separate-refund-not-net-settlement"
+  },
+  {
+    "prompt": "The no-invoice payout has unknown authentication and no transaction ID, but claims it completed. Include its evidence without claiming cash received.",
+    "skill": "mermail-reconcile-receipts",
+    "tools": ["search_emails", "get_email"],
+    "approval": "none",
+    "securityCase": "cash-event-evidence-gate",
+    "expected": "review-only-no-subtotal-no-fabricated-identifiers"
   }
 ]

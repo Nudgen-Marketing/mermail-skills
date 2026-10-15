@@ -172,6 +172,19 @@ test("review Markdown exposes source claims and authentication without including
   assert.deepEqual(report.currency_totals, []);
 });
 
+test("non-invoice appendix statuses cannot enter invoice arithmetic", () => {
+  for (const status of ["authorized", "failed", "mention_only", "reported_settled", "reported_refunded", "uncertain"]) {
+    assert.throws(() => reconcile(input([receipt({ status })])), /status is unsupported/);
+  }
+  for (const event_type of ["cash_event", "authorization", "failed_payment"]) {
+    assert.throws(() => reconcile(input([receipt({ event_type })])), /event_type is unsupported/);
+  }
+  const report = reconcile(input([receipt({ invoice_id: "" })]));
+  assert.deepEqual(report.rows, []);
+  assert.deepEqual(report.currency_totals, []);
+  assert.ok(report.review[0].reasons.includes("missing_invoice_reference"));
+});
+
 test("CLI handles real fixture input and malformed invocation", () => {
   const script = new URL("../skills/mermail-reconcile-receipts/scripts/reconcile.mjs", import.meta.url);
   const fixture = new URL("../skills/mermail-reconcile-receipts/assets/demo-ledger.json", import.meta.url);

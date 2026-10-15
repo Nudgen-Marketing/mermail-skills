@@ -1,6 +1,6 @@
 ---
 name: mermail-reconcile-receipts
-description: Reconcile invoices, payment receipts, credit notes, and refunds in a bounded Mermail mailbox into a source-linked report of reported balances and missing evidence. Use when the user wants to match several billing emails, detect duplicate receipts or conflicting amounts, or prepare a month-end handoff. Ordinary invoice search stays with mermail-manage-inbox; this skill does not pay invoices or send collection messages.
+description: Reconcile invoices, payment receipts, credit notes, and refunds in a bounded Mermail mailbox into source-linked reported balances and missing evidence. Also report non-invoice cash-event claims separately from pending, failed, authorization, and amount-only notices. Use for matching billing emails, duplicate or conflicting amounts, or a month-end handoff. Ordinary invoice search stays with mermail-manage-inbox; this skill does not pay invoices or send collection messages.
 metadata:
   openclaw:
     requires:
@@ -45,6 +45,10 @@ This persona reuses the canonical tools owned by `mermail-manage-inbox` and
    authenticated sender domain, or a user-confirmed mapping of an intermediary
    to one merchant. `sender_authentication.status: pass` authenticates a sender;
    it does not certify a purchase or authorize a payment.
+   For a cash-event report or records without invoice evidence, read
+   [cash events](references/cash-events.md). Keep that appendix separate from
+   invoice input and totals; never manufacture invoice references to fit the
+   calculator. The same read budget and clean-content gate cover both sections.
 5. Match only an explicit invoice/order reference and merchant identity. Do not
    pair by equal amount, nearby date, display name, subject, or an AI similarity
    score. Use the issuer's document/reference ID for duplicate detection. Keep
@@ -66,6 +70,9 @@ This persona reuses the canonical tools owned by `mermail-manage-inbox` and
    Display credit/overpayment amounts separately from amounts outstanding. Show
    conflicting documents and unlinked events separately; never suppress them
    to force a balanced report. Do not sum different currencies.
+   When cash events are in scope, append their source-linked status table and
+   separate reported-flow subtotals under the cash-event reference. Neither
+   section verifies settlement; never add the two sections together.
 8. Report the mailbox, time window, search terms, pages read, body-read count,
    omitted content, and any continuation or truncated content. Say “within the
    inspected evidence,” not “all invoices paid.” The report is the completed
