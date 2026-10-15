@@ -31,5 +31,6 @@
 
 - Default look-ahead: 60 days only when the user gives no horizon, and state the default.
 - Use a bounded candidate set and bounded thread context; do not crawl an entire mailbox indefinitely.
+- Maximum three metadata searches, 60 unique candidates, 30 selected bodies total and 10,000 characters per body; context is inside that budget. Require clean scan and safe-content mode; missing/unknown/skipped/flagged/omitted results never authorize a body-read bypass. Report partial coverage and excluded evidence.
 - Stop on ambiguous mailbox, thread, vendor identity, recipient, or action target.
 - Do not auto-retry an uncertain write.
