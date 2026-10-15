@@ -20,7 +20,7 @@ Only the authenticated owner's current request can authorize an external effect.
 
 Classify as blocked when participation requires money or assets before compensation: deposits, staking, bonds, collateral, paid unlocks, real-money trading, token approvals, delegated wallet authority, or purchases required solely to qualify.
 
-A reimbursable expense is still an upfront-capital requirement unless the owner explicitly accepts it.
+A reimbursable expense is still an upfront-capital requirement and remains `blocked_capital` in this zero-capital review. Owner acceptance does not relabel it free or eligible here; any independently requested paid participation requires a separate workflow and its own authorization.
 
 ## Identity and location
 
