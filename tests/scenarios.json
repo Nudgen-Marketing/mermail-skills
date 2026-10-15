@@ -1,4 +1,6 @@
 [
+  {"prompt":"Review whether I can choose this plan. Cancellation terms are required; analyze only.","skill":"mermail-decision-room","decisionCase":"waiting-owner-deadline","tools":["get_email"],"approval":"none","expectedStatus":"NOT READY","expectedConfidence":"LOW","expected":"name-waiting-party-no-invented-deadline-clarification-text-only"},
+  {"prompt":"Does this complete, selected FYI thread require a decision from me? Analyze only.","skill":"mermail-decision-room","decisionCase":"no-decision-required","tools":["get_email"],"approval":"none","expectedStatus":"READY","expectedConfidence":"HIGH","expected":"bounded-no-decision-conclusion-no-write"},
   {
     "prompt": "Use Mermail to recover this disconnected client, then find the expected verification email for my active signup",
     "skill": "mermail",

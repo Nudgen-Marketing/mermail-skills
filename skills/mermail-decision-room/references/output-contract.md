@@ -25,7 +25,17 @@ Return exactly these twelve fields, in this order, as Markdown headings. Do not 
 
 When multiple problems coexist, use BLOCKED if necessary evidence is inaccessible or unsafe to process, and list the other gaps/conflicts as well. Use NOT READY for evidence that has not been supplied or established, or a recoverable partial review within the read budget. An optional inaccessible attachment alone need not block an otherwise supported decision. Explain materiality rather than mechanically treating every omission as fatal.
 
-## Confidence
+## Owner, deadline and clarification details
+
+Within Decision, identify the decision owner and deadline only when supported by evidence. Otherwise say "Not stated". Preserve the original date expression and timezone uncertainty; an urgent tone is not a deadline. An implied deadline is a labeled inference, not a confirmed commitment.
+
+When a named party owes a material answer, record the party, outstanding question and source under Missing Information. Use NOT READY while that evidence remains missing; silence is not agreement. Recommend the smallest clarification addressing the blocking gap in Recommendation, as suggested text in this conversation only. No mailbox draft is created. A separate explicit request to save a draft goes to `mermail-compose-email`, preserving mailbox/thread identity, recipient review and its write-preview contract.
+
+When the available evidence establishes that no decision is required from the user, state that under Decision and Required Human Decision and recommend no action. READY can describe this adequately supported conclusion, but incomplete coverage must not be converted into "no decision required". Keep the existing twelve headings and three status values.
+
+These details preserve useful owner/deadline and minimal-clarification concepts from [Decision Inbox PR #236](https://github.com/Nudgen-Marketing/mermail-skills/pull/236); its saved-draft workflow is not replaced by this analysis-only skill.
+
+## Confidence interpretation
 
 - **HIGH**: Strong direct support, sufficient relevant coverage, and no material unresolved evidential uncertainty.
 - **MEDIUM**: Useful evidence with identified limitations or explicitly bounded inferences.
