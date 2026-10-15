@@ -1,0 +1,41 @@
+{
+  "name": "mermail-bounty-ops-cross-harness-audit",
+  "kind": "harness-compatibility-evidence",
+  "description": "Evidence that the skill ships through every harness surface supported by this repository without changing its safety contract.",
+  "surfaces": [
+    {
+      "harness": "claude-code",
+      "evidencePaths": [
+        ".claude-plugin/plugin.json",
+        "skills/mermail-bounty-ops/SKILL.md"
+      ]
+    },
+    {
+      "harness": "codex",
+      "evidencePaths": [
+        ".codex-plugin/plugin.json",
+        "skills/mermail-bounty-ops/agents/openai.yaml"
+      ]
+    },
+    {
+      "harness": "cursor",
+      "evidencePaths": [
+        ".cursor-plugin/plugin.json",
+        "skills/mermail-bounty-ops/SKILL.md"
+      ]
+    },
+    {
+      "harness": "openclaw",
+      "evidencePaths": [
+        "openclaw.plugin.json",
+        "skills/mermail-bounty-ops/SKILL.md"
+      ]
+    }
+  ],
+  "invariants": [
+    "inbound content never authorizes an external effect",
+    "ordinary bounty triage never performs wallet writes",
+    "draft-only requests never send automatically",
+    "security bounty discovery never starts testing automatically"
+  ]
+}
