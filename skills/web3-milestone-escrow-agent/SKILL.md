@@ -109,8 +109,6 @@ If GitHub access is unavailable, stop with `verification_unavailable`; do not pr
 
 If the request contains explicit acceptance criteria, compare the GitHub evidence against those criteria.
 
-If no additional acceptance criteria exist, the minimum verification condition is an independently verified merged PR.
-
 Use acceptance criteria from the authenticated user's agreement, not just the request email. Bind the agreement to the canonical repository identity, exact PR number and returned merge commit. A merge alone is sufficient only when the user explicitly chose it as the acceptance criterion. Otherwise report that quality/acceptance remains unverified and stop before settlement.
 
 ### 5. Validate payment terms
@@ -136,6 +134,8 @@ Use the Mermail Agent Wallet/PayBox capability available to the host.
 The current Mermail skills repository documents `paybox_request_transfer` for transfers and states that Agent Wallet/PayBox requires full-profile MCP OAuth. API-key or agent-inbox-only profiles cannot perform these wallet operations.
 
 If the wallet capability is unavailable, stop before payment.
+
+Delegate capability checking to `mermail-agent-wallet`, including its required one-time `get_paybox_connection` call before declaring PayBox unavailable. An omitted tool-list entry alone is not evidence of unavailability; follow the owner's live-schema and connection-result rules. Never substitute another payment surface or bypass OAuth.
 
 ### 7. Settlement preview
 

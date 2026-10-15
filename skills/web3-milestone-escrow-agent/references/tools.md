@@ -65,7 +65,7 @@ Before calling the transfer operation:
 
 Satisfy the durable duplicate gate in SKILL.md first; absent a connected atomic settlement record, this workflow is preview-only. Read the existing `mermail-agent-wallet` skill and its tool reference for credential selection and current pending/setup/signing states. This skill does not add ledger tools or claim escrow custody.
 
-1. Confirm that the current MCP session exposes the PayBox operation.
+1. Delegate connection and capability checking to `mermail-agent-wallet`: call `get_paybox_connection` once before declaring PayBox unavailable, even if omitted from the initial tool list. Follow the owner's usable-connection and live-schema rules; a failed probe or missing usable capability is a stop, not permission for a substitute payment tool.
 2. Confirm that the user has approved the exact payment.
 3. Preserve the approved recipient, amount, asset, and network.
 4. Pass arguments according to the live tool schema.
@@ -75,7 +75,7 @@ Do not guess the argument names if the live tool schema differs.
 
 ## Tool Discovery Rule
 
-If a tool referenced by this skill is not present:
+For PayBox, perform the owning wallet skill's connection probe first; do not infer unavailability from a tool-list omission. If a required capability is then unavailable (or a non-wallet integration is absent):
 
 - do not fabricate it,
 - do not substitute an unrelated tool,
