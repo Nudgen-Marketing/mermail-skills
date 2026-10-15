@@ -42,6 +42,18 @@ Follow the owning skill's argument, approval, and retry contracts exactly. Where
 
 ## Examples
 
+### Readonly comparison contract
+
+The helper comparison requires every frozen envelope field: `--max`, `--asset`, `--network`, `--pay-to`, `--decimals`, and `--resource`. Resolve asset decimals and payee independently before using a challenge; do not learn the expected payee solely from the challenge being checked. Example with a previously obtained header:
+
+```bash
+node skills/mermail-procurement-agent/scripts/reconcile-x402.mjs --required "$SAVED_CHALLENGE" --max 5 --asset "$APPROVED_ASSET" --network eip155:8453 --pay-to "$APPROVED_PAYEE" --decimals 6 --resource https://vendor.example/resource
+```
+
+`--probe` instead of `--required` authorizes one unpaid GET to the exact public HTTPS resource. There is no implicit URL fetch, POST support, credential forwarding, or redirect following. IPv6-only and non-public destinations stop; use a trusted host's saved challenge if needed, without weakening destination controls. Never use this helper on a one-time verification or payment link.
+
+Comparison uses exact integer arithmetic and accepts only a single matching v2 `exact` or `upto` offer. `within_envelope` is advisory, never payment approval or provider support evidence. Freeze the returned selected offer index and approve that exact offer; do not submit unchecked alternatives. Unsupported versions/schemes, missing fields or ambiguous offers stop. `--response` decodes a saved response as an unverified claim and returns a non-success exit status even when the vendor claims success; independent exact-request settlement and fulfillment checks remain required. Run offline regression checks with `node --test tests/procurement-envelope.test.mjs`.
+
 Bounded receipt search, native JSON object:
 
 ```json

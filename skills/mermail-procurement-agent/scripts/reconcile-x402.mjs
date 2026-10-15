@@ -1,97 +1,170 @@
 #!/usr/bin/env node
-// Reconcile an x402 v2 challenge (and optionally its settlement) against a frozen envelope.
-// Read-only: it sends one unpaid request (or reads a saved header) and never pays.
-//
-//   node reconcile-x402.mjs <url> --max 5 --asset 0x8335…2913 --network eip155:8453 [--method POST] [--pay-to 0x…] [--decimals 6]
-//   node reconcile-x402.mjs --required <base64 PAYMENT-REQUIRED> --max 5 --asset … --network …
-//   node reconcile-x402.mjs --response <base64 PAYMENT-RESPONSE>
-//   node reconcile-x402.mjs --self-check
-//
-// Verdicts: within_envelope | above_cap | asset_mismatch | network_mismatch | payee_mismatch | no_challenge | malformed
-// Exit 0 only for within_envelope (or a passing self-check); the JSON report is the output.
-import process from "node:process";
+// Advisory comparison only; never payment approval or settlement verification.
+// Offline: --required <base64> --max <decimal> --asset <id> --network <id>
+//          --pay-to <id> --decimals <0..36> --resource <exact HTTPS URL>
+// Network: add --probe; one explicit unpaid GET only, no redirects or credentials.
+// --response decodes a saved PAYMENT-RESPONSE as an unverified claim.
+import { pathToFileURL } from 'node:url';
+import { lookup } from 'node:dns/promises';
+import { request } from 'node:https';
+import { isIP } from 'node:net';
 
-const args = process.argv.slice(2);
-const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : fallback; };
-const has = (name) => args.includes(name);
+const LIMIT = 65536;
+const invalid = detail => ({ verdict: 'malformed', detail });
+const decimal = value => typeof value === 'string' && value.length <= 100 && /^(0|[1-9]\d*)(\.\d+)?$/.test(value);
+const uint = value => typeof value === 'string' && value.length <= 100 && /^(0|[1-9]\d*)$/.test(value);
 
-if (has("--self-check")) selfCheck();
-
-const envelope = {
-  max: opt("--max"), asset: (opt("--asset") || "").toLowerCase(), network: opt("--network"),
-  payTo: (opt("--pay-to") || "").toLowerCase(), decimals: Number(opt("--decimals", 6)),
-};
-
-if (has("--response")) {
-  report(decodeSettlement(opt("--response")));
+function units(value, decimals) {
+  if (!decimal(value)) throw Error('Invalid decimal');
+  const [whole, fraction = ''] = value.split('.');
+  if (fraction.length > decimals) throw Error('Amount exceeds declared precision');
+  return BigInt(whole + fraction.padEnd(decimals, '0'));
 }
 
-let required = opt("--required");
-const url = args.find((a) => /^https?:\/\//.test(a));
-if (!required && url) {
-  const method = opt("--method", "GET");
-  const res = await fetch(url, { method, headers: { accept: "application/json", "content-type": "application/json" }, body: method === "GET" ? undefined : "{}" });
-  required = res.headers.get("payment-required") || res.headers.get("x-payment-required");
-  if (!required && res.status === 402) required = Buffer.from(await res.text()).toString("base64");
-  if (!required) report({ verdict: "no_challenge", http_status: res.status, url });
-}
-if (!required) fail("give a URL, --required <base64>, --response <base64>, or --self-check");
-report(reconcileChallenge(required, envelope));
-
-function decodeB64Json(b64) {
-  try { return JSON.parse(Buffer.from(b64, "base64").toString("utf8")); } catch { return null; }
+export function validateResource(value) {
+  if (typeof value !== 'string' || value.length > 2048) throw Error('Missing resource');
+  const url = new URL(value);
+  if (url.protocol !== 'https:' || url.username || url.password || url.hash ||
+      (url.port && url.port !== '443') || isIP(url.hostname.replace(/^\[|\]$/g, '')) ||
+      !url.hostname.includes('.') || /(^|\.)(localhost|local|internal|test|invalid)$/.test(url.hostname)) {
+    throw Error('Resource must be public HTTPS without credentials, fragment or alternate port');
+  }
+  return url;
 }
 
-function reconcileChallenge(b64, env) {
-  const c = decodeB64Json(b64);
-  if (!c || !Array.isArray(c.accepts) || c.accepts.length === 0) return { verdict: "malformed", detail: "PAYMENT-REQUIRED is not base64 JSON with accepts[]" };
-  // Prefer the entry matching the envelope's network+asset; otherwise the first — but say so.
-  const match = c.accepts.find((a) => a.network === env.network && String(a.asset || "").toLowerCase() === env.asset);
-  const a = match || c.accepts[0];
-  const amountBase = a.amount ?? a.maxAmountRequired; // v2 `amount`; v1 `maxAmountRequired`
-  const amount = Number(amountBase) / Math.pow(10, env.decimals);
-  const out = {
-    x402Version: c.x402Version ?? null, resource: c.resource?.url ?? a.resource ?? null,
-    scheme: a.scheme, network: a.network, asset: a.asset, payTo: a.payTo, amount_base: String(amountBase),
-    amount_decimal: amount.toFixed(env.decimals), maxTimeoutSeconds: a.maxTimeoutSeconds ?? null,
-    envelope: { max: env.max, asset: env.asset, network: env.network, payTo: env.payTo || null },
-    matched_accepts_entry: Boolean(match),
-    // ponytail: `upto` authorizes a maximum; settlement may be anything ≤ amount, so the cap check is the same and the receipt check is "at or below".
-    amount_semantics: a.scheme === "upto" ? "maximum; settled amount may be 0..amount" : "exact",
-  };
-  if (!match && env.asset && env.network) return { verdict: c.accepts.some((x) => x.network === env.network) ? "asset_mismatch" : "network_mismatch", ...out };
-  if (env.payTo && String(a.payTo).toLowerCase() !== env.payTo) return { verdict: "payee_mismatch", ...out };
-  if (env.max !== undefined && !(amount <= Number(env.max))) return { verdict: "above_cap", ...out };
-  return { verdict: "within_envelope", ...out };
+function identity(value, network) {
+  if (typeof value !== 'string' || !value || value.length > 200 || /\s/.test(value)) throw Error('Missing identity');
+  if (network.startsWith('eip155:')) {
+    if (!/^0x[0-9a-fA-F]{40}$/.test(value)) throw Error('Invalid EVM identity');
+    return value.toLowerCase();
+  }
+  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) throw Error('Invalid Solana identity');
+  return value; // Base58 is case-sensitive.
 }
 
-function decodeSettlement(b64) {
-  const s = decodeB64Json(b64);
-  if (!s || typeof s.success !== "boolean") return { verdict: "malformed", detail: "PAYMENT-RESPONSE is not base64 JSON with success" };
-  // The settlement response carries no amount: success, transaction, network, payer. The settled figure must come from the receipt or the chain.
-  return { verdict: s.success ? "settlement_reported" : "settlement_failed", success: s.success, transaction: s.transaction ?? null, network: s.network ?? null, payer: s.payer ?? null, errorReason: s.errorReason ?? null, amount: "not carried by PAYMENT-RESPONSE" };
+export function validateEnvelope(env) {
+  if (!env || !/^(eip155:[1-9]\d*|solana:[A-Za-z0-9]+)$/.test(env.network || '')) throw Error('Missing or invalid network');
+  if (!Number.isInteger(env.decimals) || env.decimals < 0 || env.decimals > 36) throw Error('Explicit decimals required');
+  if (units(env.max, env.decimals) <= 0n) throw Error('Positive maximum required');
+  identity(env.asset, env.network);
+  identity(env.payTo, env.network);
+  validateResource(env.resource);
+  return env;
 }
 
-function selfCheck() {
-  const enc = (o) => Buffer.from(JSON.stringify(o)).toString("base64");
-  const usdc = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-  const env = { max: "5", asset: usdc.toLowerCase(), network: "eip155:8453", payTo: "", decimals: 6 };
-  const ch = (amount, extra = {}) => enc({ x402Version: 2, accepts: [{ scheme: "exact", network: "eip155:8453", asset: usdc, amount, payTo: "0xEbAFCd94180A67D4a25A46aA1774864C9000895D", ...extra }] });
-  const assert = (cond, msg) => { if (!cond) { console.error("self-check failed: " + msg); process.exit(1); } };
-  assert(reconcileChallenge(ch("10000"), env).verdict === "within_envelope", "0.01 ≤ 5 should be within");
-  assert(reconcileChallenge(ch("5000001"), env).verdict === "above_cap", "5.000001 > 5 should be above_cap");
-  assert(reconcileChallenge(ch("5000000"), env).verdict === "within_envelope", "exactly 5 is within (≤)");
-  assert(reconcileChallenge(ch("10000"), { ...env, payTo: "0x0000000000000000000000000000000000000001" }).verdict === "payee_mismatch", "payee drift must block");
-  assert(reconcileChallenge(ch("10000"), { ...env, network: "eip155:84532" }).verdict === "network_mismatch", "wrong network must block");
-  assert(reconcileChallenge(ch("10000", { scheme: "upto" }), env).amount_semantics.startsWith("maximum"), "upto is a maximum");
-  assert(reconcileChallenge("not-base64!", env).verdict === "malformed", "garbage is malformed, never within");
-  assert(decodeSettlement(enc({ success: true, transaction: "0xabc", network: "eip155:8453", payer: "0xdef" })).amount === "not carried by PAYMENT-RESPONSE", "settlement carries no amount");
-  console.log(JSON.stringify({ self_check: "pass", cases: 8 }));
-  process.exit(0);
+function decode(b64) {
+  if (typeof b64 !== 'string' || b64.length > LIMIT * 2 || !/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) throw Error('Invalid bounded base64');
+  const bytes = Buffer.from(b64, 'base64');
+  if (bytes.length > LIMIT || bytes.toString('base64').replace(/=+$/, '') !== b64.replace(/=+$/, '')) throw Error('Invalid base64 encoding');
+  return JSON.parse(bytes.toString('utf8'));
 }
 
-function report(result) {
-  console.log(JSON.stringify(result, null, 2));
-  process.exit(result.verdict === "within_envelope" || result.verdict === "settlement_reported" ? 0 : 2);
+export function reconcileChallenge(b64, env) {
+  try {
+    validateEnvelope(env);
+    const c = decode(b64);
+    if (c.x402Version !== 2 || !Array.isArray(c.accepts) || !c.accepts.length || c.accepts.length > 32) return invalid('Expected bounded v2 accepts');
+    if (validateResource(c.resource?.url).href !== validateResource(env.resource).href) return { verdict: 'resource_mismatch' };
+    const networkMatches = c.accepts.filter(a => a?.network === env.network);
+    if (!networkMatches.length) return { verdict: 'network_mismatch' };
+    const matches = networkMatches.filter(a => identity(a.asset, env.network) === identity(env.asset, env.network));
+    if (!matches.length) return { verdict: 'asset_mismatch' };
+    const payees = matches.filter(a => identity(a.payTo, env.network) === identity(env.payTo, env.network));
+    if (!payees.length) return { verdict: 'payee_mismatch' };
+    if (payees.length !== 1) return invalid('Ambiguous matching offers');
+    const a = payees[0];
+    if (!['exact', 'upto'].includes(a.scheme) || !uint(a.amount) || BigInt(a.amount) <= 0n ||
+        !Number.isSafeInteger(a.maxTimeoutSeconds) || a.maxTimeoutSeconds <= 0 || a.maxTimeoutSeconds > 86400) return invalid('Invalid offer fields');
+    const amount = BigInt(a.amount), maximum = units(env.max, env.decimals);
+    return {
+      verdict: amount <= maximum ? 'within_envelope' : 'above_cap',
+      selected_accepts_index: c.accepts.indexOf(a),
+      amount_base: a.amount, maximum_base: maximum.toString(),
+      amount_semantics: a.scheme === 'upto' ? 'maximum; settlement requires independent evidence' : 'exact',
+      authorization: 'comparison_only_not_payment_approval',
+    };
+  } catch (error) { return invalid(error.message); }
 }
-function fail(message) { console.error(message); process.exit(1); }
+
+export function decodeSettlement(b64) {
+  try {
+    const s = decode(b64);
+    if (typeof s.success !== 'boolean') return invalid('Expected success boolean');
+    return { verdict: s.success ? 'settlement_reported' : 'settlement_failed',
+      verified: false, amount: 'not carried by PAYMENT-RESPONSE',
+      detail: 'Untrusted receipt claim; verify exact request and chain evidence separately' };
+  } catch (error) { return invalid(error.message); }
+}
+
+export function publicIPv4(address) {
+  if (isIP(address) !== 4) return false;
+  const [a,b,c] = address.split('.').map(Number);
+  return !(a === 0 || a === 10 || a === 127 || a >= 224 ||
+    (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && (b === 168 || b === 0 || (b === 88 && c === 99))) ||
+    (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) || (a === 203 && b === 0 && c === 113));
+}
+
+// Resolve once and pin the socket lookup: no second DNS resolution or redirects.
+export async function probeChallenge(resource, dependencies = {}) {
+  const url = validateResource(resource);
+  let dnsTimer;
+  let addresses;
+  try {
+    addresses = await Promise.race([
+      (dependencies.lookup || lookup)(url.hostname, { all: true, family: 4 }),
+      new Promise((_, reject) => { dnsTimer = setTimeout(() => reject(Error('DNS deadline exceeded')), 5000); }),
+    ]);
+  } finally { clearTimeout(dnsTimer); }
+  if (!addresses.length || addresses.some(x => !publicIPv4(x.address))) throw Error('Non-public or unsupported destination');
+  const selected = addresses[0];
+  return await new Promise((resolve, reject) => {
+    const req = (dependencies.request || request)(url, { method: 'GET', headers: { accept: 'application/json' },
+      lookup: (_host, options, cb) => options?.all ? cb(null, [selected]) : cb(null, selected.address, 4),
+    }, res => {
+      if (res.statusCode !== 402) { res.resume(); reject(Error('Expected 402; redirects and other statuses are not followed')); return; }
+      const chunks = []; let count = 0;
+      res.on('data', chunk => { count += chunk.length; if (count > LIMIT) { res.destroy(Error('Response too large')); return; } chunks.push(chunk); });
+      res.on('error', reject);
+      res.on('close', () => clearTimeout(timer));
+      res.on('end', () => {
+        const header = res.headers['payment-required'];
+        if (Array.isArray(header)) { reject(Error('Ambiguous challenge header')); return; }
+        resolve(header || Buffer.concat(chunks).toString('base64'));
+      });
+    });
+    const timer = setTimeout(() => req.destroy(Error('Probe deadline exceeded')), 10000);
+    req.on('close', () => clearTimeout(timer)); req.on('error', reject); req.end();
+  });
+}
+
+export async function main(args) {
+  const allowed = new Set(['--required','--response','--max','--asset','--network','--pay-to','--decimals','--resource','--probe','--self-check']);
+  const opts = {};
+  for (let i=0; i<args.length; i++) {
+    const key=args[i];
+    if (!allowed.has(key) || key in opts) throw Error('Unknown or duplicate argument');
+    opts[key] = ['--probe','--self-check'].includes(key) ? true : args[++i];
+    if (opts[key] === undefined) throw Error('Missing argument value');
+  }
+  if (opts['--self-check']) {
+    const asset='0x'+'1'.repeat(40), payTo='0x'+'2'.repeat(40);
+    const env={max:'1',asset,payTo,network:'eip155:8453',decimals:6,resource:'https://vendor.example/resource'};
+    const c=Buffer.from(JSON.stringify({x402Version:2,resource:{url:env.resource},accepts:[{network:env.network,asset,payTo,amount:'1000000',scheme:'exact',maxTimeoutSeconds:60}]})).toString('base64');
+    if (reconcileChallenge(c,env).verdict !== 'within_envelope' || reconcileChallenge(c,{}).verdict !== 'malformed') throw Error('Self-check failed');
+    return {verdict:'self_check_pass'};
+  }
+  if (opts['--response']) {
+    if (Object.keys(opts).length !== 1) throw Error('Response decode is a separate offline operation');
+    return decodeSettlement(opts['--response']);
+  }
+  const env=validateEnvelope({max:opts['--max'],asset:opts['--asset'],network:opts['--network'],payTo:opts['--pay-to'],decimals:opts['--decimals'] === undefined ? NaN : Number(opts['--decimals']),resource:opts['--resource']});
+  if (!!opts['--required'] === !!opts['--probe']) throw Error('Choose saved --required or explicit --probe');
+  const required=opts['--required'] || await probeChallenge(env.resource);
+  return reconcileChallenge(required,env);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try { const result=await main(process.argv.slice(2)); console.log(JSON.stringify(result,null,2)); process.exitCode=['within_envelope','self_check_pass'].includes(result.verdict)?0:2; }
+  catch (error) { console.error(JSON.stringify(invalid(error.message))); process.exitCode=2; }
+}
