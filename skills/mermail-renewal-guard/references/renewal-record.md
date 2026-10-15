@@ -10,7 +10,20 @@ If a required field exists only in a selected attachment, hand off that exact em
 
 ## Dates and trial conversion
 
-Keep received-mail lookback separate from the future renewal horizon. Fix today's date and user timezone at the start. Capture trial end, post-trial amount/currency/cadence, conversion wording, price-change effective date and explicit notice deadline when stated. A prior charge plus monthly cadence does not establish the next billing date; no guessed cancellation deadline equal to renewal date. Unknown year, timezone, calendar/business-day definition, inclusive boundary or contradictory dates remain `NEEDS_INFO`.
+Keep received-mail lookback separate from the future renewal horizon. Fix today's date and user timezone at the start. Capture trial end, post-trial amount/currency/cadence, conversion wording, price-change effective date and explicit notice deadline when stated. A prior charge plus monthly cadence does not establish the next billing date; no guessed cancellation deadline equal to renewal date. Unknown year, calendar/business-day definition, inclusive boundary or contradictory dates remain `NEEDS_INFO`. Missing timezone is always visible as `timezone_not_stated`; if it affects action timing or which urgency/horizon band applies, use `NEEDS_INFO` and block that timing conclusion.
+
+Watchlist exception: a source-stated date-only renewal clearly later than 30 days and inside the horizon may be `WATCH` despite missing timezone, solely as a non-actionable date watchlist entry. Do not assign an exact instant, cancellation cutoff, or urgency from that row. If a boundary could change with timezone, or the user asks for a deadline-dependent action, require clarification first (`NEEDS_INFO`). A clarification draft may ask for the missing timezone; it must not assert a deadline.
+
+## Per-field evidence quality
+
+For every material field (identity, renewal/trial date, timezone, amount, currency, cadence, auto-renew status and notice window), retain the value or `unknown`, its source message ID(s), shortest supporting quote, and one evidence state:
+
+- `stated`: explicitly supported by the source; this describes evidence, not verified vendor truth.
+- `derived`: a permitted calculation with cited inputs, assumptions and formula; never label it vendor-confirmed.
+- `conflicting`: preserve each competing value and source; do not choose the newest without applicable correction evidence.
+- `missing`: `unknown` with the gap stated; no fabricated quote or source for a missing fact.
+
+These categorical states are the per-field confidence assessment; do not assign unsupported numeric scores or one row-wide confidence that hides weaker fields. An explicitly stated price cannot make an ambiguous cancellation deadline actionable. Display field states beside values or in linked row detail, including for non-attachment evidence. Apply the action gate independently to every field required for the proposed action.
 
 An explicit notice period may produce an estimated deadline only when renewal date, applicable timezone, period unit and counting convention are unambiguous. Show both source IDs, inputs and calculation; label it derived rather than vendor-confirmed. Otherwise ask. Date-only evidence is date-only, not an invented midnight cutoff. An elapsed deadline is `ACT_NOW / deadline elapsed; options unconfirmed`, never a guarantee cancellation is still possible or authorization to pay. A trial without an explicit end remains unknown; wallet funds cannot decide whether it should continue.
 
