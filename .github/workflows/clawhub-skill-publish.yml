@@ -89,7 +89,7 @@ jobs:
 
   publish:
     needs: validate
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'Nudgen-Marketing/mermail-skills' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: clawhub
