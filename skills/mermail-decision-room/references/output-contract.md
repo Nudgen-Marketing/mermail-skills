@@ -33,7 +33,7 @@ When a named party owes a material answer, record the party, outstanding questio
 
 When the available evidence establishes that no decision is required from the user, state that under Decision and Required Human Decision and recommend no action. READY can describe this adequately supported conclusion, but incomplete coverage must not be converted into "no decision required". Keep the existing twelve headings and three status values.
 
-These details preserve useful owner/deadline and minimal-clarification concepts from [Decision Inbox PR #236](https://github.com/Nudgen-Marketing/mermail-skills/pull/236); its saved-draft workflow is not replaced by this analysis-only skill.
+These details preserve useful owner/deadline and minimal-clarification concepts from [Decision Inbox PR #236](https://github.com/Nudgen-Marketing/mermail-skills/pull/236). Its useful saved-draft outcome is preserved through the separate explicit-user-request [compose handoff](packet.md#optional-clarification-handoff), not automatic writes triggered by an analysis state.
 
 ## Confidence interpretation
 

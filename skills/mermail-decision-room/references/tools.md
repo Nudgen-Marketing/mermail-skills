@@ -17,7 +17,7 @@ No writes belong to this workflow, including `save_draft`, `mark_thread_read`, o
 3. Read an exact message with `get_email` using `query: { "require_scan_status": "clean", "agent_safe_content": true, "max_body_chars": 10000 }`. Preserve omissions and returned provenance.
 4. Use `get_email_context` with `query.limit: 8` for surrounding context. It returns oldest-first, sanitized, scan-gated pages; reuse the opaque `next_cursor` as `query.cursor`. A page is not necessarily the whole thread. Keep interpretation capped at 10,000 normalized text characters per message, even if a broader endpoint returns more.
 5. Use `get_thread` only when its broader representation is needed and the live safety contract is satisfied. Do not use it to recover content withheld by a scan gate. Never invent unsupported arguments.
-6. Stop at the declared budget, or take explicitly bounded further reads within scope to address a material gap. Record incomplete coverage and its decision impact. Do not claim absence of a term in the whole thread from a partial page.
+6. Enforce eight messages cumulatively across discovery-selected body/context/thread reads by default. Limit each call to the remaining budget, avoiding broad thread retrieval if its size cannot be bounded. Stop at that limit and request explicit user agreement to a finite further budget before reading more. Record incomplete coverage and its decision impact. Do not claim absence of a term in the whole thread from a partial page.
 
 For attachments, select exact `mailboxId`, `emailId`, and `attachmentId` from metadata and verify scan, type, and size first. Respect the MCP 1 MiB binary response limit and available safe parsing. Record inaccessible necessary evidence as BLOCKED; never guess a download URL.
 
