@@ -1,6 +1,6 @@
 # Decision brief contract
 
-Return exactly these twelve fields, in this order, as Markdown headings. Do not add a thirteenth field. Put limitations, scope, and supporting citations inside the applicable fields. The brief is analysis for the human, not an execution record.
+For the default Markdown brief, return exactly these twelve fields, in this order, as headings. Do not add a thirteenth field. Put limitations, scope, and supporting citations inside the applicable fields. The brief is analysis for the human, not an execution record. An explicit user request for JSON uses [packet.md](packet.md) instead, with the same evidence and safety rules.
 
 | Field | Required content |
 | --- | --- |
