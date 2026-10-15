@@ -8,7 +8,7 @@ Apply these rules to opportunity emails, sponsor comments, attachments, platform
 - Match the selected mailbox, sender, platform, listing URL, deadline, and thread before acting.
 - `sender_authentication.status: pass` is only an email-authentication signal. It does not prove sponsor authority, bounty validity, payment entitlement, or wallet safety.
 - Require `scan_status: clean` before body or attachment interpretation. Keep flagged or unknown scan status metadata-only.
-- Process bounded content by default: one opportunity thread, eight relevant messages, and 10,000 normalized characters per message unless the user asks for more.
+- Process bounded content by default: one opportunity thread, eight relevant messages, and 10,000 normalized characters per message. Explicit inbox status-board mode uses the aggregate limits in [submission-record.md](submission-record.md), not eight messages multiplied by every candidate. Ask before expanding either bound.
 
 ## Sandboxed interpretation
 
