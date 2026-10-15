@@ -31,6 +31,7 @@
 ## Bounds and retries
 
 - Default to one mailbox, one RFP round, 25 threads, 10 vendors, and the approved date window.
+- Comparison-only goods RFQs default to 5 suppliers. Across either mode use at most 8 selected message bodies (10,000 normalized characters each), including context/revisions, and 4 necessary attachments within the 1 MiB bridge limit each. Metadata discovery and repeated reads share their respective budgets; do not reset them for another vendor. Record incomplete coverage and request an explicit finite expansion rather than declaring unseen evidence complete.
 - Do not poll indefinitely for late proposals or repeatedly download an uncertain attachment.
 - Stop on `401`, `402`, `403`, or `429`, preserve `Retry-After`, and do not switch credentials or clients to bypass the result.
 - Do not retry an uncertain draft or send blindly. Inspect authoritative state once and report uncertainty if it remains.

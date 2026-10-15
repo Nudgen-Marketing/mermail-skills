@@ -1,7 +1,7 @@
 interface:
   display_name: "Mermail RFP Evaluator"
-  short_description: "Evidence-linked vendor proposal comparison"
-  default_prompt: "Use $mermail-rfp-evaluator to compare these vendor proposals against one approved rubric and prepare a human-review decision packet."
+  short_description: "Evidence-linked RFP and goods quote comparison"
+  default_prompt: "Use $mermail-rfp-evaluator to compare these vendor proposals using an approved rubric or a comparison-only RFQ matrix and prepare a human-review decision packet."
 dependencies:
   tools:
     - type: "mcp"

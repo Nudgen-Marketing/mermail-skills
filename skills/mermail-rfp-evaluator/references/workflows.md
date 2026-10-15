@@ -1,5 +1,7 @@
 # Workflows
 
+For comparison without scoring, use [goods-rfq.md](goods-rfq.md). No score weights are needed in that mode. The same cumulative read, evidence, clarification and write boundaries apply.
+
 ## Evaluate one RFP round
 
 1. Capture or propose the rubric, vendor inclusion rule, and date window.

@@ -26,13 +26,15 @@ This cross-domain skill owns no MCP tools. It composes tools owned by the offici
 
 This skill does not call delete, workspace administration, Composio execution, Agent Wallet, or PayBox tools.
 
-## Bounded search example
+## Bounded discovery and body reads
 
-Use the live schema and a native object:
+Use a native `search_emails` query with live-supported subject, sender, recipient, ISO dates and page/limit filters. Sorting belongs to `list_emails`; do not mix its sort fields into search. Example newest-first **list_emails** discovery:
 
 ```json
 {
   "query": {
+    "metadata_only": true,
+    "agent_safe_content": true,
     "sortColumn": "date",
     "sortDirection": "DESC",
     "limit": 25
@@ -41,6 +43,8 @@ Use the live schema and a native object:
 ```
 
 There is no `sort: "date_desc"` shortcut. Do not pass `"query": "{\"limit\":25}"`.
+
+Read each selected message with `get_email` and native `query: {"require_scan_status":"clean","agent_safe_content":true,"max_body_chars":10000}`. Check returned scan state and `content_omitted`; a missing body is not empty evidence. A thread/context endpoint is usable only when its live schema enforces equivalent safety and a limit within the remaining cumulative 8-message budget; otherwise read selected IDs individually. Four necessary attachments at most, each within the 1 MiB MCP bridge limit, bound to exact selected message/attachment IDs. No alternate download transport to bypass a limit. Report truncated or unread evidence before conclusions.
 
 ## Approval boundary
 
