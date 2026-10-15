@@ -34,6 +34,12 @@ Do not call `set_default_task_triager`. Do not call PayBox write tools from this
 
 ## Example: bounded invoice search
 
+`search_emails` uses search filters and native `query`; sorting fields below are
+not assumed for search. For newest-first `list_emails`, use its live schema's
+`sortColumn` and `sortDirection`. All calls share the limits in
+[owner-review.md](owner-review.md); returned cursors or truncated content do not
+grant extra budget or prove the newest correction has been read.
+
 ```json
 {
   "mailboxId": "MAILBOX_PUBLIC_ID",
@@ -42,9 +48,7 @@ Do not call `set_default_task_triager`. Do not call PayBox write tools from this
     "subject": "invoice",
     "date_start": "2026-08-27T00:00:00.000Z",
     "page": 1,
-    "limit": 20,
-    "sortColumn": "date",
-    "sortDirection": "DESC",
+    "limit": 10,
     "metadata_only": true,
     "agent_safe_content": true,
     "require_scan_status": "clean"
