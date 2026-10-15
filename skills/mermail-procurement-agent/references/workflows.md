@@ -75,7 +75,7 @@ Compare the evidence against the authorized charge field by field. All seven mus
 
 **PayBox not connected.** Caught at step 3, before signup. Reaching this after account creation means step 3 was skipped. The three not-ready results do not recover the same way: `paybox_not_connected` → paste `connect_handoff.console_url`; `paybox_reauth_required` → paste `reauth_handoff.console_url`; `OWNER_ACTION_REQUIRED` → **no handoff exists**, ask the workspace owner, state `blocked`. Never construct a URL, never switch identities, never send the user to host connector settings. Full map in [errors.md](errors.md).
 
-**Portfolio read came back empty.** Check `connection.status` first. `PAYBOX_UNAVAILABLE` means PayBox did not answer that one read — balances are **missing, not zero**. Read again later; do not report `needs_funding` and do not tell the user to reconnect. Only `NOT_CONNECTED` and `REAUTH_REQUIRED` need the user.
+**Portfolio read came back empty.** Check `connection.status` first. `PAYBOX_UNAVAILABLE` means PayBox did not answer that one read — balances are **missing, not zero**. Explain the unavailable read and that reconnection is not indicated by this status. Read again later; do not report `needs_funding`. Only `NOT_CONNECTED` and `REAUTH_REQUIRED` need the user.
 
 **Charge rejected on arguments.** `paybox_amount_requires_decimal`, `paybox_amount_scale_mismatch`, `paybox_amount_value_mismatch`, and `paybox_invalid_arguments` never reached PayBox. They do **not** consume the one charge allowed per `procurement_id` — correct the arguments and call once more. `paybox_amount_below_dust_floor` is different: it is a `blocked`, and rounding up to clear it would silently change the approved envelope.
 

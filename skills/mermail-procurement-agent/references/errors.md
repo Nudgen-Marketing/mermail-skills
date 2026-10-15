@@ -63,7 +63,7 @@ Never send the user to Claude, ChatGPT, Cursor, or Codex **connector settings** 
 
 - An empty portfolio under `PAYBOX_UNAVAILABLE` means balances are **missing, not zero**.
 - **Never** derive `needs_funding` from it. Reporting a funding shortfall the user does not have is a false blocker that costs them a top-up they did not need.
-- Read again later. Do not tell the user to reconnect or reauthorize.
+- Explain the unavailable read and that reconnection or reauthorization is not indicated by this status. Read again later.
 - The console keeps the last portfolio on screen during this, so what the user sees and what the tool returned can differ briefly — say which one you are quoting.
 
 A genuine disconnect is `NOT_CONNECTED`. An expired delegation is `REAUTH_REQUIRED`. Only those two need the user.
