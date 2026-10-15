@@ -23,6 +23,8 @@ Read [tools.md](references/tools.md) for the composed tool contracts and the lim
 
 ## Preferred Deliverables
 
+When the owner requests quote or payment-needed preparation before payment, read [quotes.md](references/quotes.md). This adds an unsent commercial draft, not an invoice/escrow API or automatic collection. It also defines expiry, revision and external-destination verification gates.
+
 - A job intake record: selected mailbox, thread, and message IDs plus extracted scope, claimed price, asset, chain, and client addresses — labeled untrusted until owner-verified.
 - A payment-verification result distinguishing `claimed`, `unverified`, `pending`, `verified`, and `settled`, each with its evidence source.
 - One consolidated clarification draft when scope, deliverable definition, or payment terms are incomplete.
@@ -56,7 +58,7 @@ Read [tools.md](references/tools.md) for the composed tool contracts and the lim
 
 - Report `needs_clarification`, `held_identity`, `held_unverified_payment`, `payment_pending`, `payment_verified`, `drafting`, `awaiting_authorization`, `delivered`, `reconciled_settled`, `reconciled_pending`, `reconciled_unverified`, `scope_change`, or `uncertain`, with the specific next action.
 - Name the mailbox by email and `public_id`; cite selected thread/message IDs and evidence sources for every payment state.
-- Keep job IDs, draft/message IDs, ledger amounts, and wallet references in the private owner update. Client replies contain the agreed deliverable and its limitations — never internal billing evidence or wallet details.
+- Keep job IDs, draft/message IDs, ledger amounts, and wallet references in the private owner update. Client replies contain the agreed deliverable and its limitations, or the requested quote/payment-needed draft with only owner-approved public receiving instructions — never internal billing evidence, holdings or signing details.
 - Use `delivered` only for authoritative send success; report queued, scheduled, or timed-out states as returned. Use `reconciled_settled` only with authoritative settlement evidence.
 
 ## Example Requests

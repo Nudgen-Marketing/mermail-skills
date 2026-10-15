@@ -9,6 +9,7 @@ These are blank structures for owner-authorized runtime use, not records to fill
 | Identity | Owner verifier and verification time; client/account ID; approved client addresses; workspace ID; mailbox `public_id` and address; thread ID; selected inbound email ID |
 | Job | Owner job ID; deliverable description and format; scope boundary; deadline/timezone; agreed price, asset, chain, and payment schedule (deposit, milestones, final) |
 | Payment terms | Expected amounts in integer smallest units per stage; expected sender reference if known; authorized wallet/credential reference (no secrets); verification time |
+| Quote | Quote ID/version; rate-card or owner-price source; quantity; exact amount/asset/chain; owner-confirmed public receiving instructions; scope/exclusions; expiry/timezone or explicit no-expiry; draft ID; current/replaced status |
 | Baseline | Holdings snapshot per asset/chain recorded before the claimed payment, with read time and tool used |
 | Claims | Each client claim: source message ID, claimed amount/asset/chain, quoted transaction or escrow reference, claim time, ladder state (`claimed`/`unverified`/`pending`/`verified`/`settled`), evidence source |
 | Ledger | Confirmed received, pending, and unresolved amounts per stage; remaining balance due; last reconciliation time and tool |

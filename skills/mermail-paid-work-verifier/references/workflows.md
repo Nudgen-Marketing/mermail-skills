@@ -10,6 +10,8 @@
 
 ## Payment evidence ladder
 
+For requested prepayment quotes or reminders, first use [quotes.md](quotes.md). Owner terms establish the offer, not receipt of funds. Actual owner-confirmed settlement for the exact job/payment can supply evidence when no live destination view exists; an unavailable wallet read alone cannot.
+
 Classify every payment statement with the highest rung that has evidence, and record the source:
 
 | State | Evidence required | Effect |
