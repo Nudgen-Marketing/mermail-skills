@@ -13,7 +13,7 @@ const scenarios = JSON.parse(await read("tests/scenarios.json"));
 const fixtures = JSON.parse(await read("tests/fixtures/decision-room.json"));
 const requiredFiles = [
   "SKILL.md", "agents/openai.yaml", "references/tools.md",
-  "references/security.md", "references/output-contract.md",
+  "references/security.md", "references/output-contract.md", "references/packet.md",
 ];
 for (const file of requiredFiles) {
   const relative = `skills/${skill}/${file}`;
