@@ -74,7 +74,7 @@ GitHub is used as an evidence source for PR metadata.
 
 Do not automatically pay the same logical milestone twice.
 
-Use an authoritative settlement record where available.
+Require an authoritative durable settlement record with an exclusive reservation before a transfer; see SKILL.md. If unavailable, only prepare a preview. Chat approval cannot waive this gate. Scope identity by workspace/payer/agreement/milestone so a duplicate email or concurrent session cannot pay again.
 
 An ambiguous transfer result must never be resolved by blindly sending another transfer.
 
@@ -83,6 +83,8 @@ An ambiguous transfer result must never be resolved by blindly sending another t
 Confirmation emails are external effects.
 
 Use the exact recipient and content authorized by the user/workflow.
+
+Delegate to `mermail-compose-email`: freeze the sending mailbox, source thread/email, To/Cc/Bcc and body; obtain fresh approval for that exact message. Settlement approval does not approve a receipt email. Send once; on timeout reconcile without replay, alternate send tool or recipient changes.
 
 Never include credentials or sensitive wallet secrets.
 

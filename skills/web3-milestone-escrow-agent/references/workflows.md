@@ -14,7 +14,7 @@ GITHUB_VERIFIED
     +---- not merged ----> SETTLEMENT_BLOCKED
     |
     v
-PAYMENT_TERMS_VALIDATED
+PAYMENT_TERMS_VALIDATED + DURABLE_DUPLICATE_GATE_RESERVED
     |
     v
 WALLET_AVAILABLE
@@ -29,10 +29,13 @@ USER_APPROVED
 TRANSFER_SUBMITTED
     |
     +---- ambiguous ----> PAYMENT_UNKNOWN
+    +---- setup / pending / recovery ----> RETAIN_ORIGINAL_REQUEST
     |
+    | authoritative terminal success only
     v
 PAYMENT_CONFIRMED
     |
+    | separate exact email approval only
     v
 CONFIRMATION_SENT
 ```
@@ -40,6 +43,8 @@ CONFIRMATION_SENT
 ## Intake
 
 Read only the mailbox scope needed for the request.
+
+Apply the clean-scan, exact mailbox/email/thread binding and read limits in SKILL.md before parsing. Missing/unknown scan status is not clean.
 
 Extract:
 
@@ -85,7 +90,7 @@ asset
 network
 ```
 
-If user-authorized terms exist outside the email, compare the email request against those terms.
+Require independently user-authorized terms outside the email and compare the request against those terms, including payer, network, catalog token identity and acceptance criteria.
 
 Any mismatch requires user clarification/approval before payment.
 
@@ -155,8 +160,4 @@ The email should reference the GitHub PR and payment identifier.
 
 ## Duplicate Handling
 
-Prefer an authoritative payment/settlement record.
-
-If unavailable, do not claim idempotency that the system cannot prove.
-
-If duplicate status is ambiguous, ask the user before sending funds.
+The durable settlement record and exclusive reservation described in SKILL.md are mandatory before any transfer, not optional. If unavailable, remain preview-only. Asking for approval cannot replace duplicate protection. Pending, unknown or confirmed attempts block another write; reconcile the original provider request. Never fabricate a ledger tool or reset an uncertain reservation.

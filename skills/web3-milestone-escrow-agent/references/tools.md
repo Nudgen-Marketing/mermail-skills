@@ -63,6 +63,8 @@ The current repository also states that Agent Wallet / PayBox requires full-prof
 
 Before calling the transfer operation:
 
+Satisfy the durable duplicate gate in SKILL.md first; absent a connected atomic settlement record, this workflow is preview-only. Read the existing `mermail-agent-wallet` skill and its tool reference for credential selection and current pending/setup/signing states. This skill does not add ledger tools or claim escrow custody.
+
 1. Confirm that the current MCP session exposes the PayBox operation.
 2. Confirm that the user has approved the exact payment.
 3. Preserve the approved recipient, amount, asset, and network.

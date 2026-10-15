@@ -5,7 +5,7 @@ A Mermail Agent Skill for verifying software-development milestones against GitH
 ## Folder
 
 ```text
-mermail-github-milestone-settlement/
+web3-milestone-escrow-agent/
 ├── SKILL.md
 ├── README.md
 ├── agents/
@@ -58,13 +58,15 @@ Optional Confirmation Email
 
 This skill does not invent GitHub or wallet MCP tools.
 
+It does not provide custody, smart-contract escrow, a settlement ledger, or background monitoring. Without a connected durable settlement record supporting an exclusive reservation, it stops at a verified preview and does not transfer. A merged PR does not by itself prove agreement acceptance or authorize payment.
+
 GitHub verification uses the GitHub integration/API exposed by the host.
 
 Wallet settlement uses the current Mermail Agent Wallet/PayBox capability, documented by Mermail as `paybox_request_transfer`, when that capability is available and approved.
 
 ## Demo
 
-Use a test repository and testnet funds where supported.
+Use a test repository. Default to a no-transfer preview. Only demonstrate a transfer when the host supports the test network, the durable duplicate gate is available, and the user separately authorizes the exact test payment; never substitute mainnet funds.
 
 The video should visibly demonstrate:
 
