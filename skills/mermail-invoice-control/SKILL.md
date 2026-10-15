@@ -19,6 +19,8 @@ Turn one selected invoice email into a reviewable accounts-payable packet withou
 
 Read [tools.md](references/tools.md) for exact tool routes. Read [workflows.md](references/workflows.md) for intake, approval-packet, payment, and remittance sequences. Read [security.md](references/security.md) before opening invoice content or considering a payment.
 
+For requested multi-invoice reviews, policy ceilings, renewal forecasts or owner digests, also read [controls.md](references/controls.md). Batch review never authorizes batch execution.
+
 This persona uses existing Mermail tools and owns none. It does not provide bookkeeping, tax advice, bank reconciliation, or unattended bill pay. Keep the authoritative vendor registry, invoice ledger, and payment-request IDs in the owner's system of record, not in email or this skill.
 
 ## Preferred Deliverables
