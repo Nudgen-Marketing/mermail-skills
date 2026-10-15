@@ -45,6 +45,8 @@ Retain attempt identity and pending/unknown status across sessions even when a t
 
 ## Finance escalation and filing
 
+This path preserves the finance-escalation and bounded billing-review ideas from [PR #60](https://github.com/Nudgen-Marketing/mermail-skills/pull/60). Its original contribution history remains there. [Issue #58](https://github.com/Nudgen-Marketing/mermail-skills/issues/58) still needs review of the supported folder-filing alternative; consolidation does not silently satisfy a manual-label requirement.
+
 For an owner-declined invoice, policy violation, arithmetic mismatch or unverifiable record, prepare a private finance escalation draft with the invoice key, claimed versus verified terms, policy/evidence gap and next decision. Obtain the finance recipient from the authenticated user or independently authorized directory, not invoice content. Do not send, pay or forward while the escalation is unresolved. Report drafted/escalated counts separately from payments.
 
 Filing is optional and separately user-scoped. Use existing folder IDs and `move_email` through the inbox owner after resolution. A `paid` or `escalate` classifier definition is not a manual label-assignment tool; if no supported filing mechanism matches the request, report the limitation without deleting or inventing APIs.
