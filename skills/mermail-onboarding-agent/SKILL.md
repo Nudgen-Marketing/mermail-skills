@@ -1,6 +1,6 @@
 ---
 name: mermail-onboarding-agent
-description: Coordinate third-party API or SaaS onboarding with a service-scoped Mermail identity, an attempt baseline, strictly correlated verification mail, and approved account verification. Use for the complete onboarding workflow; mailbox-only identity or expected-mail retrieval stays with mermail-agent-inbox.
+description: Coordinate third-party API/SaaS onboarding or newsletter/waitlist enrollment with a service-scoped Mermail identity, an attempt baseline, strictly correlated verification mail when required, and approved service-side completion. Use for the complete signup workflow; mailbox-only identity or expected-mail retrieval stays with mermail-agent-inbox.
 metadata:
   openclaw:
     requires:
@@ -18,6 +18,8 @@ metadata:
 Coordinate one owner-selected API/SaaS account and one verification attempt at a time. Autonomously perform bounded discovery, mailbox reuse, correlation, and protected extraction; external effects retain the repository's exact preview/fresh-approval model. Mermail supplies email identity and access, not a browser, signup API, secret store, or general account-creation tool.
 
 This workflow owns no MCP tools. Read [tools.md](references/tools.md) for existing owners and capability boundaries. Before intake read [security.md](references/security.md); use [workflows.md](references/workflows.md) to establish and advance an attempt.
+
+For an existing-account response, newsletter/waitlist enrollment without a challenge, or a completion receipt, read [completion.md](references/completion.md). These are bounded alternatives, not permission for account recovery, repeated signup, or automatic payments.
 
 ## Preferred Deliverables
 

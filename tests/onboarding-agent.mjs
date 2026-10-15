@@ -111,6 +111,23 @@ function correlate(attempt, messages) {
 }
 
 function evaluate(fixture) {
+  // Synthetic service-result fixtures, not a browser adapter or live account proof.
+  if (fixture.stage === "account-outcome") {
+    const service = fixture.service ?? {};
+    if (service.existingAccount) return "blocked-account-exists";
+    if (!service.agentPermitted || service.userBoundary) return "user-controlled-handoff";
+    if (service.uncertain) return "uncertain-no-retry";
+    if (!service.exactApproval) return "awaiting-approval";
+    if (service.source !== "service" || !service.accountMatches || !service.outcomeMatches) return "uncertain-no-success-proof";
+    if (service.verificationRequired !== false) return "pending-verification";
+    const archive = fixture.archive;
+    if (archive) {
+      if (archive.containsSecret || !archive.destinationApproved || !archive.exactContentApproved || !archive.supportedSurface) return "receipt-not-persisted";
+      if (archive.uncertain) return "uncertain-archive-no-retry";
+      return "approved-receipt-handoff";
+    }
+    return "completed";
+  }
   if (fixture.stage === "mailbox") {
     const mailboxes = fixture.mailboxes.map((mailbox) => ({ ...MAILBOX, ...mailbox }));
     const suitable = mailboxes.filter((mailbox) => mailbox.ready && mailbox.id && mailbox.email &&
@@ -152,6 +169,8 @@ function evaluateEffect(effect, attempt) {
 }
 
 const REQUIRED_CASES = [
+  "existing-account", "no-challenge", "welcome-only", "wrong-account-completion", "verification-still-required",
+  "terms-boundary", "signup-uncertain", "receipt-secret", "receipt-unapproved", "receipt-approved", "receipt-uncertain",
   "reuse", "no-mailbox", "disabled-mailbox", "ambiguous-mailbox", "otp", "safe-url",
   "baseline-id", "old-timestamp", "future-timestamp", "invalid-timestamp", "missing-baseline",
   "late-baseline", "wrong-mailbox", "wrong-recipient", "wrong-workspace", "sender-lookalike",
@@ -177,7 +196,7 @@ export async function validateOnboardingAgent(root, scenarios, coverage) {
   const errors = [];
   const skill = "mermail-onboarding-agent";
   const skillRoot = path.join(root, "skills", skill);
-  for (const relative of ["SKILL.md", "agents/openai.yaml", "references/tools.md", "references/security.md", "references/workflows.md"]) {
+  for (const relative of ["SKILL.md", "agents/openai.yaml", "references/tools.md", "references/security.md", "references/workflows.md", "references/completion.md"]) {
     try {
       const file = path.join(skillRoot, relative);
       const content = await readFile(file, "utf8");
