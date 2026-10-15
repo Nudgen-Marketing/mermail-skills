@@ -4,7 +4,7 @@ For every deliverable preserve these fields:
 
 | Field | Rule |
 | --- | --- |
-| Key | Returned mailbox ID + thread ID + a local deliverable label; never group by subject alone |
+| Key | Workspace + returned mailbox ID + thread ID + original promise message ID + commitment ordinal within that message; retain the original key through revisions |
 | Owner | Person who expressly made/accepted the commitment; unknown if the thread only assigns work to someone else |
 | Promise evidence | Message ID, timestamp, short verbatim quotation |
 | Agreed due | Exact date/time and timezone supported by the thread, or unknown |
@@ -29,5 +29,9 @@ First exclude evidence whose authoritative message timestamp is later than the a
 10. `open`: accepted and uncompleted, with a future deadline or no promised date. A promise without a deadline is open with due `unknown`, not overdue.
 
 Before classifying, check whether a supposed quote is inside quoted/forwarded history. Do not treat repeated quotations as fresh acceptance. Resolve relative dates against the original message date, not today. If one person proposes Monday and the other never accepts, the earlier accepted Friday deadline remains the agreed due date; retain Monday as proposed. Silence never accepts a revision.
+
+Keep distinct promises in the same message as separate rows. Similar wording or subject is not enough to merge rows across threads; report a possible duplicate and ask when identity is unclear. Preserve beneficiary and direction (`owed_by_owner`, `owed_to_owner`, or `unclear`) separately from authorship. A counterparty's claim that the owner promised requires an owner-authored promise or explicit authenticated-user confirmation; otherwise mark `needs_clarification`.
+
+For conditional language, retain the condition, its evidence and whether fulfillment is established. An unfulfilled or unverified condition cannot be turned into an unconditional overdue promise. Record `needs_clarification` with condition details when that affects timing. Keep deadline wording, normalized value (or unknown), precision (`time`, `date`, `ambiguous`, `none`) and timezone separate; no date remains undated, never a fabricated SLA.
 
 Suggested next actions are narrow questions: "Please confirm whether Monday replaces Friday" or "Did you receive the review file?" Do not turn them into sends, tasks, scheduled jobs, calendar events, or payment actions.

@@ -19,6 +19,8 @@ Turn a selected set of email threads into a dated, evidence-linked commitment le
 
 This is a read-only persona using existing Mermail tools; it owns no tools and creates no server-side tracking database or recurring monitor. Re-run it against current messages when the user asks for an update. Read [tools.md](references/tools.md), [security.md](references/security.md), and [ledger.md](references/ledger.md) before starting.
 
+For an open-loops review, comparison with an earlier audit, or a requested follow-up/filing handoff, read [review-modes.md](references/review-modes.md). Audit permission never enables writes; these modes retain the same cumulative read limits.
+
 ## Preferred Deliverables
 
 - A compact ledger of accepted commitments, requests awaiting acceptance, and unresolved changes.
