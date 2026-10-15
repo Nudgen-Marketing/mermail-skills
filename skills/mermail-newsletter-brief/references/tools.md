@@ -35,7 +35,7 @@ Pass `query` as a native JSON object; never stringify it:
 
 ## Newsletter discovery
 
-Find recent newsletters by time window:
+Find recent newsletters by time window using `search_emails` (add the confirmed end bound as appropriate):
 
 ```json
 {
@@ -44,8 +44,6 @@ Find recent newsletters by time window:
     "folder": "inbox",
     "read": false,
     "date_start": "2026-08-25T00:00:00Z",
-    "sortColumn": "date",
-    "sortDirection": "DESC",
     "limit": 30,
     "metadata_only": true,
     "agent_safe_content": true
@@ -62,12 +60,13 @@ Search by sender domain for known newsletter senders:
     "sender": "@substack.com",
     "date_start": "2026-08-25T00:00:00Z",
     "limit": 20,
-    "metadata_only": true
+    "metadata_only": true,
+    "agent_safe_content": true
   }
 }
 ```
 
-`list_emails` supports page/limit (1-100), folder, thread id, category, custom label, read/starred state, and separate sort column/direction. `search_emails` adds free text, sender, recipient, subject, attachment presence, and ISO date range.
+`list_emails` supports page/limit (1-100), folder, thread id, category, custom label, read/starred state, and separate `sortColumn`/`sortDirection`. `search_emails` has its own schema for free text, sender, recipient, subject, attachment presence, ISO date range and supported common filters. Do not copy list sort fields into search, or search-only date/sender fields into list. Inspect the live schema and filter returned list metadata within the requested window; report incomplete coverage rather than expanding the run budget.
 
 ## Newsletter body read
 

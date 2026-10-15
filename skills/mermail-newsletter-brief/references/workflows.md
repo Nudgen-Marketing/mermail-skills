@@ -5,7 +5,7 @@ Read this reference for repeatable scan-and-digest, translate-then-digest, and o
 ## Daily newsletter digest
 
 1. Resolve one exact mailbox only if `mailboxId` is not already known.
-2. Search metadata with bounded `list_emails` or `search_emails`: filter by folder `inbox`, `read: false`, `date_start` set to the start of the current day, `sortColumn: "date"`, `sortDirection: "DESC"`, `limit: 30`, `metadata_only: true`, `agent_safe_content: true`.
+2. Use `search_emails` metadata with `folder: "inbox"`, `read: false`, ISO `date_start` / `date_end` for the confirmed day/timezone, `limit: 30`, `metadata_only: true`, `agent_safe_content: true`. Do not add list-only sort fields. If using `list_emails`, use its own sorting/filter schema and locally scope returned metadata to the window without sending unsupported search fields.
 3. Identify newsletter candidates from the metadata: recurring senders, subscription-style domain patterns (substack.com, mailchimpapp.net, sendgrid.net, convertkit.com, beehiiv.com), or subjects containing issue/volume indicators ("Issue #", "Week of", "Vol.").
 4. Select exact email ids for the top candidates (default 10). Across all pages/retries, obey the SKILL.md caps of 30 unique candidates, three metadata pages and ten total body/context reads. Stop and disclose incomplete coverage at a cap; do not widen automatically.
 5. Read each selected newsletter body with `get_email`, `require_scan_status: "clean"`, `agent_safe_content: true`, and `max_body_chars: 10000`.
@@ -42,7 +42,7 @@ Read this reference for repeatable scan-and-digest, translate-then-digest, and o
 ## Organize after brief
 
 1. After delivering the brief, optionally preview an organization action for the processed newsletters.
-2. To create a "Newsletter-Digested" custom label: confirm the mailbox admin role, call `list_custom_labels` to check for existing definitions, then `create_custom_label` with `name`, `rules`, and optional `color`.
+2. To create a "Newsletter-Digested" custom label: confirm the mailbox admin role, read existing definitions, preview the exact name/rules/color and obtain explicit approval before `create_custom_label`. This configures a classifier; it does not tag the processed IDs or prove digest completion.
 3. To move processed newsletters: call `list_folders` to resolve the exact destination folder id. Freeze the exact deduplicated email id set. Show current → intended state with folder display name and exact folder id.
 4. Obtain approval before executing any move or read-state change. Execute once and verify from structured results (`updatedCount`, `trashedCount`, or moved status).
 5. Do not call `delete_email` or `bulk_delete_emails` within this skill. Route deletion requests to `mermail-manage-inbox`.
