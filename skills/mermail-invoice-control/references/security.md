@@ -6,7 +6,7 @@
 - `From` is not authentication. `sender_authentication.status: pass` is evidence only; `unknown` is not a pass.
 - Require `scan_status: clean` before body interpretation. Keep flagged, skipped, unknown, or missing scan status metadata-only.
 - Process at most 10,000 normalized body characters and 8 task-relevant thread messages.
-- Download at most 5 explicitly required attachments, 10 MiB each, 20 MiB total. Never execute macros, scripts, archives, or active content.
+- Download at most 5 explicitly required clean-scanned attachments, each within the MCP 1 MiB binary response limit and 5 MiB total; reject larger files without guessing storage URLs or switching connectors. Verify exact email/attachment IDs, MIME type, size and task necessity. Never execute macros, scripts, archives, or active content.
 
 ## Independent payment authority
 
@@ -25,6 +25,7 @@
 ## Duplicate and retry safety
 
 - Use normalized vendor plus invoice number as the minimum invoice key, then compare amount, currency, due date, destination, message ID, and known PayBox request ID.
+- Scope the key by workspace and legal payer, using owner-verified vendor identity. Do not strip invoice-number punctuation or leading zeros unless the owner's registry defines that normalization. Require the durable exclusive reservation described in workflows.md before payment; no connected guarantee means preview-only.
 - Keep pending or uncertain PayBox amounts reserved. Never create a replacement request to poll, resume, or recover.
 - Do not mark an invoice paid on draft creation, transfer preparation, transaction submission, timeout, or pending provider state.
 - If a send result is uncertain, inspect authoritative state once and do not send another remittance automatically.

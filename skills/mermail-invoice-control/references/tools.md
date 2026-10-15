@@ -48,4 +48,6 @@ Do not call `prepare_destructive_action` for PayBox tools. `paybox_request_trans
 
 ## Optional remittance
 
-Use `reply_to_email` only after provider-confirmed payment success and separate approval of exact recipients and body. Mermail does not auto-fill Reply All, so provide explicit `to`, `cc`, and `bcc` values. Never attach private wallet material.
+Use `reply_to_email` only after provider-confirmed payment success and separate approval of exact workspace, sender mailbox, source email/thread, recipients and body. Mermail does not auto-fill Reply All, so provide explicit `to`, `cc`, and `bcc` values. Follow `mermail-compose-email` for the live payload (`emailId`, `body.from`, `body.text`/`body.html`); `save_draft` uses `body.body` and is not a send. Never attach private wallet material.
+
+Finance escalations use `save_draft` for a privately selected owner recipient, never an immediate reply tool. Optional filing routes to `mermail-manage-inbox` using `list_folders` and `move_email` with resolved folder/message IDs after user authorization. No manual custom-label assignment capability is claimed.
