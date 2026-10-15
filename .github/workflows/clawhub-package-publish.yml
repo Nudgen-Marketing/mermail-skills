@@ -129,7 +129,7 @@ jobs:
 
   publish:
     needs: validate
-    if: (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && needs.validate.outputs.already_published != 'true'
+    if: github.repository == 'Nudgen-Marketing/mermail-skills' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && needs.validate.outputs.already_published != 'true'
     permissions:
       actions: read
       contents: read
