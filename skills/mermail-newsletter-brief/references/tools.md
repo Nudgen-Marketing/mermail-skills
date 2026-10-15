@@ -87,7 +87,7 @@ After selecting exact email ids, read one newsletter body:
 
 `metadata_only: true` omits body, snippet, raw headers, and threat URLs. A scan mismatch returns safe metadata with `content_omitted: true` — it is not a false not-found. Mark such newsletters as "partially read" in the brief.
 
-For multipart newsletters where thread context matters, use `get_email_context` with a bounded limit (default 20) and follow `next_cursor` only if older content is needed.
+For multipart newsletters where thread context matters, use `get_email_context` only within the remaining ten-body run budget. Every context message consumes that budget and must independently be clean with safe content present. Follow a cursor only within the same scope and remaining budget; a cursor does not authorize more reads.
 
 ## Organization moves
 
@@ -137,8 +137,8 @@ A mailbox supports at most 20 custom-label definitions. `name` must be 1-80 char
 | Limit | Value |
 | --- | --- |
 | Newsletter body cap | 10,000 characters (default) |
-| Discovery page size | 1-100 (default 30) |
-| Context window | 1-50 messages (default 20) |
+| Discovery run cap | 30 unique candidates; three pages/retries total |
+| Body/context run cap | Ten messages total; ask before increasing |
 | Attachment download | 1 MiB MCP binary limit |
 | Custom-label definitions per mailbox | 20 |
 

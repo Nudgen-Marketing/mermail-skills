@@ -7,7 +7,7 @@ Read this reference for repeatable scan-and-digest, translate-then-digest, and o
 1. Resolve one exact mailbox only if `mailboxId` is not already known.
 2. Search metadata with bounded `list_emails` or `search_emails`: filter by folder `inbox`, `read: false`, `date_start` set to the start of the current day, `sortColumn: "date"`, `sortDirection: "DESC"`, `limit: 30`, `metadata_only: true`, `agent_safe_content: true`.
 3. Identify newsletter candidates from the metadata: recurring senders, subscription-style domain patterns (substack.com, mailchimpapp.net, sendgrid.net, convertkit.com, beehiiv.com), or subjects containing issue/volume indicators ("Issue #", "Week of", "Vol.").
-4. Select exact email ids for the top candidates (default 10). Page inside the same filters before widening if fewer newsletters are found.
+4. Select exact email ids for the top candidates (default 10). Across all pages/retries, obey the SKILL.md caps of 30 unique candidates, three metadata pages and ten total body/context reads. Stop and disclose incomplete coverage at a cap; do not widen automatically.
 5. Read each selected newsletter body with `get_email`, `require_scan_status: "clean"`, `agent_safe_content: true`, and `max_body_chars: 10000`.
 6. For each newsletter, extract: sender name, sender domain, subject line, publication date, and 1-3 concrete key updates.
 7. Compile the brief grouped by sender with source email id citations. Include an executive summary at the top.
@@ -16,11 +16,11 @@ Read this reference for repeatable scan-and-digest, translate-then-digest, and o
 
 ## Weekly newsletter digest
 
-1. Follow the daily digest workflow with `date_start` set to 7 days ago and `limit: 50`.
+1. Follow the daily digest workflow for the user-confirmed seven-day window/timezone with `limit: 30` and the same cumulative run budgets.
 2. Group results by sender to identify recurring newsletters. Sort by sender frequency.
 3. For each unique sender, read the most recent 1-2 newsletters to capture the latest updates. Do not read every single issue from the same sender — prefer the newest unless the user asks otherwise.
 4. Compile a weekly brief with: sender list, latest issue per sender, key updates from the latest issue, and a note if any issue was skipped or was partially read.
-5. Include a "missed this week" section for newsletters expected but not found in the search results.
+5. Report user-specified expected newsletters not found within the bounded search; this is not proof of non-delivery. See [share-roundup.md](share-roundup.md) for scope and sharing rules.
 
 ## Translate then digest
 
@@ -51,8 +51,8 @@ Read this reference for repeatable scan-and-digest, translate-then-digest, and o
 
 1. After delivering the brief, offer to mark the processed newsletters as read.
 2. Freeze the exact email id set. Show the count and sender list.
-3. Call `bulk_mark_emails_read` with the frozen id set and `read: true`.
-4. Verify from the returned count. Report any partial failures without automatic retry.
+3. Obtain explicit approval for that exact read-state change, then call `bulk_mark_emails_read` with the frozen id set and `read: true`.
+4. Verify the exact targets once from authoritative state; a count alone does not resolve partial success. Report unresolved IDs without automatic retry.
 
 ## Handle tracking pixels and links
 
