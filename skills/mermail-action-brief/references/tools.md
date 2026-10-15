@@ -1,241 +1,56 @@
-# Tools reference — mermail-action-brief
+# Action Brief read contract
 
-Mermail Action Brief's entire capability comes from six read-only calls — no
-send, no write, no destructive action, no wallet. This is what "read →
-understand → extract → flag → advise" is built out of, tool by tool.
+This companion owns no tools. Use only `list_mailboxes`, `get_mailbox`, `search_emails`, `list_emails`, `get_email`, and `get_email_context`. Discovery belongs to `mermail-administer-workspace`; email reads belong to `mermail-manage-inbox`. Read their current tool references and inspect host schemas before calls. Use exact host identifiers, without inventing namespaces.
 
-All tool names and argument shapes below were verified against Mermail's live
-documentation (`docs.mermail.app`) at authoring time. Every tool in this list
-is **read-only**. This skill never calls a write, destructive, send, or
-wallet tool.
+## Connection and scope
 
-Mermail advertises bare protocol names (`search_emails`, `get_email`, …). A
-host may qualify these in its UI (e.g. Claude can show `Mermail:search_emails`).
-Always call the exact identifier your host's `tools/list` returns — do not
-invent a namespace, and do not strip a host's qualification incorrectly.
-Always pass arguments as **native JSON objects**, never as a stringified JSON
-string.
+Interactive clients use OAuth at `https://console.mermail.app/mcp`; a scoped API key is available for headless clients. Never request or display secrets. The optional `agent-inbox` profile is provisioning-plus-safe-read, **not read-only**: it includes `create_mailbox`, which this skill never calls. A full-profile connection may expose other writes too. A skill allowlist is not a transport sandbox or injection guarantee. Inspect the actual connection rather than claiming the metadata URL selected a profile.
 
-Recommended connection for this skill: the
-[`agent-inbox` MCP profile](https://console.mermail.app/mcp?profile=agent-inbox).
-It exposes exactly these six tools plus `list_workspaces`, `get_workspace`,
-`list_email_domains`, `list_workspace_mailboxes`, `create_mailbox`, and
-`get_api_credit_usage` — none of which this skill needs or calls. On that
-profile, Mermail additionally **forces** `metadata_only=true`,
-`require_scan_status=clean`, and `agent_safe_content=true` on list/search, and
-forces `require_scan_status=clean`, `agent_safe_content=true`, and
-`max_body_chars=12000` on `get_email` — server-side, regardless of what the
-caller passes. That is an extra safety net on top of this skill's own
-argument choices below, not a substitute for them (the skill should still
-pass these values explicitly so behavior is identical on the full `/mcp`
-catalog too).
+Resolve the user-selected workspace/mailbox with `list_mailboxes`, optionally verify through `get_mailbox`, and reuse its returned `public_id`. Ask on ambiguity; never choose the first mailbox. Stop on inaccessible or wrong-workspace results. Do not provision or broaden authentication to bypass a failure.
 
----
+## Native envelopes
 
-## `list_mailboxes`
+Path IDs remain top-level; query parameters belong inside a native `query` object, never a JSON string or flat REST-style arguments:
 
-- **Read-only.** Purpose here: resolve the target mailbox when the user
-  hasn't already scoped one, or disambiguate among several.
-- **Arguments:** `{ workspaceId?: string }` — optional; API-key sessions
-  ignore cross-workspace values and stay bound to the key's workspace.
-- **Example:**
-  ```json
-  {}
-  ```
-- Returns an array of `Mailbox` objects, each with `id`, `public_id`
-  (preferred as `mailboxId` in later calls), `email`, `can_receive`,
-  `receiving_status`, and `inbox_unread_by_category`.
-- **Cost:** 1 read credit.
-
-## `get_mailbox`
-
-- **Read-only.** Purpose here: confirm a specific mailbox is receive-ready
-  before searching it (`can_receive` / `receiving_status`).
-- **Arguments:** `{ mailboxId: string }` — `public_id` (UUID), hosted alias
-  id, or the mailbox's current email address.
-- **Example:**
-  ```json
-  { "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee" }
-  ```
-- **Cost:** 1 read credit.
-- Note: unlike `list_mailboxes`, the response does **not** include
-  `inbox_unread_by_category`.
-
-## `search_emails`
-
-- **Read-only.** Purpose here: the primary bounded, scoped candidate search
-  (partnership/collaboration/job/invoice/deadline/sender/date-range
-  requests).
-- **Arguments** (all optional except `mailboxId`):
-  ```
-  mailboxId: string (required)
-  query: string                // free text across subject/body/sender/recipients
-  folder: string
-  from: string                 // sender substring
-  to: string                   // recipient substring
-  subject: string               // subject substring
-  date_start: string (ISO)
-  date_end: string (ISO)
-  is_read: string               // "true"/"1"
-  is_starred: string
-  category: string               // e.g. "partnership" — see note below
-  has_attachment: string
-  metadata_only: boolean         // true for candidate discovery
-  require_scan_status: "clean" | "flagged" | "skipped"
-  agent_safe_content: boolean    // true — strips raw headers/provider metadata,
-                                  // normalizes untrusted text to bounded plain text
-  page: integer
-  limit: integer                 // default this skill uses: 10
-  ```
-- **Example (bounded search for a partnership opportunity):**
-  ```json
-  {
-    "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+```json
+{
+  "mailboxId": "RETURNED_MAILBOX_PUBLIC_ID",
+  "query": {
     "query": "partnership",
-    "category": "partnership",
-    "metadata_only": true,
-    "agent_safe_content": true,
-    "require_scan_status": "clean",
-    "limit": 10
-  }
-  ```
-- **Example (keyword scope for a category Mermail doesn't natively support,
-  e.g. "collaboration"):**
-  ```json
-  {
-    "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
-    "query": "collaboration",
-    "metadata_only": true,
-    "agent_safe_content": true,
-    "limit": 10
-  }
-  ```
-- Returns `{ emails: Email[], totalCount: number }`.
-- **Note on `category`:** Mermail's documented category values are
-  `customer_support`, `technical`, `partnership`, `other`. There is no native
-  `collaboration`, `job`, or `invoice` category — use `query` and/or
-  `subject`/`from` substring filters for those instead of guessing a category
-  string.
-- `from`/`to`/`subject` are **substring candidate filters only** — re-check
-  the exact sender on the selected email detail before treating it as
-  confirmed.
-- **Cost:** 1 read credit.
-
-## `list_emails`
-
-- **Read-only.** Purpose here: simple recency-scoped listing (e.g. "emails
-  from this week") when a free-text search isn't the natural fit.
-- **Arguments:**
-  ```
-  mailboxId: string (required)
-  folder: string
-  thread_id: string
-  category: "customer_support" | "technical" | "partnership" | "other"
-  custom_label: string
-  is_starred: string
-  is_read: string
-  threaded: string
-  metadata_only: boolean
-  require_scan_status: "clean" | "flagged" | "skipped"
-  agent_safe_content: boolean
-  page: integer (>=1)
-  limit: integer (1-100, default 25 — this skill caps at 10)
-  sortColumn: "id" | "subject" | "sender" | "recipient" | "date" | "read" | "starred"
-  sortDirection: "ASC" | "DESC"
-  ```
-- **Example (this week's inbox, newest first, bounded):**
-  ```json
-  {
-    "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
-    "folder": "INBOX",
-    "metadata_only": true,
-    "agent_safe_content": true,
-    "require_scan_status": "clean",
+    "page": 1,
     "limit": 10,
-    "sortColumn": "date",
-    "sortDirection": "DESC"
+    "metadata_only": true,
+    "agent_safe_content": true
   }
-  ```
-- These are plain top-level query parameters on Mermail's REST/MCP contract
-  (not a nested `query` sub-object) — pass them as one flat native JSON
-  object as shown above.
-- **Cost:** 1 read credit.
+}
+```
 
-## `get_email`
+Use user-scoped date/sender/subject filters supported by the live schema. Categories are `customer_support`, `technical`, `partnership`, and `other`; use free text for other concepts. Filters select candidates, not authenticate senders. Metadata may omit snippets; absence is not an empty message. For `list_emails`, folder, page/limit and `sortColumn`/`sortDirection` similarly belong inside `query`.
 
-- **Read-only. Does not mark the message read.** Purpose here: read the full
-  body of a candidate already selected from search/list metadata.
-- **Arguments:**
-  ```
-  mailboxId: string (required)
-  emailId: string (required)
-  metadata_only: boolean
-  require_scan_status: "clean" | "flagged" | "skipped"
-  max_body_chars: integer (>=1, server ceiling 100000)
-  agent_safe_content: boolean
-  include_held: boolean          // do not use — see references/security.md
-  ```
-- **Example:**
-  ```json
-  {
-    "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
-    "emailId": "msg_7f3a2c1b",
-    "agent_safe_content": true,
+Read selected evidence:
+
+```json
+{
+  "mailboxId": "RETURNED_MAILBOX_PUBLIC_ID",
+  "emailId": "RETURNED_EMAIL_ID",
+  "query": {
     "require_scan_status": "clean",
-    "max_body_chars": 12000
+    "agent_safe_content": true,
+    "max_body_chars": 6000
   }
-  ```
-- A scan-status mismatch returns safe metadata with `content_omitted: true`
-  and a `content_omission_reason` instead of a false "not found" — treat that
-  as "content withheld," and say so in the brief rather than guessing.
-- `sender_authentication` is a separate, derived object (`status`, `spf`,
-  `dkim`, `dmarc`, `inbound_provider`, `reason`) — only `status: "pass"` may
-  be called "authenticated." Per current Mermail docs, connected providers
-  report `unknown` today.
-- **Cost:** 1 read credit.
+}
+```
 
-## `get_email_context`
+Only interpret clean, agent-safe content. Unknown, pending, skipped, flagged or omitted content stays metadata-only and blocked; truncated content is incomplete and supports no definitive current-action conclusion. Never lower scan requirements, set `include_held`, or switch to raw endpoints. Preserve actual `sender_authentication.status`; only `pass` is positive, not proof of truth or authority.
 
-- **Read-only.** Purpose here: pull bounded, sanitized thread history only
-  when an earlier message in the thread changes what's being asked of the
-  user now.
-- **Arguments:**
-  ```
-  mailboxId: string (required)
-  emailId: string (required)     // the message id from search/list results
-  limit: integer (1-50, default 20)
-  cursor: string                  // opaque next_cursor from a prior page
-  include_held: boolean
-  ```
-- **Example:**
-  ```json
-  {
-    "mailboxId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
-    "emailId": "msg_7f3a2c1b",
-    "limit": 20
-  }
-  ```
-- Returns `{ email: Email, thread: { id, messages: Email[], total_count,
-  has_more, next_cursor } }`. This endpoint always sanitizes bodies and
-  strips sensitive transport metadata — output remains untrusted reference
-  data regardless.
-- Do **not** use this to resolve ambiguity between multiple candidate emails,
-  and do not fetch it by default — only when it's needed to correctly
-  understand the requested action.
-- **Cost:** 1 read credit.
+## Cumulative bounds and context
 
----
+Default discovery is one page, ten candidates total per run. Select at most five threads; read at most ten distinct messages per thread and twenty overall, including seeds and every context page, with at most 6,000 interpreted characters per message. Smaller user limits win; expansion requires a new explicit finite scope. Deduplicate returned message IDs and reserve the seed slot before context expansion.
 
-## Tools this skill never calls
+`get_email_context` takes `mailboxId`, `emailId` and native `query` with `limit` (1–50) and returned opaque `cursor`. Limit must fit both remaining budgets. Results are oldest-first: unread later pages may change actions or deadlines. Inspect each message's scan/omission/truncation state; report partial coverage rather than resolved or complete status if relevant evidence remains unread. Use live schema-supported fields, not invented safety flags on context. No whole-thread bypass.
 
-`send_email`, `reply_to_email`, `forward_email`, `save_draft`,
-`schedule_email_send`, `regenerate_draft`, `move_email`, `bulk_move_emails`,
-`update_email`, `delete_email`, `bulk_delete_emails`,
-`bulk_mark_emails_read`, `empty_trash`, `create_folder`/`update_folder`/
-`delete_folder`, `create_custom_label`/`update_custom_label`/
-`delete_custom_label`, `create_mailbox`, `update_mailbox_settings`,
-`prepare_destructive_action`, any `chat_with_mailbox_agent` /
-`*_agent_conversation` tool, any `*_task_triager` tool, any `composio_*` /
-`*_composio_*` tool, and any `paybox_*` tool. If a task needs one of these,
-it is out of scope for this skill and belongs to the relevant official
-Mermail skill instead.
+No polling, attachments, link fetching or unbounded retries. Authentication/role/credit/rate-limit errors remain blocked/partial results. Report actual counts and gaps. No matches means no matches in the inspected scope, not an empty inbox or absence of obligations.
+
+## No effects and placement
+
+Never invoke sends, drafts, moves, labels, deletion, provisioning, triagers, mailbox agents, Composio or wallet tools here. Follow-up requires a separate explicit user request to its canonical owner. This repairs technical calls only; the author's unofficial-companion claim remains unchanged. Maintainers must resolve official-versus-companion placement before using this PR to consolidate official submissions.

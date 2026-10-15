@@ -51,8 +51,10 @@ exposure to untrusted body content.
 
 ## 5. Bounded read budgets
 
-- Default candidate cap per search/list call: **10 messages** (user can
-  explicitly ask for more).
+- Default discovery: one page and ten candidates total per run. At most five
+  threads, ten distinct messages per thread and twenty overall, counting seeds
+  and all context pages. At most 6,000 interpreted characters per message.
+  Smaller user limits win; expansion requires a new explicit finite scope.
 - `get_email` is called only for candidates selected in the metadata step —
   never for every search hit by default.
 - `get_email_context` is called only when thread history is actually needed
@@ -71,11 +73,13 @@ read-only. It never calls a write tool, a destructive tool, `send_email` /
 `reply_to_email` / `forward_email`, `prepare_destructive_action`, or any
 `paybox_*` tool. See `references/tools.md` for the full "never calls" list.
 
-The recommended connection — the
+The optional narrower connection — the
 [`agent-inbox` MCP profile](https://console.mermail.app/mcp?profile=agent-inbox)
-— enforces this at the transport level: it physically does not expose send,
-destructive, administrative, or wallet tools to the model, so even a
-successfully "jailbroken" reasoning step has nothing destructive to call.
+— excludes send, destructive and wallet tools but includes `create_mailbox`.
+It is provisioning-plus-safe-read, not a read-only sandbox. Never call that
+write here. Inspect the actual profile; full-profile clients may expose other
+tools. Read-only intent does not prevent misleading output or secret leakage.
+Require clean agent-safe evidence, refuse bypasses, and redact sensitive content.
 
 ## 7. No uncontrolled loops or polling
 
