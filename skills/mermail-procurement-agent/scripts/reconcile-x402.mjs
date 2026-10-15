@@ -148,6 +148,7 @@ export async function main(args) {
     if (opts[key] === undefined) throw Error('Missing argument value');
   }
   if (opts['--self-check']) {
+    if (Object.keys(opts).length !== 1) throw Error('Self-check is a separate offline operation');
     const asset='0x'+'1'.repeat(40), payTo='0x'+'2'.repeat(40);
     const env={max:'1',asset,payTo,network:'eip155:8453',decimals:6,resource:'https://vendor.example/resource'};
     const c=Buffer.from(JSON.stringify({x402Version:2,resource:{url:env.resource},accepts:[{network:env.network,asset,payTo,amount:'1000000',scheme:'exact',maxTimeoutSeconds:60}]})).toString('base64');
@@ -158,7 +159,8 @@ export async function main(args) {
     if (Object.keys(opts).length !== 1) throw Error('Response decode is a separate offline operation');
     return decodeSettlement(opts['--response']);
   }
-  const env=validateEnvelope({max:opts['--max'],asset:opts['--asset'],network:opts['--network'],payTo:opts['--pay-to'],decimals:opts['--decimals'] === undefined ? NaN : Number(opts['--decimals']),resource:opts['--resource']});
+  if (typeof opts['--decimals'] !== 'string' || !/^(?:[0-9]|[12][0-9]|3[0-6])$/.test(opts['--decimals'])) throw Error('Decimals must be a canonical integer from 0 to 36');
+  const env=validateEnvelope({max:opts['--max'],asset:opts['--asset'],network:opts['--network'],payTo:opts['--pay-to'],decimals:Number(opts['--decimals']),resource:opts['--resource']});
   if (!!opts['--required'] === !!opts['--probe']) throw Error('Choose saved --required or explicit --probe');
   const required=opts['--required'] || await probeChallenge(env.resource);
   return reconcileChallenge(required,env);

@@ -82,3 +82,12 @@ test('oversize response rejected',async()=>{
 test('CLI rejects implicit URL, POST, incomplete envelope and mixed decode/probe',async()=>{
   for(const args of [[env.resource],['--method','POST'],['--probe'],['--response',encode({success:true}),'--probe']]) await assert.rejects(main(args));
 });
+test('CLI accepts only canonical explicit decimal precision',async()=>{
+  const args=['--required',challenge(),'--max',env.max,'--asset',asset,'--network',env.network,'--pay-to',payTo,'--resource',env.resource,'--decimals'];
+  for(const decimals of ['', ' ', '\t', '6e0', '+6', '06', '6.0', '-0', '37']) await assert.rejects(main([...args,decimals]),/canonical integer/);
+  for(const decimals of ['0','6','36']) assert.equal((await main([...args,decimals])).verdict,decimals==='0'?'above_cap':'within_envelope');
+});
+test('self-check cannot silently replace an actual request',async()=>{
+  assert.equal((await main(['--self-check'])).verdict,'self_check_pass');
+  for(const extra of [['--probe'],['--required',challenge()],['--response',encode({success:true})],['--decimals','6']]) await assert.rejects(main(['--self-check',...extra]),/separate offline operation/);
+});
