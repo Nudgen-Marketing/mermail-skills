@@ -154,7 +154,7 @@ Do not retry automatically.
 
 ## Confirmation
 
-Only after an authoritative successful/submitted payment result, and only when authorized, send a confirmation email.
+Only after an authoritative terminal settlement-success result matching the reserved payment, and after separate exact email approval, send a settlement confirmation. Pending or submitted payment is not settlement; report it to the user without sending a settlement confirmation.
 
 The email should reference the GitHub PR and payment identifier.
 
