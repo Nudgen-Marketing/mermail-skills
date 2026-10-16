@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deprecation Radar"
+  short_description: "Turn vendor API deprecation and breaking-change email into a code-level migration plan"
+  default_prompt: "Use $mermail-deprecation-radar to find API deprecation notices in my Mermail inbox and map them to code in this repository."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
