@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - name: Test procurement envelope validation
+        run: node --test tests/procurement-envelope.test.mjs
       - name: Validate production MCP contract
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         env:
