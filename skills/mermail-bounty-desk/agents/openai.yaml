@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Desk"
+  short_description: "Track bounty provider mail and draft safe follow-ups"
+  default_prompt: "Use $mermail-bounty-desk when the job is tracking bounty, grant, marketplace, issue, PR review, payout, or deadline messages and preparing safe follow-up drafts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
