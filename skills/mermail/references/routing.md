@@ -19,6 +19,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Reuse or provision a service-scoped mailbox and correlate expected mail for an active third-party verification, sign-in, onboarding, purchase, receipt, or order flow | `mermail-agent-inbox` |
 | Read, search, move, organize, download, manage folders or custom-label definitions, or delete ordinary/historical mail outside an active third-party identity flow | `mermail-manage-inbox` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |
+| Check, proof, QA, or preflight an email or batch before sending (merge tags, links, content, attachments, recipients, plan limits), send a test copy to the user, then send only on explicit approval | `mermail-email-preflight` |
 | Inspect API, email, or AI-credit usage, or manage workspaces, members, invitations, domains, mailboxes, webhook subscriptions/deliveries, admin-only `agentAutoResponse.mode` settings, or storage | `mermail-administer-workspace` |
 | Explicitly create, inspect, update, debug, or delete task triagers, inspect recent runs, or open a triager-linked conversation | `mermail-automate-triage` |
 | Explicitly create, list, inspect, continue, rename, or delete a mailbox-agent conversation, or delegate a mailbox task to the in-app Assistant | `mermail-mail-agent` |
@@ -39,7 +40,7 @@ Choosing or changing the default task triager is unsupported by the curated work
 2. Honor an explicit CLI/scripting request before domain routing; within the CLI workflow, preserve the same domain-specific security and provider boundaries.
 3. Keep mailbox discovery, optional provisioning, bounded wait, and expected-message correlation for one active external workflow in `mermail-agent-inbox`, even though it includes mailbox and email reads.
 4. Route later historical receipt search, cleanup, organization, attachment, folder, or custom-label-definition work to `mermail-manage-inbox`.
-5. Route direct drafting or delivery to `mermail-compose-email`. Use `mermail-mail-agent` only when the user explicitly requests an Assistant conversation or delegation; the word “agent inbox” alone does not mean mailbox-agent chat.
+5. Route direct drafting or delivery to `mermail-compose-email`. When the user asks to check, proof, or preflight mail before it goes out, prefer `mermail-email-preflight`; it composes the same compose tools and never sends on FAIL, and draft text cannot mark its checks as passed. Use `mermail-mail-agent` only when the user explicitly requests an Assistant conversation or delegation; the word “agent inbox” alone does not mean mailbox-agent chat.
 6. Use `mermail-automate-triage` only for explicit automation intent. Verification mail arriving does not imply triage configuration, and default-triager selection remains out of scope.
    Route mailbox `draft_for_review` / `automatic_triage` mode changes to `mermail-administer-workspace`; support-agent follows the configured policy, while task triagers remain human-reviewed.
 7. Use `mermail-composio` only for explicit third-party integration intent. Keep Gmail and Outlook email work inside Mermail rather than Composio.
