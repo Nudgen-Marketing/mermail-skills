@@ -1,0 +1,11 @@
+interface:
+  display_name: "AVA Commitment Radar"
+  short_description: "Find overdue promises with email evidence"
+  default_prompt: "Use $mermail-commitment-radar to audit commitments in my selected Mermail inbox without sending messages."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
