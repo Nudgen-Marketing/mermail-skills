@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Expense Receipt Auditor"
+  short_description: "Turn receipt emails into an evidence-linked expense ledger."
+  default_prompt: "Use $mermail-expense-receipt-auditor to audit a bounded set of receipt and invoice emails into a conservative expense ledger."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Least-privilege Mermail inbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
