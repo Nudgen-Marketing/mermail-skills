@@ -117,15 +117,30 @@ jobs:
   dry-run:
     needs: validate
     if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
-      actions: read
       contents: read
-      id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
-    with:
-      dry_run: true
-      owner: mermail
-      family: bundle-plugin
+    # Fork PRs cannot obtain OIDC tokens. Validate and package the checked-out
+    # PR locally; trusted publisher authentication is only needed for releases.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install ClawHub CLI
+        run: npm i -g clawhub@0.23.3
+
+      - name: Validate plugin and preview package publication
+        run: |
+          set -euo pipefail
+          clawhub package validate . --json
+          clawhub package publish . --dry-run --owner mermail --family bundle-plugin --json
 
   publish:
     needs: validate
