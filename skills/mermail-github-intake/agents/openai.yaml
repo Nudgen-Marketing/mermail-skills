@@ -1,6 +1,6 @@
 interface:
   display_name: "Mermail GitHub Intake"
-  short_description: "Turn inbound bug reports into safe GitHub issue intake"
+  short_description: "Safe GitHub intake for bug reports and feature requests"
   default_prompt: "Use $mermail-github-intake to turn this selected Mermail bug report or feature request into evidence-grounded GitHub intake, check duplicates, and stop at the exact external-effect boundary unless I authorize the issue creation."
 dependencies:
   tools:
