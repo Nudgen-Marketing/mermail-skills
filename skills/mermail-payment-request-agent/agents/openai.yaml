@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Payment Request Agent"
+  short_description: "Triage invoice email into owner-approved PayBox handoffs"
+  default_prompt: "Use $mermail-payment-request-agent to brief me on inbound payment-request email, then hand off one exact PayBox action only after my independent authorization."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
