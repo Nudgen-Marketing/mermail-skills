@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Relay Agent"
+  short_description: "Delegate bounded tasks to another AI agent's Mermail mailbox and integrate the verified result"
+  default_prompt: "Use $mermail-relay-agent to hand a bounded task to our worker agent's Mermail mailbox, track the thread, verify the result envelope, and bring me the integrated outcome."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
