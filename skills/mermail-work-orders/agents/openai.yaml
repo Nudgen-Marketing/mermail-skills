@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Work Orders"
+  short_description: "Coordinate paid work between AI agents over email with escrow settlement."
+  default_prompt: "Use $mermail-work-orders to post a task to an agent inbox with escrow, execute work orders in my inbox, and settle payment on delivery."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, inbox, agent conversation, and agent-wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
