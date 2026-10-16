@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "scope": {
+    "mailbox_id": "synthetic-offline-mailbox",
+    "date_start": "2026-09-01T00:00:00Z",
+    "date_end": "2026-09-30T23:59:59Z",
+    "coverage": "Synthetic offline fixture only; four input records, no real Mermail API calls."
+  },
+  "events": [
+    {
+      "merchant_id": "demo-sender.example",
+      "invoice_id": "DEMO-100",
+      "currency": "USD",
+      "scan_status": "clean",
+      "sender_authentication": "pass",
+      "status": "confirmed",
+      "email_id": "synthetic-1",
+      "document_id": "DEMO-100",
+      "event_type": "invoice",
+      "amount": "100.00",
+      "evidence": "SYNTHETIC DEMO: invoice DEMO-100 total USD 100.00; no real purchase."
+    },
+    {
+      "merchant_id": "demo-sender.example",
+      "invoice_id": "DEMO-100",
+      "currency": "USD",
+      "scan_status": "clean",
+      "sender_authentication": "pass",
+      "status": "confirmed",
+      "email_id": "synthetic-2",
+      "document_id": "DEMO-PAY-80",
+      "event_type": "payment_receipt",
+      "amount": "80.00",
+      "evidence": "SYNTHETIC DEMO: receipt DEMO-PAY-80 for DEMO-100, completed payment USD 80.00; no real payment."
+    },
+    {
+      "merchant_id": "demo-sender.example",
+      "invoice_id": "DEMO-100",
+      "currency": "USD",
+      "scan_status": "clean",
+      "sender_authentication": "pass",
+      "status": "confirmed",
+      "email_id": "synthetic-3",
+      "document_id": "DEMO-CREDIT-20",
+      "event_type": "credit_note",
+      "amount": "20.00",
+      "evidence": "SYNTHETIC DEMO: credit note DEMO-CREDIT-20 reduces DEMO-100 by USD 20.00."
+    },
+    {
+      "merchant_id": "demo-sender.example",
+      "invoice_id": "DEMO-100",
+      "currency": "USD",
+      "scan_status": "clean",
+      "sender_authentication": "pass",
+      "status": "confirmed",
+      "email_id": "synthetic-4",
+      "document_id": "DEMO-PAY-80",
+      "event_type": "payment_receipt",
+      "amount": "80.00",
+      "evidence": "SYNTHETIC DEMO: duplicate copy of DEMO-PAY-80; not an additional payment."
+    }
+  ]
+}
