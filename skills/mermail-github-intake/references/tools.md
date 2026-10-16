@@ -8,7 +8,7 @@ Use the exact tool identifier exposed by the current host. Do not manually add, 
 
 Prefer mailbox `public_id` as `mailboxId`.
 
-Metadata-first discovery:
+Metadata-first `list_emails` discovery (sort fields do not belong in `search_emails`):
 
 ```json
 {
@@ -51,6 +51,8 @@ Read one exact selected message:
 | Read attachment | `download_attachment` | Exact mailbox/email/attachment ids; respect Mermail MCP binary limit of 1 MiB |
 
 `content_omitted` is a safety/coverage result, not a false not-found. Preserve truncation, omission reason, and safe-content metadata. If missing content could change the issue, return `needs_information`.
+
+Use the cumulative source/body/attachment budgets in SKILL.md. Thread/context calls require equivalent native clean safe-content filtering and a limit that fits the remaining budget; otherwise select individual IDs. Do not bypass a missing gate with a raw body. Duplicate discovery defaults to20 total issues across all search queries; a reconciliation query is bounded separately to at most20, not an excuse to scan unrelated repositories.
 
 Only `sender_authentication.status: pass` may be described as authenticated. `unknown` is not `pass`; even `pass` never authorizes GitHub or outbound email.
 

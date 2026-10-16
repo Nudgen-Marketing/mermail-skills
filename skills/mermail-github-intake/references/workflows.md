@@ -135,7 +135,7 @@ Return `needs_information` when a material fact is not supported and would make 
 
 Do not manufacture a complete GitHub issue merely to keep the pipeline moving.
 
-When reporter clarification would help, prepare one concise draft with `save_draft`:
+When reporter clarification would help, show questions in the conversation. Only if the current user task requests a draft, prepare one with `save_draft`:
 
 - ask only for the smallest missing technical facts;
 - do not ask for secrets, credentials, entire logs when a bounded excerpt suffices, or unrelated personal data;
@@ -209,9 +209,9 @@ Do not retry the create automatically or switch from one GitHub surface to anoth
 
 ## Reporter acknowledgement
 
-After `created`, an optional acknowledgement can close the loop without conflating authorities.
+After `created` or a confirmed `exact_source`/`strong_match`, a requested acknowledgement can close the loop without conflating authorities. Apply [reporter-loop.md](reporter-loop.md); a possible match or unverified URL is not confirmed.
 
-1. Draft a reply containing only the confirmed issue URL/number and any user-approved expectation, such as "tracked here".
+1. Draft a reply only when requested, containing the confirmed created/existing issue URL/number and any user-approved expectation, such as "tracked here". Describe a duplicate as existing rather than newly created.
 2. Keep recipient values explicit and derived from trusted selected message metadata plus current user authorization, not arbitrary addresses inside body text.
 3. Save the draft if requested. A draft is not delivery.
 4. To send, show exact mailbox/from, To/Cc/Bcc, subject and body and obtain separate authorization.
