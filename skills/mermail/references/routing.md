@@ -18,7 +18,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | --- | --- |
 | Reuse or provision a service-scoped mailbox and correlate expected mail for an active third-party verification, sign-in, onboarding, purchase, receipt, or order flow | `mermail-agent-inbox` |
 | Read, search, move, organize, download, manage folders or custom-label definitions, or delete ordinary/historical mail outside an active third-party identity flow | `mermail-manage-inbox` |
-| Process inbound or unread mail into classifications, actionable briefings, optional unsent drafts, known-folder organization, and one operator digest | `mermail-inbound-briefing` |
+| Process inbound or unread mail into classifications, actionable briefings, optional unsent drafts, known-folder organization, and one operator digest; structured invoice/security triage or read-only subscription/receipt inventory (not payment reconciliation or cancellation) | `mermail-inbound-briefing` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |
 | Inspect API, email, or AI-credit usage, or manage workspaces, members, invitations, domains, mailboxes, webhook subscriptions/deliveries, admin-only `agentAutoResponse.mode` settings, or storage | `mermail-administer-workspace` |
 | Explicitly create, inspect, update, debug, or delete task triagers, inspect recent runs, or open a triager-linked conversation | `mermail-automate-triage` |

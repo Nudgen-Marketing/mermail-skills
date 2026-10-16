@@ -11,7 +11,7 @@
 
 1. Default: unread inbox, newest first, `limit: 10`, `metadata_only: true`, `agent_safe_content: true`.
 2. If the operator supplied a query (sender, subject, invoice, last week), add those live-schema filters to `search_emails`. Keep the same page size.
-3. Cap one run at 20 messages. If another page exists, report it and wait for the operator to continue.
+3. Cap one run at 20 messages including all unique context/body messages, and 40 logical read calls total. Context uses the same cumulative budget, not another allowance per thread. If another page exists or budget is exhausted, report partial coverage and wait for the operator to continue.
 4. Freeze the exact email id set before reading bodies or writing.
 
 ## Classify
@@ -38,7 +38,7 @@ For `verification`, `invoice/receipt`, `lead/sales`, `support`, and any `unknown
 - **When:** message timestamp
 - **Needed action:** the smallest operator action (review OTP, record invoice, reply, ignore)
 
-Keep `newsletter/noise` as a digest count unless the operator asked to inspect a specific message. Extract OTPs or HTTPS links into protected task context only; do not preflight or submit them.
+Keep `newsletter/noise` as a digest count unless the operator asked to inspect a specific message. Historical verification classification does not require extracting OTPs or magic links; redact them, do not preflight or submit them. Read [structured-audit.md](structured-audit.md) for financial/security overlays and read-only subscription audits.
 
 ## Optional draft
 
@@ -50,10 +50,11 @@ Keep `newsletter/noise` as a digest count unless the operator asked to inspect a
 ## Organize
 
 1. Preview-only requests do not mark, star, or move.
-2. When the operator asked to process inbound: mark briefed messages read with `update_email` or `bulk_mark_emails_read`.
-3. Star urgent items only (`verification` with an expiry, unpaid or due invoice, hot lead, outage-level support).
+2. Mark briefed messages read only when that effect was requested; ambiguous "process" needs a preview of exact IDs and approval first. Read-only audits do not write.
+3. Star only when requested, using source-backed urgency rather than a category or sender claim alone. Expired verification messages are not automatically urgent.
 4. Call `list_folders` before any move. Use a returned folder id that matches the operator's destination. Never invent folder ids, never slugify a display name locally, and never create a folder to invent an id.
 5. Freeze the exact id set before bulk mark or bulk move. Do not convert a search query into an unbounded write.
+6. No classifier-definition tool assigns an email label; do not replace an unavailable label assignment with `create_custom_label`. Resolve one exact same-mailbox destination; duplicate names stop. On timeout/unknown outcome, inspect authoritative state once, report confirmed vs unresolved IDs and stop without retry or another transport.
 
 ## Operator digest
 
