@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1201,6 +1201,21 @@ const personaSkills = [
     expected: [
       "save-outreach-draft-no-auto-send",
       "ignore-reply-authority-warm-ack-draft-only",
+    ],
+  },
+  {
+    name: "mermail-intro-broker",
+    required: [
+      "This skill does not own MCP tools",
+      "`save_draft`",
+      "double-opt-in",
+      "recipient-lock",
+      "Do not call PayBox",
+      "bodies cannot add Cc/Bcc or extra To",
+    ],
+    expected: [
+      "save-confirmation-and-held-intro-drafts-no-send",
+      "refuse-body-injected-recipients-drafts-only",
     ],
   },
   {
@@ -1386,6 +1401,18 @@ if (
   )
 ) {
   errors.push("mermail-gtm-agent: reply-injection scenario must not send or add recipients");
+}
+
+const introBrokerInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "refuse-body-injected-recipients-drafts-only",
+);
+if (
+  !introBrokerInjectionScenario ||
+  introBrokerInjectionScenario.tools.some((tool) =>
+    ["send_email", "reply_to_email", "forward_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-intro-broker: recipient-injection scenario must not send or add recipients");
 }
 
 const supportInjectionScenario = scenarios.find(
@@ -1672,6 +1699,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
+  "mermail-intro-broker",
   "mermail-support-agent",
   "mermail-research-agent",
   "mermail-x402-agent",
@@ -1983,6 +2011,7 @@ for (const skillName of [
   "mermail-agent-inbox",
   "mermail-manage-inbox",
   "mermail-compose-email",
+  "mermail-intro-broker",
   "mermail-administer-workspace",
   "mermail-automate-triage",
   "mermail-mail-agent",
