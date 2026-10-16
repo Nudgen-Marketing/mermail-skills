@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Amoeba Survival"
+  short_description: "Organism vitals digests, Judge receipts, deadlines, and OTP receptionist via Mermail"
+  default_prompt: "Use $mermail-amoeba-survival for Amoeba survival email: reuse or provision a survival mailbox, draft vitals/Judge/deadline digests for approval, and retrieve verification OTPs without exposing keys or inventing tools."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
