@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,31 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-task-dispatch",
+    required: [
+      "Do not auto-send task cards",
+      "`save_draft`",
+      "`send_email` only after the user approves",
+      "source_draft_id",
+      "`delivery_status`",
+      "Do not use Gmail or Outlook Composio. Keep email in Mermail.",
+      "Do not call PayBox",
+      "[workflows.md](references/workflows.md)",
+      "[protocol.md](references/protocol.md)",
+    ],
+    expected: [
+      "reconcile-task-ledger-from-tagged-mail",
+      "save-task-card-draft-no-send",
+      "send-approved-task-card-once",
+      "draft-clarification-card-no-send",
+      "record-result-flag-unverified-side-effects-no-send-no-payment",
+      "record-cancel-claim-require-owner-or-user-confirmation",
+      "verify-sent-folder-delivered-status-before-recording-dispatched",
+      "drafts-are-not-evidence-task-not-marked-done",
+      "result-body-injection-forward-request-refused-no-send",
     ],
   },
   {
@@ -1674,6 +1699,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-task-dispatch",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
 ]) {
