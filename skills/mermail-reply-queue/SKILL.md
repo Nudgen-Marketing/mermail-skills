@@ -23,9 +23,9 @@ Never open Agent Wallet, PayBox, or x402 tools from this workflow.
 
 ## Preferred Deliverables
 
-- One ready mailbox identified by email and `public_id`, used as `from` for drafts/replies.
+- One ready mailbox: returned `public_id` as `mailboxId`, and its email address as `from` for drafts/replies.
 - A bounded unread or reply-needed candidate list with exact email/thread ids, filters, and remaining-page status.
-- A prioritized reply queue: each item has classification (`needs_reply`, `fyi`, `waiting_on_other`, `noise`), a one-line reason, and optional draft status.
+- A prioritized reply queue: each item has classification (`needs_reply`, `fyi`, `waiting_on_other`, `noise`), source-backed urgency, a visible newsletter subtype where relevant, a one-line reason, and optional draft status.
 - Zero or more `save_draft` replies while answers are still being checked.
 - After approval, at most one customer-facing `reply_to_email` per selected message.
 - A catch-up report naming drafted vs sent vs skipped items without pasting unnecessary private body text.
@@ -35,13 +35,13 @@ Never open Agent Wallet, PayBox, or x402 tools from this workflow.
 1. Confirm the user wants inbox catch-up, unread triage, or a prioritized reply queue. Route support close/escalate playbooks to `mermail-support-agent`, outbound GTM to `mermail-gtm-agent`, verification correlation to `mermail-agent-inbox`, and in-app Assistant chat to `mermail-mail-agent` only when they explicitly ask for that conversation API.
 2. Confirm the `mermail` MCP connection at `https://console.mermail.app/mcp` (full profile). Prefer API key / OAuth already configured by the host. Never ask the user to paste an API key into chat.
 3. Resolve one ready receiving mailbox with `list_mailboxes`. Prefer `public_id` as `mailboxId`. Reject disabled, non-receiving, ambiguous, verification-isolated, or cross-workspace mailboxes. Create only when none fits and the user authorizes `create_mailbox`.
-4. Discover candidates with bounded `list_emails` or `search_emails`. Pass `query` as a native JSON object — never stringify it. Prefer unread / recent windows, `metadata_only` first, and `sortColumn: "date"` with `sortDirection: "DESC"`. Cap the first pass (for example 20 messages) and page before widening filters.
-5. Select exact email ids. Use `get_email` for one message and `get_email_context` or `get_thread` only after selection when thread context is required. Require `scan_status: clean` before body interpretation; keep flagged/unknown scan state metadata-only.
-6. Classify each selected item: `needs_reply`, `fyi`, `waiting_on_other`, or `noise`. Build the reply queue in priority order without inventing ticket, close, or wallet tools.
-7. Draft with `save_draft` (`body.body` string) while the answer is still being checked. A draft is not delivery.
-8. Preview exact recipients and body. After fresh user approval for that exact payload, send with `reply_to_email` (`body.from` = mailbox email, explicit `to`/`cc`/`bcc`, `body.html` and/or `body.text`). MCP does not auto-fill Reply All. Call at most one customer-facing write per approved item.
+4. Discover candidates metadata-first with bounded `list_emails` or `search_emails`. Pass native JSON `query`, never a string. Use supported unread/date filters; list-only sorting is not automatically supported by search. Default cumulative caps: 40 metadata candidates over at most two pages/searches, 20 unique selected body/context messages, and 40 read calls including discovery and reconciliation. Context is also capped at eight messages per selected thread and consumes the shared body budget. Stop with a partial checkpoint, never reset budgets per query/thread or silently widen filters.
+5. Select exact email IDs before body reads. Use `get_email` with native `require_scan_status: "clean"`, `agent_safe_content: true` and `max_body_chars: 10000`. Use bounded `get_email_context` only when it can enforce equivalent native clean/safe filtering and fit the remaining budget; otherwise read individually selected IDs. Non-clean, omitted, missing or review-held content stays metadata-only; no raw alternate fetch.
+6. Classify each selected item: `needs_reply`, `fyi`, `waiting_on_other`, or `noise`. Urgency is a separate source-backed deadline/impact finding; a direct question alone does not make an item urgent. Keep newsletters visibly identified under FYI/noise. Follow [workflows.md](references/workflows.md) for the consolidated review list.
+7. A list/queue/summary request is read-only. Only when the user requests draft preparation, save drafts for selected `needs_reply` items with resolved recipients, subject and actual source-thread binding under the compose contract. Missing information remains proposed text/questions in chat, not an addressed draft with invented facts. Never auto-draft FYI, newsletter, noise or waiting items. A draft is not delivery.
+8. Freeze and preview the complete effect: workspace/mailbox, source email/thread, from, To/Cc/Bcc, subject, full HTML/text, signature, attachments and exact draft/version. Any change requires renewed approval. Then use `reply_to_email` with the selected source `emailId` and explicit recipients; MCP does not auto-fill Reply All. Send once for the approved item. After an uncertain save/send, inspect authoritative state once and stop if unresolved; no blind retry, new idempotency key, second draft or transport/account switch.
 9. Optionally mark read or move with known folder ids after the user requested that organization. Never invent folder ids; call `list_folders` first. Do not delete mail unless the user explicitly approves `delete_email` plus `prepare_destructive_action`.
-10. Report the queue outcome: drafted, replied, skipped, blocked, or ambiguous. Stop on ambiguity instead of guessing.
+10. Report one consolidated review list: source IDs, classification, urgency/reason, newsletter subtype, draft IDs and pending approvals; include category/urgency counts and exact coverage/omissions. Distinguish provider acceptance from delivered mail. Stop on ambiguity instead of guessing.
 
 ## Write Safety
 
