@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Milestone Settlement Agent"
+  short_description: "Verify grant & bounty deliverables from email and settle milestone payments via PayBox"
+  default_prompt: "Use $mermail-milestone-settlement when the job is reviewing inbound grant or bounty milestone claims, verifying deliverable proof, checking wallet balances, and proposing or drafting milestone settlements through Mermail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
