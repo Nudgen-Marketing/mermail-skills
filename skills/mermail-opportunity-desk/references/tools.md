@@ -37,7 +37,7 @@ This persona composes existing Mermail domains and owns no MCP tools. Use the ex
 }
 ```
 
-Use `get_email_context` only when the selected opportunity's thread changes the brief, deadline, or terms. Keep the thread read bounded and reuse returned cursors without widening scope.
+Use `get_email_context` only when the selected opportunity's thread changes the brief, deadline, or terms. Its limit must fit the remaining 10-body/50,000-character budget shared with individual reads. Reuse returned cursors without widening scope; `content_omitted` is missing evidence. Metadata discovery stops at the shared 25-candidate bound.
 
 ## Draft and submission communication
 
@@ -58,6 +58,8 @@ Use `get_email_context` only when the selected opportunity's thread changes the 
 For `send_email` and `reply_to_email`, use `body.text` or `body.html`, required `body.from`, and explicit `to`; replies also need top-level `emailId`. These are external effects requiring an exact preview and current authorization. Reuse an idempotency key only for an identical request. Do not retry an uncertain send with a new key.
 
 ## Ownership and routing
+
+Explicit automation and organization requests use [optional-triage.md](optional-triage.md) and the current canonical triager/inbox contracts. No new tool ownership is introduced. The queue itself performs neither effect.
 
 - Mailbox discovery: `mermail-administer-workspace` or the already selected mailbox context.
 - Inbox reads: `mermail-manage-inbox`.

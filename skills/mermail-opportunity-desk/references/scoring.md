@@ -1,6 +1,6 @@
 # Opportunity scoring
 
-Score only candidates that survive the hard filter. Keep facts and estimates separate and show assumptions.
+Score only candidates that survive qualification. Keep facts and estimates separate and show assumptions. Apply [qualification-record.md](qualification-record.md) before ranking; a no-score PURSUE/HOLD/SKIP queue is a complete result when requested.
 
 ## Hard filter
 
@@ -9,9 +9,11 @@ Reject when any required condition fails:
 - no explicit reward, payment, or verifiable prize pool;
 - expired or unverifiable deadline;
 - incompatible geography, age, organization, event attendance, hardware, or credential requirement;
-- entry fee, deposit, token purchase, gambling, account rental, credential sharing, or unrestricted live-system testing;
+- gambling, account rental, credential sharing, deceptive referral loops, mandatory speculative token trading, or unrestricted live-system testing;
 - deliverable cannot be completed within the owner's verified skills, availability, and permitted tools;
 - payment depends only on referrals, sales commission, social farming, or speculative future value unless the owner explicitly selected that model.
+
+Missing evidence is a `HOLD` rather than a claimed confirmed failure. Disclosed legitimate deposits, subscriptions or other business costs need a separate capital/terms review, defaulting to zero new spend. A cost outside the owner's confirmed budget remains HOLD; it never authorizes payment. Noncash benefits and owner-selected referral/partnership models stay explicitly classified and outside cash EV. Do not call a deposit safe merely because its listing says refundable.
 
 ## EV score, 0–10
 
@@ -37,4 +39,4 @@ Do not convert tokens or currencies without a sourced observation time. Do not h
 
 ## Selection rule
 
-Return at most five verified candidates. Prefer one high-confidence submission completed today over several speculative builds. For ties, choose the smaller artifact, clearer acceptance criteria, stronger payment evidence, lower gate burden, and greater reuse of verified existing work.
+Return at most five evidence-qualified candidates. Preserve the requested ordering: for a fastest-cash queue use grounded settlement timing separately from deadline urgency; for EV use this rubric and disclose uncertain inputs. No-score queues use decision, deadline, evidenced cash timing, payout terms, capital and gate burden. Explain ties rather than inventing precision. Prefer manageable scope, clearer acceptance criteria and reuse of verified existing work within the owner's actual goal.
