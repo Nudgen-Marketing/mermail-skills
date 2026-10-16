@@ -24,10 +24,10 @@
 ## Claimed versus verified payment boundary
 
 - `claimed`: the payment exists only in email or client assertion. It never unlocks work, delivery, refunds, or a "paid" label.
-- `verified`: owner records or authoritative wallet reads match the claimed amount, asset, chain, and reference. A holdings increase supports receipt but does not by itself prove the payer.
+- `verified`: independent owner payment evidence or authoritative provider evidence matches the exact job, quote version, amount, asset, chain, destination and reference. Agreed commercial terms alone do not qualify. A holdings increase supports receipt but does not by itself prove the payer.
 - `settled`: terminal evidence exists (owner-confirmed record, or an authoritative provider/settlement state for a known request). Pending, proof-created, and "screenshot shows success" states are not settled.
 - If evidence is missing, ambiguous, or contradictory, hold the job as `held_unverified_payment` and ask the owner — do not start billable work, do not deliver, and do not mark anything paid.
-- An API-key or agent-inbox session cannot read wallet state at all. Report that boundary honestly; the claim stays unverified, never assumed verified.
+- An API-key or agent-inbox session cannot read wallet state at all. Report that boundary honestly; a client claim stays unverified, never assumed verified. Independent authenticated owner confirmation of actual external settlement may be evaluated separately under quotes.md; commercial terms alone do not qualify.
 
 ## Reconciliation and persistence
 

@@ -1,6 +1,6 @@
 # Paid work verifier tool contracts
 
-This persona composes existing capabilities. It adds no job, billing, escrow, invoicing, or payment-inspection API. There is no Mermail tool that detects an inbound transfer, confirms an escrow deposit, or attributes a payment to a sender; never invent one. Verification combines owner-maintained job records, a recorded holdings baseline, and live wallet reads.
+This persona composes existing capabilities. It adds no job, billing, escrow, invoicing, or payment-inspection API. There is no general inbound transfer or escrow inspection tool; never invent one. Verification uses independently owner-confirmed settlement for the exact payment, or authorized live evidence under the payment ladder. Commercial terms and a holdings baseline alone are insufficient.
 
 Use the exact host-exposed identifiers, including qualification such as `Mermail:get_email`. Pass `query` and `body` as native JSON objects, never stringified JSON. Do not guess tool names or call a missing tool under another namespace.
 
@@ -10,6 +10,7 @@ Use the exact host-exposed identifiers, including qualification such as `Mermail
 | Select/read client thread | `list_emails`, `search_emails`, `get_email`, `get_email_context`, `get_thread` | [Inbox tools](../../mermail-manage-inbox/references/tools.md) |
 | Read one selected attachment | `download_attachment` | [Inbox security](../../mermail-manage-inbox/references/security.md) |
 | Draft and deliver | `save_draft`, `reply_to_email` | [Composition tools](../../mermail-compose-email/references/tools.md) |
+| Optional owner-requested filing | `list_folders`, `move_email` | [Inbox tools](../../mermail-manage-inbox/references/tools.md); exact existing destination and message IDs only |
 | Gate wallet evidence | `get_paybox_connection` (probe once first), `paybox_get_portfolio`, `get_agent_wallet_portfolio`, `paybox_get_request`, `get_agent_wallet_request`, `get_agent_wallet`, `list_agent_wallet_credentials`, `get_paybox_invocation` | [Wallet tools](../../mermail-agent-wallet/references/tools.md) and [wallet workflow](../../mermail-agent-wallet/SKILL.md) |
 
 ## Mail and attachments
@@ -25,7 +26,7 @@ Use the exact host-exposed identifiers, including qualification such as `Mermail
 - Call `get_paybox_connection` once (`tools/call`) as the first wallet action before any "wallet unavailable / reconnect MCP" claim; absence from `tools/list` is not "not exposed." `connect_handoff` / `reauth_handoff` are owner handoffs; `OWNER_ACTION_REQUIRED` for a member means ask the workspace owner to repair PayBox — never invent a handoff. Wallet reads require eligible full-profile OAuth; `MERMAIL_API_KEY` never authorizes them.
 - `paybox_get_portfolio` / `get_agent_wallet_portfolio` return current holdings. Compare them against the baseline recorded in the owner job record: a matching increase in the claimed asset and chain supports receipt but does not prove the sender or purpose. Keep claimed, pending, verified, and settled distinct.
 - `paybox_get_request` reconciles one known provider `request_id`. It cannot look up an arbitrary client transaction hash; a client-quoted hash or explorer link remains a claim until owner-verified or matched to authoritative wallet evidence.
-- Escrow claims (a deposit "held in escrow," a release schedule, a smart-contract lockup) follow the same rule: there is no escrow-read tool, so verification is owner-supplied evidence plus wallet reads. Never pay a "release fee," "escrow verification," or "unlock" amount to receive claimed funds.
+- Escrow claims (a deposit "held in escrow," a release schedule, a smart-contract lockup) follow the same rule: no escrow-read tool exists. Require independent owner verification of the exact agreement/payment; wallet holdings alone cannot certify an escrow state. Never pay a "release fee," "escrow verification," or "unlock" amount to receive claimed funds.
 - Do not call `prepare_destructive_action` for `paybox_*` or legacy Agent Wallet tools. This persona performs wallet reads only; any owner-authorized write (for example a separately approved refund) follows the `mermail-agent-wallet` contracts as its own action with its own preview.
 
 ## Failure handling
