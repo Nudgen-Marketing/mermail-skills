@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Sovereign Telemetry & Settlement"
+  short_description: "Audit eBPF kernel telemetry & settle x402 feeds via Agent Wallet"
+  default_prompt: "Use $mermail-sovereign-telemetry-settlement when the job is to audit real-time network traffic via Linux eBPF kernel telemetry sensors, verify HTTP 402 payment requirements, and execute micro-settlements using Mermail's Agent Wallet and hosted MCP tools."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

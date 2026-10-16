@@ -1,0 +1,16 @@
+{
+  "name": "mermail-sovereign-telemetry-settlement",
+  "version": "1.0.0",
+  "description": "Autonomous eBPF Kernel Telemetry Sentinel & Mermail Agent Wallet x402 Settlement",
+  "main": "SKILL.md",
+  "author": "Radhika Atmosphere",
+  "license": "MIT",
+  "keywords": [
+    "mermail",
+    "x402",
+    "ebpf",
+    "agent-wallet",
+    "telemetry",
+    "solana"
+  ]
+}
