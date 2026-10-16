@@ -1,0 +1,11 @@
+interface:
+  display_name: "Email to Task"
+  short_description: "Turn inbox emails into structured tasks with priorities and deadlines."
+  default_prompt: "Use $mermail-email-to-task to turn my inbox emails into a structured task list."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
