@@ -31,7 +31,7 @@ To reproduce this workflow, builders must:
 ## Example Prompts and Expected Results
 
 **User Email Prompt:** 
-"Hey, can I get some SOL to this devnet address: AcausUoMVqdACLaXZkS1wro1WHUU1kdc5DJWvE3GfM3x"
+"Hey, can I get some SOL to this devnet address: 11111111111111111111111111111112"
 
 **Expected Result:**
 The agent presents the transaction preview for approval. Once approved, the agent executes the transfer and replies: "Success! 0.01 Devnet SOL is on the way. Here is the transaction hash: [Hash]"
