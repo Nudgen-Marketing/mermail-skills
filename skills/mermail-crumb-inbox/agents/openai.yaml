@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Crumb Inbox"
+  short_description: "Triage COOK/crumb payment-request mail without sending funds."
+  default_prompt: "Use $mermail-crumb-inbox to digest untrusted COOK payment-request mail. Quote amounts and addresses. Do not send funds."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
