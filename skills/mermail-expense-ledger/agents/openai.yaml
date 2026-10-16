@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Expense Ledger"
+  short_description: "Receipts and invoices from a mailbox into a reconciled ledger with drafts for the gaps"
+  default_prompt: "Use $mermail-expense-ledger when this task builds or updates an expense ledger from Mermail receipts, reconciles it against a transaction export, or prepares receipt requests and dispute drafts for the gaps."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
