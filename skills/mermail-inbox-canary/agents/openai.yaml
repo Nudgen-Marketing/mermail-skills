@@ -1,0 +1,11 @@
+interface:
+  display_name: "Use a Mermail Inbox Canary"
+  short_description: "Prove a Mermail mailbox delivers mail with one tagged round-trip probe"
+  default_prompt: "Use $mermail-inbox-canary when this task needs to verify a Mermail mailbox can send and receive mail end-to-end, measure delivery latency, or detect automation holds — not generic inbox cleanup or verification-mail extraction."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

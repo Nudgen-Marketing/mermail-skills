@@ -30,6 +30,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Run an xStocks trading desk: standing budget/schedule/mint allowlist, PayBox Jupiter plugin DCA, PayBox swap fallback, per-DCA invoice email, or weekly brokerage statement email | `mermail-xstocks-desk` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, bridge native USDC with the owner-approved quote flow, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
+| Verify a mailbox actually delivers mail end-to-end, measure send-to-arrive latency, or detect automation holds with one tagged self-probe | `mermail-inbox-canary` |
 
 Choosing or changing the default task triager is unsupported by the curated workflow. If requested, the root router must report the limitation and stop without invoking a focused skill; never call or invent `set_default_task_triager`.
 
