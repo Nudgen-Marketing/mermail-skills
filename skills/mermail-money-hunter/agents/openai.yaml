@@ -1,0 +1,11 @@
+interface:
+  display_name: "Money Hunter"
+  short_description: "Find refundable purchases, price drops, forgotten subscriptions, and warranty claims in your inbox"
+  default_prompt: "Use $mermail-money-hunter to hunt for money in my inbox"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
