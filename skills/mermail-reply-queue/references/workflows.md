@@ -14,9 +14,9 @@
 
 ## Search then reply
 
-1. `search_emails` with native JSON `query` (sender, subject, `date_start`, unread).
+1. `search_emails` with native JSON `query` using only supported fields (sender, subject, `date_start`, and `read: false` when the live schema supports that filter).
 2. Stop if zero or ambiguous matches; show non-secret metadata and ask.
-3. Open the exact `emailId`, draft, preview, then reply only after approval.
+3. Open the exact `emailId` under the native safe gate. Draft only on an explicit preparation request with resolved targets; preview the full effect and reply only after approval. A search/queue-only request stays read-only.
 
 ## Safety stops
 
