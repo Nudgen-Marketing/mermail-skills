@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Scout Inbox"
+  short_description: "Triage partnership and bounty leads; draft replies; optional tiny USDC data fee"
+  default_prompt: "Use $mermail-bounty-scout-inbox to triage partnership, sponsorship, bounty, or hackathon email, draft replies without auto-sending, and only propose owner-authorized tiny Agent Wallet / x402 data fees when needed."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
