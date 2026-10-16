@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Ops Digest"
+  short_description: "Daily inbox standup and triage digest from a Mermail mailbox"
+  default_prompt: "Use $mermail-ops-digest to build a bounded ops digest from my Mermail inbox without sending mail until I approve."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
