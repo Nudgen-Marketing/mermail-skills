@@ -22,6 +22,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Inspect API, email, or AI-credit usage, or manage workspaces, members, invitations, domains, mailboxes, webhook subscriptions/deliveries, admin-only `agentAutoResponse.mode` settings, or storage | `mermail-administer-workspace` |
 | Explicitly create, inspect, update, debug, or delete task triagers, inspect recent runs, or open a triager-linked conversation | `mermail-automate-triage` |
 | Explicitly create, list, inspect, continue, rename, or delete a mailbox-agent conversation, or delegate a mailbox task to the in-app Assistant | `mermail-mail-agent` |
+| Process invoice and billing emails into controlled payments (extract, policy-check, confirm, archive, ledger) | `mermail-auto-bill-pay` |
 | Connect or use third-party apps such as GitHub, Slack, Apollo, Notion, or Google Calendar through the authenticated user's Mermail Composio connection | `mermail-composio` |
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Auto-Bill Pay Agent"
+  short_description: "Turn invoice emails into controlled payments: extract, policy-check, confirm, archive, and ledger."
+  default_prompt: "Use $mermail-auto-bill-pay to process invoice emails into a controlled payment workflow safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

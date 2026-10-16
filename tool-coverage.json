@@ -5,6 +5,7 @@
   "infrastructureSkills": [
     "mermail",
     "mermail-agent-inbox",
+    "mermail-auto-bill-pay",
     "mermail-cli",
     "mermail-gtm-agent",
     "mermail-mcp",
