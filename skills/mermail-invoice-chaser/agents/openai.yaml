@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Chaser"
+  short_description: "Scan for invoices, build an AR aging ledger, and draft escalating payment follow-ups"
+  default_prompt: "Use $mermail-invoice-chaser when the job is chasing unpaid invoices, building an accounts-receivable aging ledger, or drafting escalating payment follow-ups per overdue tier."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
