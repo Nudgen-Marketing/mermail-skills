@@ -1,0 +1,11 @@
+interface:
+  display_name: "Trial Expiry Guard"
+  short_description: "Trial Expiry Guard: guided email workflow"
+  default_prompt: "Use $mermail-trial-expiry-guard to use this skill for Trial Expiry Guard.."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
+      description: "Mermail workspace and mailbox MCP server"
