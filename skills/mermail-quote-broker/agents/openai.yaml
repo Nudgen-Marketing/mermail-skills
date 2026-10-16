@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Quote Broker"
+  short_description: "Buyer-side RFQs from a burner Mermail inbox: quotes, cited comparison, draft-only negotiation"
+  default_prompt: "Use $mermail-quote-broker to get quotes from these vendors, show me every email before sending, and compare the replies."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
