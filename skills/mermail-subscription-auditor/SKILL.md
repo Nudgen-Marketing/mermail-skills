@@ -36,12 +36,12 @@ This skill does not own MCP tools. Follow the owning-skill contracts for mailbox
 2. Resolve one mailbox with `list_mailboxes`. Prefer `public_id` as `mailboxId`. Ask which mailbox to audit when several fit; do not provision a new mailbox for an audit of existing mail.
 3. Collect candidates with bounded `search_emails` passes over receipt vocabulary (receipt, invoice, renewal, trial, subscription, payment confirmation) and vendor names the user supplies, within the user's audit window (default 12 months). Record which passes ran and which were truncated.
 4. Inspect each candidate with `get_email` only when `scan_status` is `clean`. Extract vendor, amount, currency, cadence, and charge date only when stated in the message; never infer an amount that is not printed in the evidence.
-5. Group extractions by vendor and normalize cadence (monthly, annual, other). Estimate next renewal from the latest charge date plus cadence, labeled as an estimate. Two consecutive receipts from one vendor with different amounts for the same plan is a price-increase finding, cited with both email ids.
+5. Read [ledger.md](references/ledger.md) before grouping or calculating. Keep workspace/mailbox, vendor, account, plan, currency and billing basis distinct; deduplicate receipt copies, not legitimate charges. Compare like-for-like positive deltas only for price increases; rank annualized spend separately by currency and report month-over-month changes with coverage limits.
 6. Flag trial-conversion risk when a trial notice has no matching later cancellation confirmation, and renewals inside the warning horizon.
 7. Present the ledger, rollup, and alerts with every row citing its evidence email ids. State coverage limits: window audited, passes truncated, vendors with ambiguous evidence.
 8. Only on explicit request, deliver the report by email: preview exact To/subject/body, wait for approval, then one `send_email` with one idempotency key.
-9. Only on explicit request, prepare a cancellation: `save_draft` addressed to the vendor's billing contact found in receipt headers. Sending it is a separate, fresh approval for the exact payload. Never claim a draft was sent.
-10. Only on explicit request, automate future receipt flagging: `list_task_triagers` first, then `create_task_triager` for classification and auto-draft only. Do not call `set_default_task_triager`.
+9. Only on explicit request, prepare a cancellation following the draft workflow: obtain the destination from the user, preview the exact payload, save once after approval and read back the stored draft. Sending belongs to a separate fresh compose approval. A draft or sent request does not prove cancellation.
+10. Only on explicit request, delegate receipt flagging to `mermail-automate-triage` under its security contract; inspect first, preview a disabled bounded configuration, then obtain approval. This is inbound-event classification, not a recurring calendar scheduler. No default-selection or automatic send.
 11. Summarize audited vs skipped vs ambiguous, sent vs drafted, and any configuration created. Do not retry an uncertain send automatically.
 
 ## Write Safety

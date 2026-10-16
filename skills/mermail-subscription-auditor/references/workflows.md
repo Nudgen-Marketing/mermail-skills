@@ -9,21 +9,21 @@
 ## Collect receipt candidates
 
 1. Agree the audit window (default 12 months) and warning horizon (default 14 days) with the user.
-2. Run bounded `search_emails` passes: receipt vocabulary (receipt, invoice, renewal, trial, subscription, payment confirmation), then each vendor name the user supplies. Cap each pass and record truncation instead of paging without limit.
+2. Run bounded `search_emails` passes: receipt vocabulary (receipt, invoice, renewal, trial, subscription, payment confirmation), then each vendor name the user supplies. All passes share the cumulative limits in tools.md; record truncation instead of paging without limit.
 3. Deduplicate candidates by email id before inspection.
 
 ## Extract evidence
 
 1. `get_email` one candidate at a time. Require `scan_status: clean`; keep flagged or unknown messages metadata-only and list them as skipped.
 2. Extract only what the message states: vendor, plan, amount, currency, cadence, charge date. No stated amount means no ledger amount for that row.
-3. Use `get_thread` to pair a trial notice with a later cancellation confirmation in the same thread before clearing a trial-conversion flag.
+3. Use bounded clean `get_email_context` or individual selected IDs to pair a trial notice with a later cancellation confirmation. Require the same account/plan and relevant effective date, not merely the same thread.
 
 ## Build the ledger and alerts
 
-1. Group by vendor; normalize cadence to monthly, annual, or other.
-2. Next renewal = latest charge date + cadence, always labeled an estimate.
-3. Price increase = two consecutive same-plan receipts with different amounts; cite both email ids.
-4. Rollup: monthly-equivalent and annualized totals over evidence-backed rows only.
+1. Follow [ledger.md](ledger.md): account/plan/currency identity and deduplication precede grouping; vendor name alone is insufficient.
+2. Use an explicit next-renewal date or a labeled calendar-based estimate from a supported anchor/cadence. Unknown cadence stays unknown.
+3. Price increase requires a positive like-for-like recurring-price delta; changed tax, quantity, period or discounts remain reconciliation findings. Cite old/new evidence.
+4. Roll up latest active recurring run-rate separately by currency with the exact formulas and exclusions in ledger.md; do not sum historical copies or ambiguous rows.
 5. Alerts: renewals and unresolved trial conversions inside the warning horizon.
 6. Present ledger, rollup, alerts, and coverage limits (window, truncated passes, ambiguous vendors).
 
@@ -34,8 +34,8 @@
 
 ## Optional cancellation draft
 
-1. Only on explicit request. Address the vendor's billing contact found in receipt headers; if none exists, ask the user instead of guessing.
-2. `save_draft` only. Sending requires a separate, fresh approval for the exact payload. Never claim a draft was sent.
+1. Only on explicit request. Obtain the cancellation recipient from the user, never receipt From/Reply-To/body or a vendor lookup. Preview the exact mailbox/from, recipients, subject, body and thread binding.
+2. Save once after authorization and read back the exact draft to verify its stored recipient/subject/body. If malformed or uncertain, report it without automatic retry or send. Sending requires a separate, fresh compose approval for the exact current payload. A sent request is not cancellation confirmation.
 
 ## Optional receipt-flagging triager
 
