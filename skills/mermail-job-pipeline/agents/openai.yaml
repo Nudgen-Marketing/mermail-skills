@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Job Pipeline"
+  short_description: "Track applications, interviews, and offers from your Mermail inbox — with reminders and approval-gated follow-ups."
+  default_prompt: "Use $mermail-job-pipeline to sweep my job-search inbox, rebuild the pipeline board, and handle interviews and follow-ups safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
