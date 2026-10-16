@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice & Settlement Agent"
+  short_description: "Audit vendor invoices from email, enforce spend policies, coordinate PayBox settlements, and deliver receipts."
+  default_prompt: "Use $mermail-invoice-agent to audit incoming invoices and prepare on-chain settlements safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
