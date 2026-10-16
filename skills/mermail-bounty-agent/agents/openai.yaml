@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Agent"
+  short_description: "Autonomous bug bounty triage and human-approved Solana USDC treasury settlements via Mermail"
+  default_prompt: "Use $mermail-bounty-agent to triage vulnerability disclosures, verify whitehat payout addresses, check treasury solvency, and coordinate human-approved USDC bounty settlements."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and Agent Wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
