@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Follow-up Radar"
+  short_description: "Find sent emails awaiting replies, score stalled threads, and draft polite follow-ups for approval."
+  default_prompt: "Use $mermail-followup-radar to scan sent mail for stalled threads, score them, and draft follow-ups for approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
