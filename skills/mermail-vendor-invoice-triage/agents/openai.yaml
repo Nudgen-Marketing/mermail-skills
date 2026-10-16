@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Vendor Invoice Triage"
+  short_description: "Triage vendor invoices, draft acks, and organize AP mail"
+  default_prompt: "Use $mermail-vendor-invoice-triage to find invoice-like Mermail messages, extract vendor/amount/due date, classify next steps, and draft acknowledgments without sending or paying automatically."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
