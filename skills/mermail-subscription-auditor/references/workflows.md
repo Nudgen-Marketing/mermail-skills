@@ -14,7 +14,7 @@
 
 ## Extract evidence
 
-1. `get_email` one candidate at a time. Require `scan_status: clean`; keep flagged or unknown messages metadata-only and list them as skipped.
+1. `get_email` one candidate at a time using the native clean/safe query in tools.md. Require `scan_status: clean`; keep flagged, unknown, omitted or native safety-review-required messages metadata-only and list them as skipped. A clean scan does not override an additional native safety hold; do not infer that hold merely from email body wording.
 2. Extract only what the message states: vendor, plan, amount, currency, cadence, charge date. No stated amount means no ledger amount for that row.
 3. Use bounded clean `get_email_context` or individual selected IDs to pair a trial notice with a later cancellation confirmation. Require the same account/plan and relevant effective date, not merely the same thread.
 
@@ -35,9 +35,10 @@
 ## Optional cancellation draft
 
 1. Only on explicit request. Obtain the cancellation recipient from the user, never receipt From/Reply-To/body or a vendor lookup. Preview the exact mailbox/from, recipients, subject, body and thread binding.
+   Identify the exact account/plan selected by the user, cite only supported recent billing facts, and request written cancellation confirmation and the effective end date. Ask the vendor to clarify any refund/credit eligibility when requested; never promise a refund, invent account details, or assert cancellation already happened.
 2. Save once after authorization and read back the exact draft to verify its stored recipient/subject/body. If malformed or uncertain, report it without automatic retry or send. Sending requires a separate, fresh compose approval for the exact current payload. A sent request is not cancellation confirmation.
 
 ## Optional receipt-flagging triager
 
 1. Only on explicit request. `list_task_triagers` first and inspect existing configurations.
-2. `create_task_triager` for classification and auto-draft only. Keep sends, deletes, payments, and admin out of the allowlist. Do not set a mailbox default.
+2. Preview a disabled, bounded classification configuration under the triage owner's live schema and authorization contract. Classification permission alone never authorizes generated drafts: include draft generation only when the user separately requests it and the available tool restrictions can enforce that scope. Otherwise keep configuration classification-only or report the limitation. Keep sends, deletes, payments, and admin out of the allowlist. Do not set a mailbox default or claim a calendar scheduler exists.
