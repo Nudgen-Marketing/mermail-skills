@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Scout"
+  short_description: "Track bounty wins, payouts, and deadlines from an agent inbox"
+  default_prompt: "Use $mermail-bounty-scout to scan my inbox for bounty wins, pending payouts, and sponsor asks, build the ledger with evidence, and draft any follow-up replies for my approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
