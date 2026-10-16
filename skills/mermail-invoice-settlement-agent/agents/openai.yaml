@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settlement Agent"
+  short_description: "Autonomous invoice parsing, PayBox USDC settlement, and email receipt dispatch."
+  default_prompt: "Use $mermail-invoice-settlement-agent to review inbound invoices in my inbox and prepare payout approvals."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox wallet MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
