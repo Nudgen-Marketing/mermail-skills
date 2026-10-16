@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Travel Itinerary Compiler"
+  short_description: "Compile travel booking confirmations from a Mermail inbox into one time-ordered itinerary draft."
+  default_prompt: "Use $mermail-travel-itinerary-compiler to compile the user's travel bookings from Mermail inbox confirmations into a time-ordered itinerary draft and require explicit user approval before sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
