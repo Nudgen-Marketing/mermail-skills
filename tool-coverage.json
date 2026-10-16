@@ -10,6 +10,7 @@
     "mermail-mcp",
     "mermail-research-agent",
     "mermail-scheduling-agent",
+    "mermail-freelance-margin-guard",
     "mermail-support-agent",
     "mermail-x402-agent",
     "mermail-xstocks-desk"
@@ -172,6 +173,10 @@
     "schedule_email_send",
     "chat_with_mailbox_agent",
     "execute_composio_tool",
-    "connect_composio_toolkit"
+    "connect_composio_toolkit",
+    "create_webhook",
+    "update_webhook",
+    "test_webhook",
+    "retry_webhook_delivery"
   ]
 }
