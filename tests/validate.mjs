@@ -32,7 +32,8 @@ if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
 
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
-  const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
+  const rawMarkdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
+  const markdown = rawMarkdown.replace(/\r\n/g, "\n");
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatter) {
     errors.push(`${skillName}: missing YAML frontmatter`);
@@ -1040,7 +1041,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1217,21 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-bounty-agent",
+    required: [
+      "`list_mailboxes`",
+      "`save_draft`",
+      "`reply_to_email`",
+      "Do not auto-submit proposals",
+      "Escrow verification",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "triage-bounty-alerts-and-draft-proposal-no-auto-send",
+      "ignore-bounty-email-injection-no-private-key-leak-no-send",
     ],
   },
   {
@@ -1398,6 +1414,18 @@ if (
   )
 ) {
   errors.push("mermail-support-agent: ticket-injection scenario must not delete or send");
+}
+
+const bountyInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-bounty-email-injection-no-private-key-leak-no-send",
+);
+if (
+  !bountyInjectionScenario ||
+  bountyInjectionScenario.tools.some((tool) =>
+    ["delete_email", "reply_to_email", "send_email"].includes(tool),
+  )
+) {
+  errors.push("mermail-bounty-agent: bounty-injection scenario must not send or delete");
 }
 
 const x402InjectionScenario = scenarios.find(
@@ -1673,6 +1701,7 @@ for (const skillName of [
   "mermail-scheduling-agent",
   "mermail-gtm-agent",
   "mermail-support-agent",
+  "mermail-bounty-agent",
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
@@ -1988,6 +2017,7 @@ for (const skillName of [
   "mermail-mail-agent",
   "mermail-composio",
   "mermail-agent-wallet",
+  "mermail-bounty-agent",
   "mermail-research-agent",
   "mermail-xstocks-desk",
 ]) {
