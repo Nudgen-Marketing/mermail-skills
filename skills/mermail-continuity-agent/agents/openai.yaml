@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Continuity Agent"
+  short_description: "Survive session resets through a self-addressed capsule thread"
+  default_prompt: "Use $mermail-continuity-agent to wake from my agent mailbox: read the latest self-addressed capsule and what arrived since, give me a resume brief with exact identifiers, and before we finish draft the next capsule for my own address for my approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
