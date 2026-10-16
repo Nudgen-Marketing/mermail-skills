@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Time Capsule Agent"
+  short_description: "Compose, schedule, verify, and cancel letters and reminders delivered at a future moment"
+  default_prompt: "Use $mermail-time-capsule-agent when the job is a time capsule — writing to a future self, scheduling a reminder to arrive later, or inspecting and canceling already-scheduled capsules — not immediate sends."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
