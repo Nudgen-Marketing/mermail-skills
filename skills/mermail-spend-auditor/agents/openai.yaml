@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Spend Auditor"
+  short_description: "Turn receipt email into a verified spend ledger and renewal watch"
+  default_prompt: "Use $mermail-spend-auditor to audit the last 90 days of receipts in my Mermail inbox, show the deduplicated ledger, recurring run-rate, and anything I need to decide before the next renewal."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
