@@ -1,0 +1,23 @@
+# Demo transcript — mermail-invoice-audit, LIVE RUN 2026-09-27
+# Real Mermail service (console.mermail.app), mailbox nova-demo@mermail.app ("Nova Demo").
+# Matches the captions in demo_video.mp4 (live version).
+
+[00:00] LIVE DEMO — real Mermail service, 2026-09-27. No mocks.
+[00:05] Step 1: the live console. Mailbox "Nova Demo" — nova-demo@mermail.app — is real and active.
+        PayBox connection: NOT CONNECTED. Payment history is unverifiable, so the skill must be honest about that.
+[00:25] Step 2: seed four invoice emails through the live API with a fresh "demo" API key.
+        INV-2041 — 1,250.00 USDC (Acme Labs). INV-2042 — 840.50 USDC (Bolt Design).
+        INV-2043 — 2,000.00 USDC (Ghostware). INV-2044 — 500.00 USDC, urgent (Phantom Consulting).
+[00:50] Step 3: read them back live. The inbox shows INV-2044; the other three landed in Sent
+        (the API seeding path). All four opened and read individually — real message IDs confirmed.
+[01:10] Step 4: the audit runs. Each email is parsed for invoice number and claimed amount,
+        then checked against payment history.
+[01:25] Honest result: all four verdicts UNPAID — "payment unverifiable, Agent Wallet not connected."
+        The live API exposes no transfer history without PayBox, and API-key sessions have no PayBox tools.
+        No MATCH or MISMATCH verdicts are fabricated.
+[01:45] Step 5: the skill drafts the summary (saved as a draft, never sent).
+        4 invoices, 4,590.50 USDC claimed. Verified paid: 0.00. Outstanding / unverifiable: 4,590.50.
+[02:05] What the skill does: reconciles invoice/payment-claim emails against wallet transfer history.
+        Verdicts MATCH / AMOUNT_MISMATCH / UNPAID / DUPLICATE_CLAIM. Drafts a summary, labels the inbox.
+        It never moves money.
+[02:20] End. $0 spent. No money moved. No PayBox connected. Real service, real reads, honest verdicts.
