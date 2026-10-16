@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Crypto Earn"
+  short_description: "Verify and claim crypto platform payouts with an agent inbox"
+  default_prompt: "Use $mermail-crypto-earn to provision a Mermail verification inbox for a crypto earn platform, wait safely for verification or claim mail, prepare a human claim checklist with the user-supplied wallet address, and route any required x402 microtask payment through $mermail-x402-agent."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
