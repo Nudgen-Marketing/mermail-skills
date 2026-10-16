@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Commitment Tracker"
+  short_description: "Track explicit promises, deadlines, and fulfillment evidence"
+  default_prompt: "Use $mermail-commitment-tracker to build an evidence-backed ledger of explicit commitments in bounded Mermail threads, never infer an unstated deadline, and draft follow-ups without auto-sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
