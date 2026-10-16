@@ -35,8 +35,10 @@ merchants/accounts. Do not expose full account numbers or unrelated private text
 | `mention_only` | Quote, offer, invoice, reward promise or amount without payment evidence | Excluded from monetary subtotals |
 | `uncertain` | Missing status, direction or identity, conflicting evidence | Review queue; excluded from subtotals |
 
-A receipt title alone is insufficient. A refund requested is `pending`, not
-`reported_refunded`; a credit note is not a cash refund. Preserve provider wording
+A receipt title alone is insufficient. A customer refund request alone is
+`mention_only` or `uncertain`; use `pending` only for an explicit provider claim
+that the refund is processing or scheduled. Neither is `reported_refunded`;
+a credit note is not a cash refund. Preserve provider wording
 beside the normalized status. No bank/wallet reads or links are needed or implied.
 
 ## Identity, transitions and duplicate handling
