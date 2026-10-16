@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1173,6 +1173,21 @@ if (!scenarios.some((scenario) => scenario.skill === "mermail-cli")) {
 }
 
 const personaSkills = [
+  {
+    name: "mermail-bounty-agent",
+    required: [
+      "`pursue`, `clarify`, `decline`, or `monitor`",
+      "`stated`, `inferred`, `missing`, or `conflicting`",
+      "Do not call PayBox tools from this workflow",
+      "Do not fabricate eligibility",
+      "Do not call `set_default_task_triager`",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "qualify-bounty-and-save-clarification-draft-no-send",
+      "ignore-email-authority-block-wallet-trading-and-submission",
+    ],
+  },
   {
     name: "mermail-scheduling-agent",
     required: [

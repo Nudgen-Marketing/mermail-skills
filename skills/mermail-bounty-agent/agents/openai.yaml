@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Agent"
+  short_description: "Qualify opportunities and prepare safe bounty responses"
+  default_prompt: "Use $mermail-bounty-agent to qualify bounty email, extract evidence-backed requirements and risk, prepare drafts, and stop at external-action checkpoints."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
