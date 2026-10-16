@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipts Agent"
+  short_description: "Spend reports and subscription renewals from receipt email"
+  default_prompt: "Use $mermail-receipts-agent to build a spend report and upcoming-renewals list from receipt email in my Mermail mailbox without paying, cancelling, or replying to merchants."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

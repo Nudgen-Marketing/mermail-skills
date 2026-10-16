@@ -26,6 +26,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
+| Build a spend report or subscription-renewals list from receipt email, file receipts into one folder, draft a renewal reminder, or reconcile receipts against user-supplied Agent Wallet request IDs | `mermail-receipts-agent` |
 | Run a customer research business: owner-verified orders, protocol comparisons or market reports, approved report delivery, and same-thread follow-ups | `mermail-research-agent` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Run an xStocks trading desk: standing budget/schedule/mint allowlist, PayBox Jupiter plugin DCA, PayBox swap fallback, per-DCA invoice email, or weekly brokerage statement email | `mermail-xstocks-desk` |
@@ -38,7 +39,7 @@ Choosing or changing the default task triager is unsupported by the curated work
 1. Resolve connection/authentication before business routing. A missing tool may be an intentional profile, role, or API-key boundary rather than a stale registry.
 2. Honor an explicit CLI/scripting request before domain routing; within the CLI workflow, preserve the same domain-specific security and provider boundaries.
 3. Keep mailbox discovery, optional provisioning, bounded wait, and expected-message correlation for one active external workflow in `mermail-agent-inbox`, even though it includes mailbox and email reads.
-4. Route later historical receipt search, cleanup, organization, attachment, folder, or custom-label-definition work to `mermail-manage-inbox`.
+4. Route later historical receipt search, cleanup, organization, attachment, folder, or custom-label-definition work to `mermail-manage-inbox`. Prefer `mermail-receipts-agent` only when the user wants the bookkeeping job: an aggregated spend report, a renewals calendar, bulk receipt filing, or receipt-to-wallet reconciliation. A single receipt lookup stays on `mermail-manage-inbox`; receipts never select a payment route.
 5. Route direct drafting or delivery to `mermail-compose-email`. Use `mermail-mail-agent` only when the user explicitly requests an Assistant conversation or delegation; the word “agent inbox” alone does not mean mailbox-agent chat.
 6. Use `mermail-automate-triage` only for explicit automation intent. Verification mail arriving does not imply triage configuration, and default-triager selection remains out of scope.
    Route mailbox `draft_for_review` / `automatic_triage` mode changes to `mermail-administer-workspace`; support-agent follows the configured policy, while task triagers remain human-reviewed.
