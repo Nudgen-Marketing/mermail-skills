@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Email E2E"
+  short_description: "End-to-end test your app's transactional emails in a real Mermail inbox, then fix them"
+  default_prompt: "Use $mermail-email-e2e to test my app's signup and password-reset emails end to end and fix whatever is broken."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
