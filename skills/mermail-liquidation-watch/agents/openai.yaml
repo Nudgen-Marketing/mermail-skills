@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Liquidation Watch"
+  short_description: "Email margin-call desk for on-chain loans; approve by reply"
+  default_prompt: "Use $mermail-liquidation-watch when the job is to watch an on-chain lending position for liquidation risk, email the operator an exact repay preview before it is too late, treat only the operator's authenticated reply on that thread as approval, top up the borrow wallet with Agent Wallet when funds are short, and hand back an unsigned repay for the owner to sign."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
