@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Policy Change Radar"
+  short_description: "Compare vendor policy notices and flag review dates"
+  default_prompt: "Use $mermail-policy-change-radar to compare recent vendor policy notices and prepare evidence-linked review questions."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
