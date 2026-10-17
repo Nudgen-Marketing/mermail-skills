@@ -150,6 +150,16 @@ profile enforces a server-side maximum of 12,000 body characters even if a
 larger value is requested; this skill applies the stricter 10,000-character
 processing bound. Do not load full bodies for rejected or ambiguous candidates.
 
+The live bridge may return `attachment_count` while omitting the attachment ID
+array when `agent_safe_content: true`. Never infer an attachment ID from that
+count. If the selected, scan-clean message requires an attachment, issue one
+separate `get_email` read for the same `mailboxId` and `emailId` with
+`metadata_only: true` and `require_scan_status: "clean"`, omitting
+`agent_safe_content`; this keeps the body out of the read while exposing the
+attachment metadata needed for selection. From that compatibility read extract only
+`attachments[].{id,filename,mimetype,size}`; do not expose or summarize
+`raw_headers`, `provider_metadata`, or other transport metadata.
+
 ## Read selected conversation context
 
 Use `get_email_context` only after list/search plus post-validation identifies
