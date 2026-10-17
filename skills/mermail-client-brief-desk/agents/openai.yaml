@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Client Brief Desk"
+  short_description: "Turn project inquiries into structured briefs and draft scoping replies"
+  default_prompt: "Use $mermail-client-brief-desk when the job is inbound website or freelance intake, extracting a production brief, or drafting a bilingual scoping reply without sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
