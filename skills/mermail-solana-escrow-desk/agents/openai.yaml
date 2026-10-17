@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Solana Escrow Desk"
+  short_description: "Automate email-driven Solana USDC escrow disbursements and settlement receipts"
+  default_prompt: "Use $mermail-solana-escrow-desk to triage vendor invoices, verify on-chain Solana escrow conditions, execute authorized PayBox USDC transfers, and dispatch formal cryptographic settlement receipts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

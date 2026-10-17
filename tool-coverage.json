@@ -12,7 +12,8 @@
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-solana-escrow-desk"
   ],
   "domains": {
     "mermail-administer-workspace": [
