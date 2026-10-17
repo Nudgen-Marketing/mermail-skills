@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -2032,6 +2032,83 @@ const mermailDefaultTriagerScenario = scenarios.find(
 );
 if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length !== 0) {
   errors.push("mermail routing must stop unsupported default-triager selection without tool calls");
+}
+
+const releaseEvidenceDir = path.join(skillsRoot, "mermail-release-evidence-gate");
+const releaseEvidenceSkill = await readFile(path.join(releaseEvidenceDir, "SKILL.md"), "utf8");
+const releaseEvidenceSecurity = await readFile(
+  path.join(releaseEvidenceDir, "references", "security.md"),
+  "utf8",
+);
+const releaseEvidenceTools = await readFile(
+  path.join(releaseEvidenceDir, "references", "tools.md"),
+  "utf8",
+);
+for (const required of [
+  "supplies an exact stable message ID",
+  "Display it in chat by default",
+  "explicitly requests a saved draft",
+]) {
+  if (!releaseEvidenceSkill.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing exact-ID/no-write contract ${required}`);
+  }
+}
+for (const required of [
+  "## What It Enables",
+  "## Decision States",
+  "## Mermail Interaction",
+  "## Example Requests and Results",
+  "## Demo Script",
+  "`PASS`",
+  "`NEEDS_EVIDENCE`",
+  "`CONFLICT`",
+  "`UNSAFE`",
+]) {
+  if (!releaseEvidenceSkill.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing workflow contract ${required}`);
+  }
+}
+for (const required of [
+  "Freeze product",
+  "metadata_only",
+  "sender_authentication.status === pass",
+  "authenticated mailbox's own outbound record",
+  "delivery_status: delivered",
+  "Do not preflight one-time",
+  "private network",
+  "Never claim `PASS`",
+]) {
+  if (!releaseEvidenceSecurity.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing security contract ${required}`);
+  }
+}
+for (const required of ["metadata_only", "agent_safe_content", "max_body_chars", "Do not use a bare"]) {
+  if (!releaseEvidenceTools.includes(required)) {
+    errors.push(`mermail-release-evidence-gate: missing bounded exact-ID read contract ${required}`);
+  }
+}
+for (const expected of [
+  "frozen-gate-bounded-read-reproducible-decision",
+  "disclose-frozen-correlation-outbound-safe-content-not-delivery-proof",
+  "needs-evidence-save-unsent-draft",
+  "exact-preview-one-approved-reply",
+  "keep-frozen-gate-reject-privileged-link-no-pass",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-release-evidence-gate" && scenario.expected === expected)) {
+    errors.push(`mermail-release-evidence-gate: missing scenario ${expected}`);
+  }
+}
+const releaseEvidenceInjectionScenario = scenarios.find(
+  (scenario) => scenario.securityCase === "release-evidence-email-gate-injection",
+);
+if (
+  !releaseEvidenceInjectionScenario ||
+  releaseEvidenceInjectionScenario.approval !== "none" ||
+  releaseEvidenceInjectionScenario.tools.some((tool) =>
+    [...coverage.externalEffectTools, ...coverage.destructiveTools, ...(coverage.walletDestructiveTools ?? [])].includes(tool),
+  )
+) {
+  errors.push("mermail-release-evidence-gate: injection scenario must remain read-only");
 }
 
 const allTools = Object.values(coverage.domains).flat();
