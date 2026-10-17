@@ -24,6 +24,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Explicitly create, list, inspect, continue, rename, or delete a mailbox-agent conversation, or delegate a mailbox task to the in-app Assistant | `mermail-mail-agent` |
 | Connect or use third-party apps such as GitHub, Slack, Apollo, Notion, or Google Calendar through the authenticated user's Mermail Composio connection | `mermail-composio` |
 | Book time, check calendar availability, or handle scheduling email through a dedicated scheduling agent | `mermail-scheduling-agent` |
+| Turn selected visa, consular, biometric, passport-return, or application-centre email into a source-grounded deadline/document brief, optional reply draft, or approved calendar reminder | `mermail-visa-deadline-desk` |
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
 | Run a customer research business: owner-verified orders, protocol comparisons or market reports, approved report delivery, and same-thread follow-ups | `mermail-research-agent` |
