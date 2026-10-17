@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Finance Reconciliation"
+  short_description: "Reconcile emailed invoices, receipts, and payment evidence"
+  default_prompt: "Use $mermail-finance-reconciliation to build a bounded, auditable reconciliation from Mermail evidence without authorizing payments or sending unapproved email."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
