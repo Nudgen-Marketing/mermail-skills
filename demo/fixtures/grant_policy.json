@@ -1,0 +1,41 @@
+{
+  "grant_id": "grant-sol-mobile-042",
+  "title": "Superteam Mobile SDK for Solana",
+  "grantee_organization": "Solana Mobile Builders Lab",
+  "grantee_payout_address": "8vFtM21B6jXW7N8aU9Kz3QyF1eRpT6dY5sC4aB3xKp7L",
+  "currency": "USDC",
+  "chain": "solana",
+  "total_allocation": 5000,
+  "disbursed_total": 1000,
+  "remaining_cap": 4000,
+  "milestones": [
+    {
+      "index": 1,
+      "title": "Architecture Specification & Core Wallet Adapter",
+      "allocation": 1000,
+      "status": "COMPLETED",
+      "tx_hash": "3WpX8kL9vN2mQ4rS1tU7yB5cD6fG8hJ0kL2mN4pQ6rS8tU0vW2xY4z"
+    },
+    {
+      "index": 2,
+      "title": "Biometric Signer Integration & Test Suite",
+      "allocation": 2000,
+      "status": "IN_REVIEW",
+      "required_deliverables": [
+        "GitHub PR merged with CI passing",
+        "Biometric authentication unit tests > 80% coverage",
+        "Developer documentation published at docs.superteam.fun/mobile-sdk"
+      ]
+    },
+    {
+      "index": 3,
+      "title": "Production Release & Mainnet Demo App",
+      "allocation": 2000,
+      "status": "PENDING_SUBMISSION",
+      "required_deliverables": [
+        "Play Store / APK release link",
+        "Public mainnet transaction verification"
+      ]
+    }
+  ]
+}

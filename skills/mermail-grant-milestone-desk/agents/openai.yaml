@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Grant Milestone Desk"
+  short_description: "Verify grant deliverables and propose human-approved PayBox milestone payouts."
+  default_prompt: "Use $mermail-grant-milestone-desk to manage grant milestones, verify deliverables, and propose secure PayBox payouts."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
