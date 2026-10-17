@@ -1,0 +1,11 @@
+interface:
+  display_name: "Settle to a bank account"
+  short_description: "Pay an approved bank beneficiary from an agent wallet, with email as a trigger and never as a destination."
+  default_prompt: "Use $mermail-settle-to-bank to pay an approved beneficiary and report the receipt."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
