@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Radar"
+  short_description: "Find paid bounties matching your skills and draft a digest email"
+  default_prompt: "Use $mermail-bounty-radar when the job is finding paid bounties, matching them to skills and rates, drafting a digest, or tracking claimed bounties through Mermail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
