@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Shipment Exception Desk"
+  short_description: "Triage delivery problems into evidence-bound cases"
+  default_prompt: "Use $mermail-shipment-exception-desk to reconstruct this shipment case, surface contradictions, and prepare one safe next action."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
