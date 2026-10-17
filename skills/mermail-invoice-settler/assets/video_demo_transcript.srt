@@ -1,0 +1,88 @@
+1
+00:00:00,000 --> 00:00:09,500
+Hey everyone! Today I am demonstrating a brand new autonomous skill built for Mermail: the Autonomous Invoice and Micro-Bounty Settler.
+
+2
+00:00:09,500 --> 00:00:21,000
+Traditional AI agents can draft emails and generate code, but until now, they could not autonomously settle financial obligations directly from an agent inbox without human intervention.
+
+3
+00:00:21,000 --> 00:00:33,500
+With Mermail providing both an AI-first mailbox and a user-controlled Agent Wallet over the Model Context Protocol, autonomous agents can now monitor invoices, inspect deliverables, and settle on-chain bounties safely.
+
+4
+00:00:33,500 --> 00:00:45,820
+In this video, I will show the complete workflow: triggering the skill, connecting to Mermail, executing the on-chain transfer on Solana, and delivering a cryptographic email receipt.
+
+5
+00:00:45,820 --> 00:00:55,500
+Let us examine the SKILL.md file that defines this agent capability. The skill is titled mermail-invoice-settler.
+
+6
+00:00:55,500 --> 00:01:05,500
+It equips the agent with clear instructions, pre-flight safety policies, and structured tool definitions.
+
+7
+00:01:05,500 --> 00:01:18,000
+Specifically, the agent connects to the Mermail MCP server, utilizing search_emails to monitor incoming bounty submissions, get_paybox_connection to authenticate the embedded Agent Wallet, and get_agent_wallet_portfolio to verify liquidity.
+
+8
+00:01:18,000 --> 00:01:27,500
+Notice our security policy: we enforce a strict 100 USDC per-transaction safety ceiling and mandatory deliverable verification before any on-chain transfer can be dispatched.
+
+9
+00:01:27,500 --> 00:01:35,760
+Once approved, paybox_request_transfer executes the payment, and reply_to_email delivers the final transaction proof.
+
+10
+00:01:35,760 --> 00:01:45,500
+Now let us watch the live demonstration in our agent terminal.
+
+11
+00:01:45,500 --> 00:01:56,500
+We trigger the skill with the prompt: 'Check my Mermail inbox for contractor invoice emails, verify the PR deliverables, check our wallet liquidity, and settle verified claims under 100 USDC with receipt.'
+
+12
+00:01:56,500 --> 00:02:05,000
+Watch as the agent initializes and connects to the Mermail Model Context Protocol server.
+
+13
+00:02:05,000 --> 00:02:16,000
+Step 1: The agent polls the inbox and finds an unread invoice from contributor@solana-builder.org, requesting 35 USDC for completing Pull Request number 14.
+
+14
+00:02:16,000 --> 00:02:25,000
+Step 2: The agent parses the contributor Solana address and deliverable link.
+
+15
+00:02:25,000 --> 00:02:35,000
+Step 3: It queries the Mermail Agent Wallet, confirming an available balance of 250 USDC. The 35 USDC invoice is well within our 100 USDC safety policy.
+
+16
+00:02:35,000 --> 00:02:43,500
+Step 4: The agent invokes paybox_request_transfer to execute the on-chain USDC transfer on Solana.
+
+17
+00:02:43,500 --> 00:02:52,370
+And look at that: transaction confirmed! Signature 5Kj Solana Sig Alpha 99 is emitted, and the agent immediately dispatches an itemized email receipt with the Solscan explorer link.
+
+18
+00:02:52,370 --> 00:03:01,500
+Finally, let us review the verified outcome. On the right panel, the Solana Explorer card confirms the on-chain transfer of 35 USDC has finalized.
+
+19
+00:03:01,500 --> 00:03:12,500
+Our Agent Wallet reflects the updated balance of 215 USDC, and the contractor has received an automated email receipt containing the cryptographic transaction signature.
+
+20
+00:03:12,500 --> 00:03:19,500
+The unread invoice has been cleanly marked as processed.
+
+21
+00:03:19,500 --> 00:03:28,500
+This proves how Mermail bridges communication and capital, enabling reliable, autonomous contractor payouts and DAO micro-grants.
+
+22
+00:03:28,500 --> 00:03:36,409
+The complete skill has been submitted as an open-source pull request to the official Mermail skills repository. Thank you for watching!
+
