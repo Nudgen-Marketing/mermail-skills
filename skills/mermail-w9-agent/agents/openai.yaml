@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail W-9 Agent"
+  short_description: "Collect contractor W-9s from a Mermail inbox without sending until approved"
+  default_prompt: "Use $mermail-w9-agent when the job is finding missing contractor W-9s, drafting tax-form requests, reviewing received forms without transcribing TINs, or labeling collection status."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
