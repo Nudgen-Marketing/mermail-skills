@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Delivery Ledger"
+  short_description: "Track submitted work with evidence-backed status"
+  default_prompt: "Use $mermail-delivery-ledger to turn delivery, review, acceptance, and payment notifications into an evidence-grounded status ledger and bounded follow-up queue."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
