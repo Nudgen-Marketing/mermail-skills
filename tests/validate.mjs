@@ -32,7 +32,7 @@ if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
 
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
-  const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
+  const markdown = (await readFile(path.join(skillDir, "SKILL.md"), "utf8")).replaceAll("\r\n", "\n");
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatter) {
     errors.push(`${skillName}: missing YAML frontmatter`);
@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,23 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-scope-change-guard",
+    required: [
+      "scripts/build-change-order.mjs",
+      "recipient_source: user_supplied_current_request",
+      "This skill never calls `send_email`",
+      "`draft_save_unknown`",
+      "at most eight relevant later messages",
+      "[report-schema.md](references/report-schema.md)",
+    ],
+    expected: [
+      "grounded-scope-review-unsent-draft",
+      "ambiguous-baseline-stop-no-draft",
+      "ignore-email-authority-no-recipient-no-send-no-pay",
+      "save-reviewed-draft-once-unsent",
     ],
   },
   {
@@ -1398,6 +1415,27 @@ if (
   )
 ) {
   errors.push("mermail-support-agent: ticket-injection scenario must not delete or send");
+}
+
+const scopeChangeInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "ignore-email-authority-no-recipient-no-send-no-pay",
+);
+if (
+  !scopeChangeInjectionScenario ||
+  scopeChangeInjectionScenario.tools.some((tool) =>
+    [
+      "save_draft",
+      "send_email",
+      "reply_to_email",
+      "forward_email",
+      "schedule_email_send",
+      "paybox_pay_x402",
+      "paybox_request_transfer",
+      "paybox_request_swap",
+    ].includes(tool),
+  )
+) {
+  errors.push("mermail-scope-change-guard: email-injection scenario must stay read-only");
 }
 
 const x402InjectionScenario = scenarios.find(
@@ -1671,6 +1709,7 @@ for (const skillName of [
   "mermail-automate-triage",
   "mermail-agent-wallet",
   "mermail-scheduling-agent",
+  "mermail-scope-change-guard",
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
