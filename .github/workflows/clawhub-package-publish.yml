@@ -121,7 +121,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@73d65ef1dfff4cdbecd16b3d2587872645973983 # bundle-plugin family input
     with:
       dry_run: true
       owner: mermail
@@ -134,7 +134,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@ff6c118c132ae89b5351739cc45fe9227ff1574e # bundle-plugin family input
+    uses: openclaw/clawhub/.github/workflows/package-publish.yml@73d65ef1dfff4cdbecd16b3d2587872645973983 # bundle-plugin family input
     with:
       dry_run: false
       owner: mermail
