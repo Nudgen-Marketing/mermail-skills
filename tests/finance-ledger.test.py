@@ -11,8 +11,27 @@ ledger = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ledger)
 
 
+SCOPE = ("w", "m")
+
+
+def upsert(existing, incoming):
+    return ledger.upsert(existing, incoming, SCOPE)
+
+
+def extract(emails):
+    return ledger.extract(emails, SCOPE)
+
+
+def reconcile(evidence, transactions):
+    return ledger.reconcile(evidence, transactions, SCOPE)
+
+
+def drafts(report):
+    return ledger.drafts(dict(report, workspace_id="w", mailbox_id="m"), SCOPE)
+
+
 def row(**changes):
-    return dict(dict(mailbox_id='m', email_id='e', document_id='d', date='2026-10-01', merchant='Agency',
+    return dict(dict(workspace_id='w', mailbox_id='m', email_id='e', document_id='d', date='2026-10-01', merchant='Agency',
                      currency='USD', amount='10.10', direction='charge', reference='ref', auth_status='pass', status='evidenced'), **changes)
 
 
@@ -21,59 +40,75 @@ def tx(**changes):
 
 
 class FinanceLedgerTests(unittest.TestCase):
+    def test_explicit_scope_rejects_other_mailbox_or_workspace(self):
+        for changes in [dict(workspace_id='other'), dict(mailbox_id='other')]:
+            foreign = row(**changes)
+            with self.assertRaises(ValueError):
+                upsert([], [foreign])
+            with self.assertRaises(ValueError):
+                reconcile([foreign], [tx()])
+            with self.assertRaises(ValueError):
+                extract([dict(foreign, text='Total: USD 10.10', scan_status='clean', content_omitted=False)])
+
+    def test_draft_report_scope_must_match_selected_scope(self):
+        with self.assertRaises(ValueError):
+            ledger.drafts({'workspace_id': 'w', 'mailbox_id': 'other', 'transaction_without_receipt': [tx()]}, SCOPE)
+        with self.assertRaises(ValueError):
+            ledger.main(['extract', 'input.json', 'output.csv'])
+
     def test_upsert_is_idempotent_and_mailbox_document_scoped(self):
-        first = ledger.upsert([], [row(), row()])
-        self.assertEqual(first, ledger.upsert(first, [row()]))
-        self.assertEqual(3, len(ledger.upsert(first, [row(mailbox_id='m2'), row(document_id='d2')])) )
+        first = upsert([], [row(), row()])
+        self.assertEqual(first, upsert(first, [row()]))
+        self.assertEqual(2, len(upsert(first, [row(document_id='d2')])))
 
     def test_conflicting_incoming_rows_do_not_write(self):
         with self.assertRaises(ValueError):
-            ledger.upsert([], [row(), row(amount='11')])
+            upsert([], [row(), row(amount='11')])
 
     def test_changed_source_updates_one_row_not_duplicate(self):
-        result = ledger.upsert([row()], [row(amount='12')])
+        result = upsert([row()], [row(amount='12')])
         self.assertEqual(['12'], [r['amount'] for r in result])
 
     def test_clean_envelope_gate_precedes_extraction(self):
         sample = dict(row(), text='Total: USD 10.10', scan_status='unknown', content_omitted=False)
-        self.assertEqual([], ledger.extract([sample])[0])
+        self.assertEqual([], extract([sample])[0])
         sample.update(scan_status='clean', content_omitted=True)
-        self.assertEqual([], ledger.extract([sample])[0])
+        self.assertEqual([], extract([sample])[0])
 
     def test_conflicting_currencies_and_totals_remain_unknown(self):
         sample = dict(row(), text='Total: USD 10.10\nTotal: EUR 99', scan_status='clean', content_omitted=False)
-        result = ledger.extract([sample])[0][0]
+        result = extract([sample])[0][0]
         self.assertEqual('', result['amount'])
         self.assertEqual('needs_review', result['status'])
 
     def test_no_largest_amount_or_subtotal_guess(self):
         sample = dict(row(), text='Subtotal: USD 99\nTotal: USD 10.10', scan_status='clean', content_omitted=False)
-        self.assertEqual('10.10', ledger.extract([sample])[0][0]['amount'])
+        self.assertEqual('10.10', extract([sample])[0][0]['amount'])
 
     def test_unknown_auth_never_matches(self):
-        result = ledger.reconcile([row(auth_status='unknown')], [tx()])
+        result = reconcile([row(auth_status='unknown')], [tx()])
         self.assertEqual([], result['matched'])
         self.assertEqual(1, len(result['needs_review']))
 
     def test_equal_amount_dates_without_reference_are_not_confirmed(self):
-        result = ledger.reconcile([row(reference='')], [tx()])
+        result = reconcile([row(reference='')], [tx()])
         self.assertEqual([], result['matched'])
         self.assertEqual('possible_counterpart_not_confirmed', result['conflicts'][0]['kind'])
 
     def test_refunds_never_abs_match_a_charge(self):
-        result = ledger.reconcile([row(amount='-10.10', direction='refund')], [tx()])
+        result = reconcile([row(amount='-10.10', direction='refund')], [tx()])
         self.assertEqual([], result['matched'])
         self.assertEqual('stable_reference_mismatch', result['conflicts'][0]['kind'])
 
     def test_repeated_reference_excludes_all_claimants(self):
-        result = ledger.reconcile([row(), row(email_id='e2')], [tx()])
+        result = reconcile([row(), row(email_id='e2')], [tx()])
         self.assertEqual([], result['matched'])
         self.assertEqual(2, len(result['conflicts']))
 
     def test_exact_decimal_totals_by_currency(self):
         evidence = [row(amount='0.10'), row(email_id='e2', reference='r2', amount='0.20'),
                     row(email_id='e3', reference='r3', currency='EUR', amount='5')]
-        result = ledger.reconcile(evidence, [tx(amount='0.10'), tx(reference='r2', amount='0.20'), tx(reference='r3', currency='EUR', amount='5')])
+        result = reconcile(evidence, [tx(amount='0.10'), tx(reference='r2', amount='0.20'), tx(reference='r3', currency='EUR', amount='5')])
         self.assertEqual({'USD:charge': '0.30', 'EUR:charge': '5'}, result['totals'])
 
     def test_bad_dates_nonfinite_floats_and_direction_need_review(self):
@@ -83,7 +118,7 @@ class FinanceLedgerTests(unittest.TestCase):
             ledger.normalize(row(amount=10.1))
 
     def test_csv_formula_escaping_is_lossless(self):
-        records = ledger.upsert([], [row(merchant='=HYPERLINK("unsafe")', document_id="'formula")])
+        records = upsert([], [row(merchant='=HYPERLINK("unsafe")', document_id="'formula")])
         encoded = ledger.csv_bytes(records)
         self.assertIn(b"'=HYPERLINK", encoded)
         self.assertEqual(records, ledger.decode_csv(encoded, ledger=True))
@@ -106,11 +141,11 @@ class FinanceLedgerTests(unittest.TestCase):
             source = root / 'emails.json'
             source.write_text(json.dumps([dict(row(), text='Total: USD 10.10', scan_status='clean', content_omitted=False)]))
             output = root / 'ledger.csv'
-            ledger.main(['extract', str(source), str(output)])
+            ledger.main(['extract', 'w', 'm', str(source), str(output)])
             before = output.read_bytes()
-            ledger.main(['extract', str(source), str(output)])
+            ledger.main(['extract', 'w', 'm', str(source), str(output)])
             self.assertEqual(before, output.read_bytes())
-            templates = ledger.drafts({'transaction_without_receipt': [tx()], 'conflicts': []})
+            templates = drafts({'transaction_without_receipt': [tx()], 'conflicts': []})
             self.assertEqual('', templates[0]['to'])
             self.assertIn('10.10', templates[0]['body'])
             self.assertEqual('local_unaddressed_template_not_saved_or_sent', templates[0]['state'])

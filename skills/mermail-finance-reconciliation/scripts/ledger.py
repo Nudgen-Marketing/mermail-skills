@@ -2,9 +2,9 @@
 """Offline, bounded evidence ledger; never calls Mermail or authorizes an effect.
 
 Adapted from gmDevi's expense-ledger contribution (PR #202), MIT.
-extract emails.json ledger.csv
-reconcile ledger.csv transactions.csv report.json
-drafts report.json drafts.json
+extract WORKSPACE_ID MAILBOX_ID emails.json ledger.csv
+reconcile WORKSPACE_ID MAILBOX_ID ledger.csv transactions.csv report.json
+drafts WORKSPACE_ID MAILBOX_ID report.json drafts.json
 Each output is an explicitly selected local artifact, not a sent/saved MCP draft.
 """
 import csv
@@ -21,7 +21,7 @@ from pathlib import Path
 
 MAX_BYTES = 8 * 1024 * 1024
 MAX_ROWS = 300
-FIELDS = ['mailbox_id', 'email_id', 'document_id', 'date', 'merchant', 'currency',
+FIELDS = ['workspace_id', 'mailbox_id', 'email_id', 'document_id', 'date', 'merchant', 'currency',
           'amount', 'direction', 'reference', 'auth_status', 'status']
 AMOUNT = re.compile(r'-?(?:0|[1-9]\d{0,127})(?:\.\d{1,18})?\Z')
 # Explicit ISO codes only. Symbols and ambiguous/grouped totals need human review.
@@ -54,9 +54,9 @@ def rows(value):
 
 
 def identity(row):
-    key = tuple(text(row.get(k, '')) for k in ('mailbox_id', 'email_id', 'document_id'))
+    key = tuple(text(row.get(k, '')) for k in ('workspace_id', 'mailbox_id', 'email_id', 'document_id'))
     if not all(key):
-        raise ValueError('mailbox_id, email_id and document_id are required')
+        raise ValueError('workspace_id, mailbox_id, email_id and document_id are required')
     return key
 
 
@@ -79,10 +79,22 @@ def normalize(row):
     return result
 
 
-def extract(emails):
+def scope_key(scope):
+    if not isinstance(scope, (tuple, list)) or len(scope) != 2 or not all(text(x) for x in scope):
+        raise ValueError('Explicit selected workspace/mailbox scope required')
+    return tuple(text(x) for x in scope)
+
+
+def assert_scope(row, scope):
+    if identity(row)[:2] != scope_key(scope):
+        raise ValueError('Evidence is outside the explicitly selected workspace/mailbox')
+
+
+def extract(emails, scope):
     output, skipped = [], []
     for source in rows(emails):
         key = identity(source)
+        assert_scope(source, scope)
         if (source.get('scan_status') != 'clean' or source.get('content_omitted') is not False
                 or not isinstance(source.get('text'), str) or len(source['text']) > 10000):
             skipped.append(list(key))
@@ -100,15 +112,18 @@ def extract(emails):
     return output, skipped
 
 
-def upsert(existing, incoming):
+def upsert(existing, incoming, scope):
+    scope_key(scope)
     records = {}
     for row in rows(existing):
+        assert_scope(row, scope)
         key = identity(row)
         if key in records:
             raise ValueError('Existing ledger has duplicate evidence identity; review before writing')
         records[key] = normalize(row)
     additions = {}
     for row in rows(incoming):
+        assert_scope(row, scope)
         key = identity(row)
         value = normalize(row)
         if key in additions and additions[key] != value:
@@ -120,21 +135,24 @@ def upsert(existing, incoming):
     return [records[k] for k in sorted(records)]
 
 
-def reconcile(ledger, transactions):
-    ledger = upsert(ledger, [])
+def reconcile(ledger, transactions, scope):
+    selected_scope = scope_key(scope)
+    ledger = upsert(ledger, [], scope)
     transactions = rows(transactions)
     txs = []
     refs = set()
     for item in transactions:
         tx = {k: text(item.get(k, '')) for k in ('date', 'merchant', 'currency', 'amount', 'direction', 'reference')}
         # The user must normalize the export's debit/credit convention, not abs(amount).
-        normalized = normalize(dict(tx, mailbox_id='baseline', email_id='baseline', document_id=tx['reference'], auth_status='pass'))
+        normalized = normalize(dict(tx, workspace_id='baseline', mailbox_id='baseline', email_id='baseline', document_id=tx['reference'], auth_status='pass'))
         if not tx['reference'] or tx['reference'] in refs or normalized['status'] != 'evidenced':
             raise ValueError('Baseline references must be unique and rows complete under the selected sign convention')
         refs.add(tx['reference'])
         txs.append(tx)
     result = {'matched': [], 'receipt_without_transaction': [], 'transaction_without_receipt': [],
-              'conflicts': [], 'needs_review': [], 'totals': {}, 'scope': 'reviewed local artifacts only'}
+              'conflicts': [], 'needs_review': [], 'totals': {},
+              'workspace_id': selected_scope[0], 'mailbox_id': selected_scope[1],
+              'scope': 'reviewed local artifacts only'}
     used = set()
     claims = {}
     for row in ledger:
@@ -172,20 +190,25 @@ def reconcile(ledger, transactions):
     return result
 
 
-def drafts(report):
+def drafts(report, scope):
     # Structured report, not regex parsing of untrusted Markdown. No inferred recipient.
     if not isinstance(report, dict):
         raise ValueError('Expected structured reconciliation report')
+    if (report.get('workspace_id'), report.get('mailbox_id')) != scope_key(scope):
+        raise ValueError('Report is outside the selected scope')
     output = []
     for tx in rows(report.get('transaction_without_receipt', []))[:25]:
         output.append({'kind': 'receipt_request', 'to': '', 'subject': 'Receipt request for review',
                        'body': f"Hello, could you provide a receipt for the {text(tx.get('currency', ''))} "
                                f"{text(tx.get('amount', ''))} entry dated {text(tx.get('date', ''))} "
                                f"(statement reference {text(tx.get('reference', ''))})? Thank you.",
+                       'workspace_id': scope[0], 'mailbox_id': scope[1],
                        'evidence': tx, 'state': 'local_unaddressed_template_not_saved_or_sent'})
     for conflict in rows(report.get('conflicts', []))[:25]:
+        assert_scope(conflict.get('evidence', {}), scope)
         output.append({'kind': 'discrepancy', 'to': '', 'subject': 'Reconciliation question for review',
                        'body': 'My reviewed records have a possible discrepancy. Please review the attached evidence before contacting a vendor.',
+                       'workspace_id': scope[0], 'mailbox_id': scope[1],
                        'evidence': conflict, 'state': 'local_unaddressed_template_not_saved_or_sent'})
     return output
 
@@ -253,7 +276,11 @@ def write_atomic(path, content, expected):
 def main(args):
     if not args or args[0] not in ('extract', 'reconcile', 'drafts'):
         raise ValueError(__doc__)
-    command, *paths = args
+    command, *remaining = args
+    if len(remaining) < 2:
+        raise ValueError(__doc__)
+    workspace, mailbox, *paths = remaining
+    scope = scope_key((workspace, mailbox))
     expected_lengths = {'extract': 2, 'reconcile': 3, 'drafts': 2}
     if len(paths) != expected_lengths[command]:
         raise ValueError(__doc__)
@@ -262,13 +289,13 @@ def main(args):
         raise ValueError('Input and output paths must differ')
     before = read_bytes(output, missing=True)
     if command == 'extract':
-        incoming, skipped = extract(json.loads(read_bytes(paths[0])))
-        data = csv_bytes(upsert(decode_csv(before, ledger=True), incoming))
+        incoming, skipped = extract(json.loads(read_bytes(paths[0])), scope)
+        data = csv_bytes(upsert(decode_csv(before, ledger=True), incoming, scope))
         print(json.dumps({'skipped_evidence_ids': skipped, 'local_only': True}))
     elif command == 'reconcile':
-        data = json.dumps(reconcile(decode_csv(read_bytes(paths[0]), ledger=True), decode_csv(read_bytes(paths[1]))), indent=2).encode()
+        data = json.dumps(reconcile(decode_csv(read_bytes(paths[0]), ledger=True), decode_csv(read_bytes(paths[1])), scope), indent=2).encode()
     else:
-        data = json.dumps(drafts(json.loads(read_bytes(paths[0]))), indent=2).encode()
+        data = json.dumps(drafts(json.loads(read_bytes(paths[0])), scope), indent=2).encode()
     write_atomic(output, data, before)
 
 
