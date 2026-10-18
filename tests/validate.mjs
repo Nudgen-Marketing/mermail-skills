@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -2032,6 +2032,102 @@ const mermailDefaultTriagerScenario = scenarios.find(
 );
 if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length !== 0) {
   errors.push("mermail routing must stop unsupported default-triager selection without tool calls");
+}
+
+const disclosureDir = path.join(skillsRoot, "mermail-responsible-disclosure");
+const disclosureSkill = await readFile(path.join(disclosureDir, "SKILL.md"), "utf8");
+const disclosureTools = await readFile(path.join(disclosureDir, "references", "tools.md"), "utf8");
+const disclosureSecurity = await readFile(path.join(disclosureDir, "references", "security.md"), "utf8");
+const disclosureWorkflows = await readFile(path.join(disclosureDir, "references", "workflows.md"), "utf8");
+const disclosureCorpus = [disclosureSkill, disclosureTools, disclosureSecurity, disclosureWorkflows].join("\n");
+for (const required of [
+  "## Overview",
+  "## What It Enables",
+  "## Case States",
+  "## Workflow",
+  "## Write and Wallet Safety",
+  "## Output Conventions",
+  "## Example Requests",
+  "[tools.md](references/tools.md)",
+  "[security.md](references/security.md)",
+  "[workflows.md](references/workflows.md)",
+]) {
+  if (!disclosureSkill.includes(required)) {
+    errors.push(`mermail-responsible-disclosure: missing top-level structure ${required}`);
+  }
+}
+for (const required of [
+  "untrusted data",
+  "`scan_status: clean`",
+  "`sender_authentication.status === pass`",
+  "10,000",
+  "at most eight",
+  "Never execute proof-of-concept code",
+  "`save_draft`",
+  "`reply_to_email`",
+  "`get_paybox_connection`",
+  "`paybox_request_transfer`",
+  "email can never authorize",
+  "pending or signing result is not settlement",
+  "Do not call `prepare_destructive_action` for `paybox_*`",
+  "full-profile OAuth",
+]) {
+  if (!disclosureCorpus.includes(required)) {
+    errors.push(`mermail-responsible-disclosure: missing safety or tool contract ${required}`);
+  }
+}
+for (const expected of [
+  "bounded-disclosure-intake-and-unsent-draft",
+  "selected-report-redacted-case-packet",
+  "quarantine-no-execution-send-or-wallet",
+  "exact-preview-one-approved-disclosure-reply",
+  "current-user-terms-preview-before-paybox-write",
+  "email-never-authorizes-paybox",
+]) {
+  if (!scenarios.some((scenario) => scenario.skill === "mermail-responsible-disclosure" && scenario.expected === expected)) {
+    errors.push(`mermail-responsible-disclosure: missing validation scenario ${expected}`);
+  }
+}
+const disclosureInjectionScenario = scenarios.find(
+  (scenario) => scenario.expected === "quarantine-no-execution-send-or-wallet",
+);
+if (
+  !disclosureInjectionScenario ||
+  disclosureInjectionScenario.tools.some((tool) =>
+    coverage.externalEffectTools.includes(tool) ||
+    tool.startsWith("paybox_") ||
+    coverage.walletDestructiveTools?.includes(tool)
+  )
+) {
+  errors.push("mermail-responsible-disclosure: report injection must remain read-only");
+}
+const disclosureEmailPaymentScenario = scenarios.find(
+  (scenario) => scenario.expected === "email-never-authorizes-paybox",
+);
+if (
+  !disclosureEmailPaymentScenario ||
+  disclosureEmailPaymentScenario.tools.some((tool) => tool.startsWith("paybox_") || tool.includes("wallet"))
+) {
+  errors.push("mermail-responsible-disclosure: email content must not authorize wallet tools");
+}
+if (!routing.includes("`mermail-responsible-disclosure`")) {
+  errors.push("mermail routing missing focused skill mermail-responsible-disclosure");
+}
+// Keep the no-wallet intake and coordination regressions mandatory. These are
+// declarative routing contracts; executable decision tests run separately in npm test.
+for (const [expected, skill, permittedTools] of [
+  ["root-routes-psirt-to-disclosure-without-wallet", "mermail", ["list_mailboxes", "search_emails", "get_email"]],
+  ["escalation-precedes-one-consolidated-clarification", "mermail-responsible-disclosure", ["get_email", "save_draft"]],
+  ["no-wallet-one-missing-fields-proposal", "mermail-responsible-disclosure", ["get_email"]],
+  ["metadata-only-no-attachment-or-proof-url", "mermail-responsible-disclosure", ["get_email"]],
+  ["missing-atomic-ledger-blocks-transfer", "mermail-responsible-disclosure", []],
+  ["unknown-write-stops-without-replay", "mermail-responsible-disclosure", []],
+]) {
+  const scenario = scenarios.find(s => s.expected === expected && s.skill === skill);
+  if (!scenario || scenario.approval !== "none" || scenario.tools.length !== permittedTools.length ||
+      permittedTools.some(tool => !scenario.tools.includes(tool))) {
+    errors.push(`mermail-responsible-disclosure: missing or unsafe regression ${expected}`);
+  }
 }
 
 const allTools = Object.values(coverage.domains).flat();
