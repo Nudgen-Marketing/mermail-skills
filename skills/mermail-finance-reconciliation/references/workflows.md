@@ -35,6 +35,10 @@ Strong duplicate signals include the same authenticated vendor identity, documen
 5. Report `drafted`; do not imply delivery.
 6. If the user later requests delivery, show the exact To/Cc/Bcc, subject, and body and obtain fresh approval before one send or reply.
 
+## Persistent expense-ledger mode
+
+For an explicitly requested local CSV, transaction-export reconciliation and missing-receipt requests, use [local-ledger.md](local-ledger.md). It preserves source provenance across reruns without assuming custom labels are a processed-state store. Local templates, saved Mermail drafts and approved deliveries are three distinct states. Keep the no-file evidence-review and existing approved discrepancy-send paths unchanged.
+
 ## Demo-safe fixture
 
 A reproducible demo may use three synthetic emails in a test mailbox: an invoice, a duplicate copy of that invoice, and a payment confirmation with a deliberately different amount. Clearly label every sender and document as synthetic. The prompt should request a bounded reconciliation and a saved discrepancy draft, not a payment or automatic send.

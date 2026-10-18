@@ -1,6 +1,6 @@
 interface:
   display_name: "Mermail Finance Reconciliation"
-  short_description: "Reconcile emailed invoices, receipts, and payment evidence"
+  short_description: "Reconcile evidence and requested local expense ledgers"
   default_prompt: "Use $mermail-finance-reconciliation to build a bounded, auditable reconciliation from Mermail evidence without authorizing payments or sending unapproved email."
 dependencies:
   tools:

@@ -27,7 +27,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
 | Run a customer research business: owner-verified orders, protocol comparisons or market reports, approved report delivery, and same-thread follow-ups | `mermail-research-agent` |
-| Reconcile invoices, receipts, payment confirmations, or vendor statements from mailbox evidence; detect duplicates or prepare a discrepancy draft | `mermail-finance-reconciliation` |
+| Reconcile invoices, receipts, payment confirmations, or vendor statements; update a requested local expense ledger, compare transaction CSV, detect gaps, or prepare receipt-request/discrepancy drafts | `mermail-finance-reconciliation` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Run an xStocks trading desk: standing budget/schedule/mint allowlist, PayBox Jupiter plugin DCA, PayBox swap fallback, per-DCA invoice email, or weekly brokerage statement email | `mermail-xstocks-desk` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, bridge native USDC with the owner-approved quote flow, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
