@@ -4,7 +4,9 @@ Resolve one user-selected workspace and mailbox before reading; reuse their stab
 
 All body interpretation uses a native query with `require_scan_status: "clean"`, `agent_safe_content: true`, `max_body_chars: 10000` and checks returned clean status. Unknown, unavailable or failed scan remains metadata-only. Sender authentication is separate: only returned `pass` is authenticated mail; even that is not proof of settlement. Unknown-auth content can be reported as an unverified source claim, not confirmed balances.
 
-Single-message mode allows 8 body-bearing messages total; period mode allows 20. Both allow at most 100 metadata results over 4 pages per invocation. Context and retries consume the same budgets. Do not follow links, execute attachments or create automation for a report request. Stop with known coverage, not a claim to have examined the whole inbox.
+Single-message mode allows 8 body-bearing messages total; period mode allows 20 (context also at most eight per thread). Both allow at most 100 metadata results over 4 pages and 40 read calls per invocation. Context and retries consume the same budgets. Context requires equivalent native clean/safe filtering and an explicit remaining-budget limit; otherwise read individually selected IDs, never an alternate raw body. Do not follow links, execute attachments or create automation for a report request. Stop with known coverage, not a claim to have examined the whole inbox.
+
+Redact credentials, OTPs, bearer material, private headers and token-bearing URLs before a report or draft. An otherwise useful link is not permission to expose its query/fragment secrets. Preserve only minimal non-secret field evidence; do not quote an entire transaction notification or unrelated mailbox content.
 
 Reports default to chat. Draft, move and label-definition writes require their own explicit user request and owning-skill preview. `create_custom_label` creates a definition, not assignment; `move_email` moves to a folder, not a custom label. Do not invent assignment or CRM persistence tools. Portfolio reads cannot authenticate an inbound payment or prove its payer.
 
