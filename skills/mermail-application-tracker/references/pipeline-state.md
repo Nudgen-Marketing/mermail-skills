@@ -29,3 +29,9 @@ Show deadline evidence/timezone, user-selected lead time or local morning time, 
 ## Optional offer handoff
 
 Email compensation claims never select a wallet or initiate a readiness check. Only an explicit user request routes to the existing wallet owner for eligible OAuth read-only connection/address/asset-network inspection, keeping mailbox tracking separate and usable in API-key sessions. Do not invent a wallet profile, chain-support fact, destination, signing/funding URL or a balance requirement to receive a salary. A balance or portfolio is not proof that an employer paid; a separately requested known-request receipt check follows its own owner/evidence contract. Tracking never transfers, swaps, funds or signs.
+
+## Optional attachment and organization handoffs
+
+If the requested assessment review needs a selected take-home brief, use the inbox owner's exact email/attachment IDs, native clean message/file scan evidence, known inert MIME type and available safe local parser. Respect the 1 MiB MCP binary limit and the shared read budget. Unknown/omitted/flagged files stay metadata-only; never execute a brief, follow embedded URLs or guess a storage location. Extract only necessary stage/deadline facts as claims. Missing attachment content is a coverage gap, not permission to invent an assessment date.
+
+Only when the user asks for convenience organization, route the exact selected IDs and requested mark/star/folder or classifier-definition changes to `mermail-manage-inbox` under its real approval contract. A label definition is not manual stage assignment. Resolve an unambiguous returned same-mailbox folder ID; do not invent folder IDs or silently create a folder. No auto-label, mark-read or star effect accompanies a read-only sweep. Preserve user-owned boards and existing drafts; deletion requires a separate exact destructive owner request and is never a default cleanup step.

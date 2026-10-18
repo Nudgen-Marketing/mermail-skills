@@ -14,6 +14,7 @@ Pass structured arguments as **native JSON objects**. Never stringify `query` or
 | `save_draft` | `mermail-compose-email` | Tracker summary thread and follow-up drafts (`body.body` string) |
 | `send_email` / `reply_to_email` | `mermail-compose-email` | Approved follow-up sends (`body.from` + `body.html` and/or `body.text`) |
 | `schedule_email_send` | `mermail-compose-email` | Deadline reminders (`body.body` + `scheduled_send_at`, ISO-8601 UTC) |
+| `download_attachment` | `mermail-manage-inbox` | Only a selected necessary safe take-home brief under pipeline-state.md |
 
 Send, reply, and forward nest Sold fields under `body`. MCP does not auto-fill Reply All; pass explicit `to`/`cc`/`bcc`.
 

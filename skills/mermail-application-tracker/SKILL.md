@@ -27,7 +27,7 @@ This skill does not own MCP tools. It uses mailbox discovery from `mermail-admin
 
 - One ready receiving mailbox, identified by email and `public_id`, where application mail arrives or is forwarded.
 - One pipeline table: company, role, source thread, stage, last inbound date, next action, and deadline (with timezone) for every tracked application.
-- One scheduled reminder email per concrete deadline, sent to the user at a reminder address the user explicitly confirms in the current session, with `scheduled_send_at` in ISO-8601 UTC. Never default the recipient to the Mermail mailbox; without a confirmed reminder address, ask for one and mark the reminder `blocked`.
+- Requested and approved reminder emails only, using `scheduled_send_at` as a future explicit ISO instant. Never default the recipient to the Mermail mailbox; without a confirmed user-owned reminder address, ask and mark the reminder blocked. Pending duplicate/cancellation or concurrency evidence means preview only.
 - Zero or more follow-up drafts for applications whose last inbound mail is older than the user's follow-up window (default 14 days).
 - A run summary separating `tracked`, `reminders_scheduled`, `followups_drafted`, `skipped`, and `blocked`.
 
@@ -55,7 +55,7 @@ This skill does not own MCP tools. It uses mailbox discovery from `mermail-admin
 
 ## Output Conventions
 
-- Name the mailbox by email and `public_id`. Name the tracker thread by subject and message id.
+- Name the mailbox by email and `public_id`. If a board was actually saved, name its subject and exact returned draft ID; do not invent a tracker thread or pinned status.
 - Show the pipeline as a compact table ordered by nearest deadline first.
 - Show every deadline as weekday, local time, timezone, and absolute timestamp.
 - Distinguish `tracked`, `reminder_previewed`, `reminder_scheduled`, `followup_drafted`, `followup_sent`, `skipped`, `blocked`, and `uncertain`.
@@ -72,6 +72,6 @@ This skill does not own MCP tools. It uses mailbox discovery from `mermail-admin
 ## Expected Results
 
 - A pipeline table grounded in real threads, with `none_stated` for missing deadlines.
-- One scheduled reminder email per future deadline, visible as scheduled in the mailbox.
+- Only requested, approved reminders are scheduled; ambiguous or unresolved schedules remain visible blockers, not assumed success.
 - Follow-up drafts that quote the real company and role, awaiting user approval.
 - A run summary with counts per status, and a blocker list when the mailbox is missing, empty, or a tool is disallowed.
