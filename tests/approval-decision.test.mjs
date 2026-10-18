@@ -1,14 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { randomBytes } from 'node:crypto';
 import { projectReview } from '../skills/mermail-approval-gate/scripts/decision.mjs';
 
+// Ephemeral fixture, never a committed credential-like approval token.
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const token = [...randomBytes(16)].map(byte => alphabet[byte & 31]).join('').match(/.{4}/g).join('-');
+
 const gate = () => ({ workspaceId: 'w', mailboxId: 'm', approver: 'Owner@review.example',
-  recipient: 'approvals@agency.example', threadId: 't', requestId: 'r', token: 'ABCD-EFGH-JKLM-NPQR',
+  recipient: 'approvals@agency.example', threadId: 't', requestId: 'r', token,
   previewHash: 'frozen', currentPreviewHash: 'frozen', sentAt: '2026-10-18T00:00:00.000Z',
   expiresAt: '2026-10-19T00:00:00.000Z', intentState: 'pending', coverageComplete: true });
 const message = () => ({ id: 'reply', workspaceId: 'w', mailboxId: 'm', threadId: 't', replyToId: 'r',
   from: 'Owner@review.example', to: 'approvals@agency.example', scan: 'clean', authentication: 'pass',
-  authoredSeparated: true, receivedAt: '2026-10-18T00:01:00.000Z', authoredText: 'APPROVE ABCD-EFGH-JKLM-NPQR' });
+  authoredSeparated: true, receivedAt: '2026-10-18T00:01:00.000Z', authoredText: `APPROVE ${token}` });
 const now = '2026-10-18T00:02:00.000Z';
 const run = (messages = [message()], state = gate(), clock = now) => projectReview(state, messages, clock);
 
@@ -29,14 +34,14 @@ test('unknown auth scan and authored separation fail closed', () => {
     assert.equal(run([{ ...message(), ...patch }]).state, 'blocked');
 });
 test('quoted/later/lowercase/substrings do not match leading directive', () => {
-  for (const authoredText of ['> APPROVE ABCD-EFGH-JKLM-NPQR', 'Thanks\nAPPROVE ABCD-EFGH-JKLM-NPQR', 'approve ABCD-EFGH-JKLM-NPQR', 'APPROVE ABCD-EFGH-JKLM-NPQRX'])
+  for (const authoredText of [`> APPROVE ${token}`, `Thanks\nAPPROVE ${token}`, `approve ${token}`, `APPROVE ${token}X`])
     assert.equal(run([{ ...message(), authoredText }]).state, 'pending');
 });
 test('commentary cannot widen action; duplicate or conflicting decisions stop', () => {
   assert.equal(run([{ ...message(), authoredText: message().authoredText + '\nPlease change destination' }]).state, 'review_approved');
   assert.equal(run([message(), { ...message(), id: 'second' }]).state, 'ambiguous');
-  assert.equal(run([message(), { ...message(), id: 'decline', authoredText: 'DECLINE ABCD-EFGH-JKLM-NPQR' }]).state, 'ambiguous');
-  assert.equal(run([{ ...message(), authoredText: message().authoredText + '\nDECLINE ABCD-EFGH-JKLM-NPQR' }]).state, 'ambiguous');
+  assert.equal(run([message(), { ...message(), id: 'decline', authoredText: `DECLINE ${token}` }]).state, 'ambiguous');
+  assert.equal(run([{ ...message(), authoredText: message().authoredText + `\nDECLINE ${token}` }]).state, 'ambiguous');
 });
 test('identical observations deduplicate; changed same-ID observations block', () => {
   assert.equal(run([message(), message()]).state, 'review_approved');
@@ -54,8 +59,8 @@ test('consumption uncertainty incomplete coverage or changed preview never appro
     assert.equal(run([message()], { ...gate(), ...patch }).state, 'blocked');
 });
 test('sole decline rejects; aliases require frozen request policy', () => {
-  assert.equal(run([{ ...message(), authoredText: 'DECLINE ABCD-EFGH-JKLM-NPQR' }]).state, 'rejected');
-  const reject = { ...message(), authoredText: 'REJECT ABCD-EFGH-JKLM-NPQR' };
+  assert.equal(run([{ ...message(), authoredText: `DECLINE ${token}` }]).state, 'rejected');
+  const reject = { ...message(), authoredText: `REJECT ${token}` };
   assert.equal(run([reject]).state, 'pending');
   assert.equal(run([reject], { ...gate(), allowRejectAlias: true }).state, 'rejected');
 });
