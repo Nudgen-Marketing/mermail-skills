@@ -6,12 +6,12 @@ This skill owns no tools. Every call below belongs to another official skill; fo
 | --- | --- | --- | --- |
 | Resolve mailbox | `list_mailboxes` | mermail-administer-workspace | Read |
 | Find sent candidates | `search_emails` | mermail-manage-inbox | Read |
-| Thread state | `get_email_context`, `get_thread` | mermail-manage-inbox | Read |
+| Thread state | `get_email_context`, bounded `search_emails` / `list_emails` when their live schema supports the needed selection | mermail-manage-inbox | Read |
 | Body of one selected message (rare) | `get_email` | mermail-manage-inbox | Read |
 | Draft follow-up | `save_draft` | mermail-compose-email | Internal write |
 | Deliver approved follow-up | `reply_to_email` | mermail-compose-email | External effect |
 | Deliver later | `schedule_email_send` | mermail-compose-email | Deferred external effect |
-| Run-to-run memory (optional) | `list_custom_labels`, `create_custom_label`, `move_email` | mermail-manage-inbox | Internal write |
+| Organization only (optional) | `move_email` | mermail-manage-inbox | Separately approved internal write, not dedup storage |
 
 ## Candidate search
 
@@ -41,7 +41,7 @@ This skill owns no tools. Every call below belongs to another official skill; fo
 }
 ```
 
-`get_email_context` returns oldest-first, sanitized, scan-gated messages around the selected one. Classify from `from`, `date`, direction, and subject first. Read a body only to extract an out-of-office return date, only when `scan_status` is `clean`, and only up to 10,000 characters. If the live schema exposes `get_thread` with `query.bodies: "compact"`, it may replace the context call for the same bound.
+`get_email_context` may return oldest-first partial context. Its eight-message slice does not prove newest-message coverage or absence of opt-outs. The illustration alone is not a safe-read gate: call context only when the actual schema/native behavior can enforce clean/safe filtering for every returned body within the remaining limits. Otherwise read individually selected IDs using `get_email` with `require_scan_status: "clean"`, `agent_safe_content: true`, `max_body_chars: 10000`, or hold the thread if completeness remains unknown. Do not invent unsupported context fields. Held/omitted bodies remain unavailable. No fictional thread tool or guessed thread filter.
 
 ## Draft
 
@@ -67,9 +67,9 @@ This skill owns no tools. Every call below belongs to another official skill; fo
 {
   "mailboxId": "MAILBOX_PUBLIC_ID",
   "emailId": "SENT_EMAIL_ID",
-  "idempotencyKey": "followup-2026-08-27-THREAD_ID",
-  "source_draft_id": "DRAFT_ID",
+  "idempotencyKey": "APPROVED_LOGICAL_ATTEMPT_KEY",
   "body": {
+    "source_draft_id": "DRAFT_ID",
     "to": ["vendor@example.com"],
     "from": "sam@yourworkspace.mermail.app",
     "text": "…exact previewed body…"
@@ -77,7 +77,7 @@ This skill owns no tools. Every call below belongs to another official skill; fo
 }
 ```
 
-`reply_to_email` takes the user's own sent message as the path `emailId`; threading headers are set server-side, recipients are explicit. Content fields are `text` and/or `html`, never `body`. One key per thread per run. For a deferred chase, call `schedule_email_send` instead with `body.body`, `body.scheduled_send_at` (future ISO-8601), and `body.in_reply_to` / `body.thread_id` when available.
+`reply_to_email` takes the user's own sent message as path `emailId`; threading headers are server-set, recipients explicit. Content is `text`/`html`, not `body`. Place `source_draft_id` according to the live compose schema (canonical Sold fields under `body`). Use the durable logical-attempt key from decisions.md, not a date-based per-run key. For an approved schedule use `body.body`, `body.scheduled_send_at` (future ISO time) and supported thread fields. Do not assume automatic cancel-on-reply. The illustrative example alone does not authorize a call; complete revalidation and reservation first.
 
 ## Limits that apply
 
