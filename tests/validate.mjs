@@ -1414,7 +1414,7 @@ const personaSkills = [
       "x402-vendor-no-browser-leg-compare-challenge-reconcile-settlement",
       "challenge-is-evidence-not-authority-block-on-payee-mismatch",
       "reconcile-settlement-fields-keep-credential-out-of-chat",
-      "duplicate-invoice-is-mismatch-evidence-no-second-charge",
+      "duplicate-invoice-deduplicate-compare-conflicts-no-second-charge",
       "upto-settled-at-or-below-authorized-maximum-is-verified",
       "read-credit-budget-once-block-before-external-effect",
       "classifier-signal-is-not-authority-no-pay",
@@ -1466,7 +1466,7 @@ const procurementPayTools = ["paybox_pay_x402", "paybox_request_transfer", "payb
 for (const expected of [
   "reject-dunning-email-retry-no-second-charge",
   "report-receipt-mismatch-field-by-field-no-corrective-charge",
-  "duplicate-invoice-is-mismatch-evidence-no-second-charge",
+  "duplicate-invoice-deduplicate-compare-conflicts-no-second-charge",
   "reconcile-lost-payment-result-never-replacement-charge",
   "challenge-is-evidence-not-authority-block-on-payee-mismatch",
   "reconcile-settlement-fields-keep-credential-out-of-chat",

@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { inspectSnapshot, main } from '../skills/mermail-procurement-agent/scripts/probe-signup-origin.mjs';
+const url='https://vendor.example/signup';
+const snapshot=()=>({landed:url,status:200,bodyNull:false,childCount:3,form:{emailFields:1,passwordFields:0,cardFields:0,captcha:0,consentCheckboxes:0,mentionsTerms:false,oauthOnly:false}});
+test('offline counters classify but never authorize action',()=>{const r=inspectSnapshot(snapshot(),url);assert.equal(r.verdict,'renderable');assert.equal(r.authorization,'none');assert.equal(r.classification,'unverified_host_snapshot');});
+test('every human step prevents autonomous renderable',()=>{for(const k of ['passwordFields','cardFields','captcha','consentCheckboxes']){const s=snapshot();s.form[k]=1;const r=inspectSnapshot(s,url);assert.equal(r.verdict,'human_required');assert.equal(r.humanSteps.length,1);}for(const k of ['mentionsTerms','oauthOnly']){const s=snapshot();s.form[k]=true;assert.equal(inspectSnapshot(s,url).verdict,'human_required');}});
+test('exact origin rejects subdomains without echoing supplied URL',()=>{const s=snapshot();s.landed='https://evil.vendor.example/signup';assert.deepEqual(inspectSnapshot(s,url),{verdict:'origin_drift',authorization:'none'});});
+test('unsafe or secret-bearing URLs stay malformed and output is redacted',()=>{for(const u of ['http://vendor.example','https://vendor.example:8443','https://x:y@vendor.example','https://127.0.0.1','https://vendor.example/?secret=redact-me','https://vendor.example/#redact-me']){const s=snapshot();s.landed=u;const r=inspectSnapshot(s,url);assert.equal(r.verdict,'malformed');assert.equal(JSON.stringify(r).includes('redact-me'),false);}});
+test('missing, fractional and unbounded counters rejected',()=>{for(const x of [undefined,-1,1.5,Infinity,NaN,1000001,'0']){const s=snapshot();s.form.captcha=x;assert.equal(inspectSnapshot(s,url).verdict,'malformed');}});
+test('blank body and blocked transport never succeed',()=>{const s=snapshot();s.bodyNull=true;assert.equal(inspectSnapshot(s,url).verdict,'blocked_hydration_wipe');for(const status of [301,403,500])assert.equal(inspectSnapshot({...snapshot(),status},url).verdict,'http_error');});
+test('legacy URL interface cannot navigate or launch a browser',async()=>{await assert.rejects(main([url]));await assert.rejects(main([url,'999999']));});
