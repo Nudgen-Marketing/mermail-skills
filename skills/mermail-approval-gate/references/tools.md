@@ -20,7 +20,7 @@ Do not use verification isolation (`agentInbox.mode: "verification"`) for approv
 | --- | --- | --- |
 | `save_draft` | `mermail-compose-email` | Optional internal draft of the approval-request message (`body.body` string) |
 | `send_email` / `reply_to_email` | `mermail-compose-email` | Deliver the approval-request (`body.from` + `body.html` and/or `body.text`) |
-| `list_emails` / `search_emails` / `get_email` / `get_thread` | `mermail-manage-inbox` | Bounded untrusted polling for the approver reply |
+| `list_emails` / `search_emails` / `get_email` / `get_email_context` / `get_thread` | `mermail-manage-inbox` | Bounded untrusted polling for the approver reply; prefer scan-gated selected-message reads |
 
 Send and reply nest Sold fields under `body`. MCP does not auto-fill Reply All; pass explicit `to`/`cc`/`bcc`.
 
@@ -48,3 +48,7 @@ PayBox requires full-profile OAuth. Never claim `MERMAIL_API_KEY` can authorize 
 ```
 
 Do not pass `"query": "{\"sortColumn\":\"date\"}"`.
+
+Discover metadata with `query.metadata_only: true`, `agent_safe_content: true`, bounded page/limit and exact live-schema filters. Fetch selected IDs with `require_scan_status: clean`, `agent_safe_content: true`, `max_body_chars: 10000` when supported. Otherwise inspect metadata first and use only a proven safely bounded clean-body path; stop when unavailable. A scan mismatch/omitted body is not a not-found. Context is oldest-first, so eight context rows cannot prove the latest reply was reviewed. All calls share the SKILL.md budget.
+
+`update_email` accepts read/starred state only, not arbitrary label assignment or a durable approval record. `create_custom_label` defines classification rules, not consumption locks. This skill has no built-in persistence/reservation tools. Inspect the actual owner-selected storage contract outside this catalog before enabling writes; do not fabricate a tool, idempotency guarantee, request lookup, or OAuth profile query. Full-profile OAuth is required for wallet tools; use the focused MCP setup skill for the current supported connection.

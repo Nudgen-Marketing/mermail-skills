@@ -1,7 +1,7 @@
 interface:
   display_name: "Mermail Approval Gate"
-  short_description: "Human-in-the-loop email approval before send, invite, or PayBox spend"
-  default_prompt: "Use $mermail-approval-gate to freeze an exact external-effect preview, email a one-time approval code to a designated human, and execute only after a matching reply unlocks that frozen preview."
+  short_description: "Proof-of-work reports and sender-bound human review gates"
+  default_prompt: "Use $mermail-approval-gate to prepare an evidence report and collect a designated human's reply for a frozen action, preserving durable reservations and the owning skill's separate operator approval."
 dependencies:
   tools:
     - type: "mcp"
