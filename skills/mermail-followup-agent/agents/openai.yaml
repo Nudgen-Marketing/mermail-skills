@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Follow-up Agent"
+  short_description: "Rank unanswered threads and draft selected follow-ups"
+  default_prompt: "Use $mermail-followup-agent to rank eligible unanswered threads and prepare only my selected follow-up drafts for review."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
