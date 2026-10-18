@@ -11,7 +11,7 @@ An error name alone is not proof no provider step ran. Re-read the current owner
 | Code | Procurement state | Recovery |
 | --- | --- | --- |
 | `paybox_amount_requires_decimal` | `awaiting_approval` | After confirmed non-submission, correct with `amount_decimal` set to the human amount and **omit** `amount` |
-| `paybox_amount_scale_mismatch` | `awaiting_approval` | Resend with `amount_decimal` only |
+| `paybox_amount_scale_mismatch` | `awaiting_approval` | Inspect the exact invocation for authoritative non-submission; then review a corrected decimal payload, never an automatic resend |
 | `paybox_amount_below_dust_floor` | `blocked` | The charge implies less than about $0.01 on a trusted price. Ask the user for an amount worth at least $0.01. Do **not** round up on your own — that changes the envelope |
 | `paybox_amount_value_mismatch` | `awaiting_approval` | Implied USD differs from `value_cents` by more than 3x. Review the amount or correct `value_cents` |
 | `paybox_invalid_arguments` | `awaiting_approval` | Read the asset from the portfolio and review complete arguments; no automatic resend |
