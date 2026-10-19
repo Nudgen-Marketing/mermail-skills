@@ -4,7 +4,8 @@ import { detectPatterns, projectMonthly } from '../skills/mermail-renewal-guard/
 const scope = { workspaceId: 'w', mailboxId: 'm', asOf: '2026-10-19' };
 const row = patch => ({ ...scope, sourceId: 's1', vendorId: 'vendor', accountId: 'account', planId: 'pro',
   currency: 'USD', amount: '9.99', eventId: 'event1', chargeDate: '2026-07-01', direction: 'charge', documentKind: 'receipt',
-  dateEvidence: 'stated', scanStatus: 'clean', contentOmitted: false, senderAuthentication: 'pass', ...patch });
+  dateEvidence: 'stated', scanStatus: 'clean', contentOmitted: false, senderAuthentication: 'pass',
+  nativeHold: false, truncated: false, safeContent: true, ...patch });
 const three = () => [row(), row({ sourceId: 's2', eventId: 'event2', chargeDate: '2026-08-01' }), row({ sourceId: 's3', eventId: 'event3', chargeDate: '2026-09-01' })];
 const terms = patch => row({ currentTermsConfirmed: true, cadenceEvidence: 'stated', cadence: 'monthly', ...patch });
 
@@ -39,7 +40,8 @@ test('same-day distinct events are not a recurring cadence', () => {
 test('unknown scan auth omitted future ambiguous and refund sources are not charge evidence', () => {
   for (const patch of [{ scanStatus: 'unknown' }, { senderAuthentication: 'unknown' }, { contentOmitted: true },
     { chargeDate: '2026-02-30' }, { chargeDate: '2027-01-01' }, { direction: 'refund' }, { dateEvidence: 'derived' },
-    { documentKind: 'invoice' }, { amount: 'NaN' }, { amount: -3 }, { amount: '0' }]) {
+    { documentKind: 'invoice' }, { amount: 'NaN' }, { amount: -3 }, { amount: '0' },
+    { nativeHold: true }, { truncated: true }, { safeContent: false }, { nativeHold: undefined }]) {
     const result = detectPatterns(scope, [row(patch)]);
     assert.equal(result.patterns.length, 0);
     assert.equal(result.needsReview.length, 1);
@@ -55,7 +57,7 @@ test('wrong workspace/mailbox or oversize records fail instead of blending histo
 });
 test('exact decimal and quarterly/annual monthly equivalents stay separated by currency', () => {
   const result = projectMonthly(scope, [terms({ amount: '0.10' }), terms({ accountId: 'a2', amount: '0.20' }),
-    terms({ accountId: 'annual', amount: '120', cadence: 'annual' }), terms({ currency: 'EUR', amount: '30', cadence: 'quarterly' })]);
+    terms({ accountId: 'annual', amount: '120', cadence: 'annual' }), terms({ sourceId: 'eur-terms', currency: 'EUR', amount: '30', cadence: 'quarterly' })]);
   assert.deepEqual(result.totals.map(x => [x.currency, x.exactDecimal]), [['USD', '10.3'], ['EUR', '10']]);
   assert.equal(result.authorizesEffect, false);
 });
@@ -75,4 +77,10 @@ test('unknown cadence and historical estimates cannot become current budget term
 test('repeated same terms count once and conflicting current terms block', () => {
   assert.equal(projectMonthly(scope, [terms(), terms({ sourceId: 'copy' })]).rows.length, 1);
   assert.throws(() => projectMonthly(scope, [terms(), terms({ sourceId: 'new', amount: '10' })]));
+});
+test('native hold truncated unsafe or missing safety facts exclude monthly terms', () => {
+  for (const patch of [{ nativeHold: true }, { truncated: true }, { safeContent: false }, { safeContent: undefined }]) {
+    assert.equal(projectMonthly(scope, [terms(patch)]).rows.length, 0);
+  }
+  assert.throws(() => projectMonthly(scope, [terms(), terms({ nativeHold: true })]));
 });

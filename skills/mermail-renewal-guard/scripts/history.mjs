@@ -35,7 +35,8 @@ function selected(scope, row) {
   if (!/^[A-Z]{3,8}$/.test(row.currency ?? '')) throw Error('Explicit currency required');
 }
 function clean(row) {
-  return row.scanStatus === 'clean' && row.contentOmitted === false && row.senderAuthentication === 'pass';
+  return row.scanStatus === 'clean' && row.contentOmitted === false && row.senderAuthentication === 'pass'
+    && row.nativeHold === false && row.truncated === false && row.safeContent === true;
 }
 const key = row => JSON.stringify([row.vendorId, row.accountId, row.planId, row.currency]);
 const sources = rows => [...new Set(rows.flatMap(x => x.sourceIds ?? [x.sourceId]))].sort();
@@ -48,7 +49,7 @@ export function detectPatterns(scope, records) {
     selected(scope, row);
     const observation = JSON.stringify([row.vendorId, row.accountId, row.planId, row.currency,
       row.eventId, row.chargeDate, row.amount, row.direction, row.documentKind, row.dateEvidence,
-      row.scanStatus, row.contentOmitted, row.senderAuthentication]);
+      row.scanStatus, row.contentOmitted, row.senderAuthentication, row.nativeHold, row.truncated, row.safeContent]);
     if (seenSources.has(row.sourceId)) {
       if (seenSources.get(row.sourceId) !== observation) throw Error('Conflicting immutable-source observation');
       continue;
@@ -102,9 +103,15 @@ function gcd(a, b) { while (b) [a, b] = [b, a % b]; return a; }
 const rational = (n, d) => { const g = gcd(n, d); return { numerator: n / g, denominator: d / g }; };
 export function projectMonthly(scope, records) {
   scopeKey(scope);
-  const commitments = new Map(), review = [];
+  const commitments = new Map(), review = [], observations = new Map();
   for (const row of bounded(records)) {
     selected(scope, row);
+    const observationKey = JSON.stringify([row.sourceId, row.vendorId, row.accountId, row.planId]);
+    const fingerprint = JSON.stringify([row.currency, row.amount, row.cadence, row.cadenceEvidence, row.currentTermsConfirmed,
+      row.scanStatus, row.contentOmitted, row.senderAuthentication, row.nativeHold, row.truncated, row.safeContent]);
+    if (observations.has(observationKey) && observations.get(observationKey) !== fingerprint)
+      throw Error('Conflicting current-term source observation');
+    observations.set(observationKey, fingerprint);
     if (!clean(row) || row.currentTermsConfirmed !== true || row.cadenceEvidence !== 'stated') {
       review.push({ sourceId: row.sourceId, reason: 'current_terms_not_confirmed' }); continue;
     }
