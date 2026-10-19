@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {projectClaims} from '../skills/mermail-task-dispatch/scripts/project-claims.mjs';
 const scope={workspaceId:'workspace',mailboxId:'mailbox',threadId:'thread',taskId:'TASK-20261019-01',version:'v1',worker:'worker@example.test',recipient:'desk@example.test',dispatchDelivered:true,dispatchAt:'2026-10-19T00:00:00Z',deadline:'2026-10-19T01:00:00Z',pollMax:12,pollsUsed:1,checkinMax:0,checkinsUsed:0};
 const clock='2026-10-19T00:30:00Z';
-const event=(x={})=>({...scope,id:'mail-1',draft:false,received:true,scan:'clean',auth:'pass',nativeHold:false,contentOmitted:false,receivedAt:'2026-10-19T00:10:00Z',tag:'RESULT',resultStatus:'done',artifactRef:'owner-selected-reference',...x});
+const event=(x={})=>({...scope,id:'mail-1',draft:false,received:true,scan:'clean',auth:'pass',nativeHold:false,contentOmitted:false,safeContent:true,truncated:false,authoredSeparated:true,bodyChars:100,receivedAt:'2026-10-19T00:10:00Z',tag:'RESULT',resultStatus:'done',artifactRef:'owner-selected-reference',...x});
 test('RESULT remains reported_done with explicit owner-verification handoff, no effect authority',()=>{const r=projectClaims(scope,[event()],clock);assert.equal(r.status,'reported_done');assert.equal(r.artifactVerified,false);assert.equal(r.authorizesEffect,false);assert.equal(r.verificationHandoff,'owner_selection_required');assert.equal(r.ackMissing,true);});
 test('ACK and STATUS preserve progress; accepted envelope is not artifact completion',()=>{const a=event({id:'ack',tag:'ACK'}),s=event({id:'status',tag:'STATUS',receivedAt:'2026-10-19T00:20:00Z'});assert.equal(projectClaims(scope,[s,a],clock).status,'acknowledged');const r=projectClaims(scope,[a,event({receivedAt:'2026-10-19T00:25:00Z'})],clock);assert.equal(r.status,'reported_done');assert.equal(r.ackMissing,false);});
 test('each workspace/mailbox/thread/task/version/worker/recipient binding must match',()=>{for(const k of ['workspaceId','mailboxId','threadId','taskId','version','worker','recipient']){const r=projectClaims(scope,[event({[k]:'other'})],clock);assert.deepEqual(r.evidence,[]);assert.equal(r.status,'dispatched');assert.equal(r.rejected.length,1);}});
@@ -26,4 +26,18 @@ test('documented native draft/send examples have canonical content and idempoten
   assert.equal(typeof draft.body.body,'string');assert.equal(typeof send.body.text,'string');
   assert.equal(typeof send.body.from,'string');assert.equal(typeof send.idempotencyKey,'string');
   assert.equal(Object.hasOwn(send,'idempotency_key'),false);
+});
+test('ACK after BLOCKED cannot establish resolution or restart tracking',()=>{
+ const r=projectClaims(scope,[event({tag:'BLOCKED'}),event({id:'later-ack',tag:'ACK',receivedAt:'2026-10-19T00:20:00Z'})],clock);
+ assert.equal(r.status,'blocked');assert.equal(r.trackingStopped,true);
+});
+test('changed same-source safety observations conflict before exclusion',()=>{
+ for(const patch of [{scan:'unknown'},{auth:'unknown'},{truncated:true},{nativeHold:true}])
+  assert.equal(projectClaims(scope,[event(),event(patch)],clock).reason,'conflicting_same_source');
+ for(const patch of [{safeContent:false},{safeContent:undefined},{truncated:true},{authoredSeparated:false},{bodyChars:10001}])
+  assert.equal(projectClaims(scope,[event(patch)],clock).evidence.length,0);
+});
+test('later contradictory blocker cannot silently preserve a reported completion',()=>{
+ const r=projectClaims(scope,[event(),event({id:'later-blocked',tag:'BLOCKED',receivedAt:'2026-10-19T00:20:00Z'})],clock);
+ assert.equal(r.status,'uncertain');assert.equal(r.reason,'blocked_after_result');assert.equal(r.artifactVerified,false);
 });

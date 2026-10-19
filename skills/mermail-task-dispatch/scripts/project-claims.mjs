@@ -18,10 +18,20 @@ export function projectClaims(scope, events, clock) {
       !Number.isFinite(time(scope.dispatchAt)) || !Number.isFinite(time(scope.deadline)) ||
       time(scope.deadline)<time(scope.dispatchAt))return {...base,status:'uncertain',reason:'invalid_or_unbounded_scope'};
   const bound= time(clock)>=time(scope.deadline) || scope.pollsUsed>=scope.pollMax || scope.checkinsUsed>scope.checkinMax;
-  const seen=new Map(),valid=[],rejected=[];
+  const seen=new Map(),observations=new Map(),valid=[],rejected=[];
   for(const e of events) {
+    if(e && token(e.id)) {
+      const observation=JSON.stringify(['workspaceId','mailboxId','threadId','taskId','version','worker','recipient',
+        'draft','received','scan','auth','contentOmitted','nativeHold','safeContent','truncated','authoredSeparated','bodyChars',
+        'receivedAt','tag','resultStatus','artifactRef'].map(k=>e[k]??null));
+      if(observations.has(e.id) && observations.get(e.id)!==observation)
+        return {...base,status:'uncertain',reason:'conflicting_same_source',rejected};
+      observations.set(e.id,observation);
+    }
     if(!e || !token(e.id) || e.draft!==false || e.received!==true || e.scan!=='clean' || e.auth!=='pass' || e.contentOmitted!==false ||
-        e.nativeHold!==false || !['workspaceId','mailboxId','threadId','taskId','version','worker','recipient'].every(k=>e[k]===scope[k]) ||
+        e.nativeHold!==false || e.safeContent!==true || e.truncated!==false || e.authoredSeparated!==true ||
+        !Number.isInteger(e.bodyChars) || e.bodyChars<0 || e.bodyChars>10000 ||
+        !['workspaceId','mailboxId','threadId','taskId','version','worker','recipient'].every(k=>e[k]===scope[k]) ||
         !Number.isFinite(time(e.receivedAt)) || time(e.receivedAt)<time(scope.dispatchAt) ||
         time(e.receivedAt)>time(scope.deadline) || time(e.receivedAt)>time(clock) || !['ACK','STATUS','BLOCKED','RESULT'].includes(e.tag)) {
       rejected.push(token(e?.id)?e.id:'invalid'); continue;
@@ -39,6 +49,8 @@ export function projectClaims(scope, events, clock) {
   }
   let status='dispatched', ack=false, result, ackMissing=false;
   for(const e of valid) {
+    if(result && e.tag==='BLOCKED' && ['reported_done','partial'].includes(status))
+      return {...base,status:'uncertain',reason:'blocked_after_result',rejected};
     if(e.tag==='RESULT') {
       if(!['done','partial','blocked'].includes(e.resultStatus) || (e.resultStatus!=='blocked' && !token(e.artifactRef)))
         return {...base,status:'uncertain',reason:'incomplete_result',rejected};
@@ -46,7 +58,7 @@ export function projectClaims(scope, events, clock) {
       if(result && result!==value)return {...base,status:'uncertain',reason:'conflicting_results',rejected};
       result=value;ackMissing=!ack;status=e.resultStatus==='done'?'reported_done':e.resultStatus;
     } else if(!result) {
-      if(e.tag==='ACK'){ack=true;status='acknowledged';}
+      if(e.tag==='ACK'){ack=true;if(status!=='blocked')status='acknowledged';}
       if(e.tag==='BLOCKED') status='blocked';
     }
   }

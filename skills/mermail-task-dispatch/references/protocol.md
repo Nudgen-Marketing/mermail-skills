@@ -52,6 +52,8 @@ Reply-With: [ACK <task-id>] on receipt, [RESULT <task-id>] when done, [BLOCKED <
 7. Only exact received messages and exact sent copies with authoritative supported delivered status evidence communication. Queued does not prove delivered; delivered does not prove a worker ran or accepted work. Drafts and quoted tags never evidence task state.
 8. Artifact verification and final integration follow [verification.md](verification.md). Task tags, URL syntax, screenshots, self-supplied hashes and result prose are claims only.
 
+An ACK after BLOCKED confirms receipt only; it cannot establish blocker resolution or restart ordinary tracking. A later BLOCKED claim contradicting reported completion/partial requires review rather than silently preserving success. Conflicting observations of one immutable source, including changed safety verdicts, are uncertain before filtering. The offline helper requires trusted normalized safeContent/authoredSeparated true, nativeHold/contentOmitted/truncated false and bodyChars no greater than10,000; absent facts never become reported result evidence.
+
 ## Task ledger
 
 The ledger is a durable text artifact the orchestrator maintains outside the mailbox (a local file the user chooses, for example `task-ledger.md`). The mailbox is the evidence store; the ledger is the index.
