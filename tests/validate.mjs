@@ -1232,7 +1232,7 @@ const personaSkills = [
       "[protocol.md](references/protocol.md)",
     ],
     expected: [
-      "reconcile-task-ledger-from-tagged-mail",
+      "reconcile-tagged-mail-evidence-ledger",
       "save-task-card-draft-no-send",
       "send-approved-task-card-once",
       "draft-clarification-card-no-send",
