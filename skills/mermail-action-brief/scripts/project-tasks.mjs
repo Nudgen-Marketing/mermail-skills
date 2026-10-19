@@ -40,12 +40,18 @@ export function projectTasks(scope, messages, observations) {
   const tasks=[];
   for (const [key, copies] of grouped) {
     const o=copies[0], m=byId.get(o.messageId);
-    const base={actionId:o.actionId,threadId:m.threadId,workspaceId:scope.workspaceId,mailboxId:scope.mailboxId,sourceIds:[o.messageId]};
-    if (new Set(copies.map(x=>JSON.stringify(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))))).size>1) {
-      tasks.push({...base,class:'needs_clarification',reason:'conflicting_action_observations'}); continue;
+    const base={actionId:o.actionId,threadId:m.threadId,workspaceId:scope.workspaceId,mailboxId:scope.mailboxId,
+      sourceIds:[...new Set(copies.map(x=>x.messageId))]};
+    if (copies.some(x=>!safe(byId.get(x.messageId)) || x.quoted!==false)) {
+      tasks.push({...base,class:'blocked',reason:'unsafe_incomplete_or_quoted_source',priority:'P3',priorityBasis:'metadata_only',authorization:'none'}); continue;
     }
-    if (!safe(m) || o.quoted !== false) {
-      tasks.push({...base,class:'blocked',reason:'unsafe_incomplete_or_quoted_source'}); continue;
+    if (new Set(copies.map(x=>JSON.stringify(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))))).size>1) {
+      const conflictingObservations=copies.map(x=>({sourceId:x.messageId,title:str(x.title,120)?x.title:null,
+        dueAt:Number.isFinite(instant(x.dueAt))?x.dueAt:null,dueHint:str(x.dueHint,120)?x.dueHint:null,
+        status:['open','fulfilled','cancelled'].includes(x.status)?x.status:'unknown',
+        assignee:['owner','other','unknown'].includes(x.ownerRole)?x.ownerRole:'unknown'}));
+      tasks.push({...base,class:'needs_clarification',reason:'conflicting_action_observations',conflictingObservations,
+        priority:'P2',priorityBasis:'review_conflicting_evidence',authorization:'none'}); continue;
     }
     if (!str(o.title,120) || !['owner','other','unknown'].includes(o.ownerRole) ||
         !['request','promise','fyi'].includes(o.kind) || !['open','fulfilled','cancelled'].includes(o.status) ||
@@ -81,6 +87,11 @@ export function projectTasks(scope, messages, observations) {
       else if (remaining<=7*86400000) {priority='P1';priorityBasis='evidenced_within_rolling_7d';}
     }
     if (o.dueHint != null && !str(o.dueHint,120)) throw Error('Invalid literal due hint');
+    if (['resolved_in_reviewed_scope','fyi_no_action'].includes(classification)) {
+      priority='P3';priorityBasis='non_actionable_history';
+    } else if (classification==='needs_clarification') {
+      priority='P2';priorityBasis='review_evidence_before_action';
+    }
     tasks.push({...base,sourceIds:[...new Set(sourceIds)],title:o.title,assignee:o.ownerRole,
       class:classification,reason,priority,priorityBasis,dueAt,dueHint:o.dueHint??'Not specified in the email',
       confidence:o.confidence,provisional,authorization:'none'});

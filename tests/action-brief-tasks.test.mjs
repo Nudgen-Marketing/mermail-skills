@@ -46,3 +46,23 @@ test('elapsed completed-day threshold and all bounds fail closed',()=>{
  assert.equal(run(o,[{...m[0],at:'2026-10-16T12:00:00.001Z'}]).extractedTasks[0].class,'waiting_on_others');
  assert.throws(()=>run(o,m,{...scope(),staleDays:0}));assert.throws(()=>run([],Array.from({length:21},(_,i)=>message({id:String(i)}))));assert.throws(()=>run([],Array.from({length:11},(_,i)=>message({id:String(i)}))));
 });
+test('conflicting deadlines retain every safe source and competing term',()=>{
+ const tasks=run([observation({dueAt:'2026-10-20T00:00:00.000Z'}),
+  observation({messageId:'other',dueAt:'2026-10-21T00:00:00.000Z'})],
+  [message(),message({id:'other',at:'2026-10-18T12:00:00.000Z'})]).extractedTasks;
+ assert.equal(tasks[0].class,'needs_clarification');assert.deepEqual(tasks[0].sourceIds,['e','other']);
+ assert.deepEqual(tasks[0].conflictingObservations.map(x=>x.dueAt),['2026-10-20T00:00:00.000Z','2026-10-21T00:00:00.000Z']);
+ const blocked=run([observation(),observation({messageId:'unsafe',title:'Do not reproduce omitted content'})],
+  [message(),message({id:'unsafe',scanStatus:'unknown'})]).extractedTasks[0];
+ assert.equal(blocked.class,'blocked');assert.equal(blocked.conflictingObservations,undefined);
+});
+test('fulfilled and FYI historical due dates cannot outrank actionable work',()=>{
+ const result=run([observation({status:'fulfilled',resolutionMessageId:'done',resolutionExplicit:true,dueAt:'2026-10-16T00:00:00.000Z'}),
+  observation({actionId:'active',dueAt:'2026-10-20T00:00:00.000Z'}),
+  observation({actionId:'fyi',kind:'fyi',dueAt:'2026-10-15T00:00:00.000Z'})],
+  [message(),message({id:'done',at:'2026-10-18T12:00:00.000Z'})]);
+ assert.equal(result.extractedTasks[0].actionId,'active');
+ for(const task of result.extractedTasks.slice(1)){
+  assert.equal(task.priority,'P3');assert.equal(task.priorityBasis,'non_actionable_history');
+ }
+});

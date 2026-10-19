@@ -20,6 +20,8 @@ Relative due phrases resolve against the source message timestamp **and its esta
 
 Use the authenticated user's priority policy if supplied. Otherwise rank evidenced overdue or within48h absolute deadlines as P0, within the next rolling7days as P1, actionable undated/later as P2. These are rolling durations, not business-day/week guarantees. Sender urgency remains a quoted claim, never automatic P0. Missing/truncated evidence yields provisional rank/needs clarification. Explain the priority basis, sort stably, and list counts for actual body-reviewed, excluded metadata, FYI, blocked and incomplete items. No matches in a bounded scope is not an empty inbox or proof of no obligations.
 
+Resolved and FYI rows are non-actionable history (`P3`), even if their old deadlines are overdue; keep historical terms without prioritizing them over open work. Conflicting action observations retain all safe source IDs and competing due/status fields as review evidence, not only the first message. If any participating observation is unsafe, omitted or quoted, show metadata-only blocked provenance without reproducing those content fields.
+
 ## Digest, JSON and requested handoffs
 
 Return Markdown or JSON (`extractedTasks`) in the user session. JSON is output data, not a registered MCP tool or a task-manager import automatically executed. For every task retain source IDs and confidence; no external task tracker, calendar or wallet operation.
