@@ -20,6 +20,8 @@ No Mermail generic source-ledger/upsert/label-assignment tool exists. For cross-
 
 The optional offline [manifest helper](../scripts/manifest.mjs) projects normalized verified metadata and record states. It does not authenticate mail, prove complete history/delivery, create a ledger, reserve intent or authorize writes.
 
+Helper scope also requires an owner-selected non-secret `deliveryPolicyId` binding the intended audience/permission and repeat-run policy (novel updates versus an explicitly requested repeat). Prior records from another policy cannot suppress current sources. Changing audience or repeat policy needs independent review and the appropriate policy identity, not an email-selected value. Host-verified `nativeHold: false`, `truncated: false`, `contentOmitted: false` and `safeBodyRead: true` are mandatory for included content; absent or conflicting safety facts stay metadata-only or block. The history-verification parameter is a boolean, never truthy free text. None of these input assertions establishes its own authenticity.
+
 ## Exact one-time approval
 
 Review one frozen artifact with workspace/mailbox, audience permission, From/To/Cc/Bcc, subject, full HTML/text, attachment set, source/draft/thread IDs when applicable, manifest/content hash and exact future ISO timestamp for scheduling. An action-item address, newsletter sender or hidden Bcc is not an approved digest recipient. Re-read the existing draft and relevant source versions immediately before delivery; new source scope, changed content, recipients or human edits invalidate approval. Do not overwrite edits, auto-send a draft or replace a schedule by sending immediately.

@@ -11,7 +11,7 @@ const instant = value => {
 
 export function projectManifest(scope, observations, previous = [], historyVerified = false) {
   const start = instant(scope?.start), end = instant(scope?.end);
-  if (!identity(scope?.workspaceId) || !identity(scope?.mailboxId) || !Number.isFinite(start) ||
+  if (!identity(scope?.workspaceId) || !identity(scope?.mailboxId) || !identity(scope?.deliveryPolicyId) || typeof historyVerified !== 'boolean' || !Number.isFinite(start) ||
       !Number.isFinite(end) || start >= end || !Array.isArray(observations) ||
       observations.length > 200 || !Array.isArray(previous) || previous.length > 20)
     throw new Error('Invalid bounded manifest inputs');
@@ -23,6 +23,7 @@ export function projectManifest(scope, observations, previous = [], historyVerif
     if (received < start || received >= end) continue;
     const normalized = { id: item.id, digest: item.digest ?? null, scan: item.scan,
       safeBodyRead: item.safeBodyRead === true, keep: item.keep === true,
+      nativeHold: item.nativeHold, truncated: item.truncated, contentOmitted: item.contentOmitted,
       topics: [...new Set(Array.isArray(item.topics) ? item.topics : [])].sort(), receivedAt: item.receivedAt };
     if (normalized.topics.length > 7 || normalized.topics.some(t => !identity(t)))
       throw new Error('Invalid bounded topic set');
@@ -32,7 +33,7 @@ export function projectManifest(scope, observations, previous = [], historyVerif
   }
   const delivered = new Map();
   if (historyVerified === true) for (const record of previous) {
-    if (!record || record.workspaceId !== scope.workspaceId || record.mailboxId !== scope.mailboxId)
+    if (!record || record.workspaceId !== scope.workspaceId || record.mailboxId !== scope.mailboxId || record.deliveryPolicyId !== scope.deliveryPolicyId)
       throw new Error('Ambiguous prior manifest scope');
     if (record.status !== 'sent' || record.authoritativeDelivery !== true) continue;
     if (!Array.isArray(record.sources) || record.sources.length > 200) throw new Error('Invalid prior sources');
@@ -47,7 +48,7 @@ export function projectManifest(scope, observations, previous = [], historyVerif
     revisedSources: 0, noveltyUnknown: 0 };
   const included = [], topicMembers = new Map();
   for (const item of unique.values()) {
-    if (item.scan !== 'clean' || !item.safeBodyRead || !version(item.digest)) {
+    if (item.scan !== 'clean' || !item.safeBodyRead || !version(item.digest) || item.nativeHold !== false || item.truncated !== false || item.contentOmitted !== false) {
       counts.metadataOnly++;
       continue;
     }
@@ -67,7 +68,7 @@ export function projectManifest(scope, observations, previous = [], historyVerif
     }
   }
   if (topicMembers.size > 7) throw new Error('Digest exceeds seven theme groups');
-  return { counts, included: included.sort((a, b) => a.id.localeCompare(b.id)),
+  return { scope: { workspaceId: scope.workspaceId, mailboxId: scope.mailboxId, deliveryPolicyId: scope.deliveryPolicyId }, counts, included: included.sort((a, b) => a.id.localeCompare(b.id)),
     topicCounts: Object.fromEntries([...topicMembers].sort(([a], [b]) => a.localeCompare(b)).map(([topic, ids]) => [topic, ids.size])),
     authorizesEffect: false, provesCompleteCoverage: false };
 }

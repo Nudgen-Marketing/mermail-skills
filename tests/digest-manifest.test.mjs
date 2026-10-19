@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { projectManifest, planDelivery } from '../skills/mermail-research-digest-agent/scripts/manifest.mjs';
-const scope = { workspaceId: 'w1', mailboxId: 'm1', start: '2026-10-18T00:00:00.000Z', end: '2026-10-19T00:00:00.000Z' };
+const scope = { workspaceId: 'w1', mailboxId: 'm1', deliveryPolicyId: 'selected-audience-policy', start: '2026-10-18T00:00:00.000Z', end: '2026-10-19T00:00:00.000Z' };
 const hash = 'a'.repeat(64), nextHash = 'b'.repeat(64);
-const source = (id = 'source1') => ({ ...scope, id, digest: hash, scan: 'clean', safeBodyRead: true,
+const source = (id = 'source1') => ({ ...scope, id, digest: hash, scan: 'clean', safeBodyRead: true, nativeHold: false, truncated: false, contentOmitted: false,
   keep: true, topics: ['market', 'research'], receivedAt: '2026-10-18T12:00:00.000Z' });
-const previous = (status = 'sent') => ({ workspaceId: 'w1', mailboxId: 'm1', status,
+const previous = (status = 'sent') => ({ workspaceId: 'w1', mailboxId: 'm1', deliveryPolicyId: scope.deliveryPolicyId, status,
   authoritativeDelivery: true, sources: [{ id: 'source1', digest: hash }] });
 test('one source under two topics counts once overall; repeated observations deduplicate', () => {
   const result = projectManifest(scope, [source(), source(), source('source2')]);
@@ -85,4 +85,15 @@ test('one-time scheduling requires exact normalized future time and approval', (
   for (const scheduledAt of [scope.start, '2026-02-30T00:00:00.000Z', 'Monday morning', undefined])
     assert.equal(planDelivery({ ...request, scheduledAt }).state, 'invalid_one_time_schedule');
   assert.equal(planDelivery({ ...request, operatorApproved: false }).state, 'approval_required');
+});
+test('held truncated omitted and absent native safety facts cannot enter digest content', () => {
+  for (const patch of [{ nativeHold: true }, { truncated: true }, { contentOmitted: true }, { nativeHold: undefined }]) {
+    assert.equal(projectManifest(scope, [{ ...source(), ...patch }]).counts.kept, 0);
+    assert.throws(() => projectManifest(scope, [source(), { ...source(), ...patch }]));
+  }
+});
+test('history status is strictly boolean and prior audience policy must match', () => {
+  for (const value of ['false', 1, null]) assert.throws(() => projectManifest(scope, [source()], [], value));
+  assert.throws(() => projectManifest(scope, [source()], [{ ...previous(), deliveryPolicyId: 'different-audience' }], true));
+  assert.throws(() => projectManifest({ ...scope, deliveryPolicyId: undefined }, [source()]));
 });
