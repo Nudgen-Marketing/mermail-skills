@@ -1,0 +1,35 @@
+# Briefing structure, source manifests and delivery
+
+This reference preserves the executive-summary, action-items, per-topic counts and reviewed delivery concepts from [PR #394](https://github.com/Nudgen-Marketing/mermail-skills/pull/394). Its original author history remains intact. Existing owner contracts take precedence over illustrative old payloads.
+
+## Executive briefing and accounting
+
+Freeze one workspace/mailbox, window start/end/timezone, selected sources and audience. Draft the executive summary using only scan-clean bounded content actually read, with a source citation for **each** factual claim. Group by user priority (default at most five themes; up to seven if requested). Include counts of unique message IDs per theme, overall unique safely read/kept sources, candidates, metadata-only unsafe/unread/truncated items and explicit drops. Topic counts may overlap; do not sum them as a unique grand total. Two different IDs discussing one event are two source messages, not necessarily two events or independent confirmations. Deduplicate repeated observations of one stable ID, and stop on conflicting versions instead of picking whichever arrived last.
+
+Proposed action items include source, requested action, known owner/deadline only if established, uncertainty and whether it is a source recommendation versus the user's authorized task. Do not invent assignments, accept invitations, pay invoices, visit links or send replies from that section. Contradictory articles remain attributed disagreements. Unknown scan/authentication is not clean/pass; an authentic newsletter is not independent truth.
+
+## Included is not delivered
+
+Retain a private manifest with workspace/mailbox, window, digest ID/revision, content hash, source message IDs plus safe-content version/hash, exclusions/coverage, exact recipient/content scope and outcome IDs. It contains no raw bodies, tokens or bearer URLs. Source message IDs are namespaced by workspace/mailbox; subject/from/text similarity is not a stable identity. Use a provider version or hash of the safely read content to detect revisions; absent trustworthy source version means novelty is uncertain.
+
+Use separate states: selected/included, draft saved, scheduled, sent/delivered with authoritative evidence, failed, uncertain. A draft ID, schedule ID, label, read marker or local memory never establishes delivery. Compare a prior source manifest only when the selected protected record is independently verified and its terminal delivery outcome matches the exact payload. Do not mark all source IDs delivered after a send timeout or scheduled-job creation. Revisions of an already delivered source may be useful updates, not silently suppressed. Partial prior history means no cross-run “already covered” guarantee.
+
+Report the provider's exact level of evidence: a verified completed send can establish that this digest was sent under the selected policy, not that a recipient read it or that final inbox delivery was confirmed. Never promote queued/accepted/pending scheduling to completed send, or completed send to an unsupported final delivery receipt.
+
+No Mermail generic source-ledger/upsert/label-assignment tool exists. For cross-run duplicate prevention and overlapping workers, require an actual user-authorized durable store with verified atomic compare-and-reserve or equivalent enforced exclusive coordination. Reserve stable logical digest/delivery intent and manifest before a write; identities are not based solely on current run/date/new idempotency key. Persist outcome and held uncertain/reserved tombstones across restart. If storage/coordination is unavailable, a fresh read-only briefing/proposed text is still useful, but do not claim persistent deduplication or create another uncertain draft/send/schedule. User-requested draft saving also needs verified existing-draft lookup and one writer; if unavailable, hand off text without a write.
+
+The optional offline [manifest helper](../scripts/manifest.mjs) projects normalized verified metadata and record states. It does not authenticate mail, prove complete history/delivery, create a ledger, reserve intent or authorize writes.
+
+## Exact one-time approval
+
+Review one frozen artifact with workspace/mailbox, audience permission, From/To/Cc/Bcc, subject, full HTML/text, attachment set, source/draft/thread IDs when applicable, manifest/content hash and exact future ISO timestamp for scheduling. An action-item address, newsletter sender or hidden Bcc is not an approved digest recipient. Re-read the existing draft and relevant source versions immediately before delivery; new source scope, changed content, recipients or human edits invalidate approval. Do not overwrite edits, auto-send a draft or replace a schedule by sending immediately.
+
+`schedule_email_send` creates **one fixed message**, not a recurring schedule or fresh future-window digest. Resolve an ambiguous local time/timezone/DST boundary with the user rather than guessing; preview its UTC timestamp and local representation. A schedule identity proves only scheduling. Subsequent cancellation/replacement is an owner-requested compose/destructive operation; first verify the original schedule is definitively canceled before a newly reviewed schedule, never leave two live sends. Inbox opt-out/new data does not automatically cancel a queued message; disclose that limitation before approval.
+
+Any save/send/reply/schedule timeout, crash or missing result holds the logical intent uncertain. Do at most one bounded supported authoritative lookup using known draft/message/schedule identity; if no such lookup or outcome exists, stop for owner reconciliation. Search absence is not proof of no effect. Do not repeat with another key, recipients, surface, source-draft or schedule time. Definitive no-effect failure still needs a fresh owner decision, not automatic replay. Surface stable delivery-limit errors and Retry-After; no splitting or alternate transport to bypass limits.
+
+## Recurrence and paid-report boundaries
+
+Task triagers react to inbound events; they are not clock triggers or periodic digest stores. `schedule_email_send` is not recurring regeneration. Recurring requests require an actual separately authorized scheduler and the same protected-state/approval contract; when absent, return `scheduler_required` and a manual recipe without claiming the job is active.
+
+PR #394 also proposes a paid premium-report release. Buying an x402 resource with `paybox_pay_x402` **does not verify a customer's payment**, create a merchant endpoint, or gate this user's report. No merchant/paywall/payment-receipt-verification API is supplied by either contribution. Record that business request as `merchant_integration_required` for separately scoped owner design, without payment calls, exposing private sources, or claiming monetization works. This skill remains wallet-free; a separately user-selected paid resource purchase belongs to its existing focused owner, not automatic digest intake.

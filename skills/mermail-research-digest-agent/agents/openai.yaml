@@ -1,6 +1,6 @@
 interface:
   display_name: "Mermail Research Digest Agent"
-  short_description: "Digest newsletters, alerts, and lists into cited scheduled briefings"
+  short_description: "Cited briefings with reviewed one-time delivery"
   default_prompt: "Use $mermail-research-digest-agent to produce this week’s cited digest from my subscriptions mailbox."
 dependencies:
   tools:
