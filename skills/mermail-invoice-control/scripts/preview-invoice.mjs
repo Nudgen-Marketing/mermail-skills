@@ -5,7 +5,7 @@ import {readFile,stat} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 
 const fields=['workspaceId','mailboxId','emailId','threadId'];
-const id=s=>typeof s==='string' && s.length>0 && s.length<=256 && !/[\u0000-\u001f\u007f]/.test(s);
+const id=s=>typeof s==='string' && s.trim().length>0 && s.length<=256 && !/[\u0000-\u001f\u007f]/.test(s);
 const decimal=s=>typeof s==='string' && s.length<=100 && /^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(s);
 const currency=s=>typeof s==='string' && /^[A-Z][A-Z0-9]{2,11}$/.test(s);
 function day(s) {
