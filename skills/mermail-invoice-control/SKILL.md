@@ -29,7 +29,7 @@ This persona uses existing Mermail tools and owns none. It does not provide book
 
 - One selected, scan-clean invoice message bound to a Mermail workspace, mailbox, message, and thread.
 - A normalized invoice record: vendor, invoice number, issue date, due date, currency, gross amount, line-item summary, and source evidence.
-- A control result: `ready_for_review`, `needs_clarification`, `duplicate`, `changed_terms`, `held_authentication`, or `held_attachment`.
+- A control result: `ready_for_review`, `needs_clarification`, `duplicate`, `changed_terms`, `held_vendor_unknown`, `held_authentication`, or `held_attachment`.
 - A draft approval packet that separates invoice-derived claims from owner-verified vendor and payment data.
 - Draft-only finance escalations for declined, out-of-policy, conflicting or unverifiable invoices; bounded batch review when requested, without batch payment authority.
 - Optionally, after exact owner authorization, one PayBox transfer request and one separately approved remittance reply.
