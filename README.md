@@ -145,7 +145,7 @@ Verify without printing the secret:
 node skills/mermail-mcp/scripts/check-connection.mjs
 ```
 
-The check initializes MCP and requires the current 63-tool full-catalog baseline while allowing future additive tools (currently 72 with Composio). If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
+The check initializes MCP and requires at least the compatible 63-tool full-catalog floor plus required canaries, warning below the current 87-tool API-key base while allowing future additive tools. The repository's production contract validation remains exact. If `MERMAIL_MCP_URL` selects `?profile=agent-inbox`, it requires that profile's exact 12-tool set, including `get_email_context`; alias-administration tools are not added to that profile. For platform-specific examples and troubleshooting, install or invoke `$mermail-mcp`.
 
 ## Included skills
 
@@ -157,7 +157,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
-| `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, webhooks, storage, and usage |
+| `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes and hosted plus-alias settings, webhooks, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party apps through Composio |

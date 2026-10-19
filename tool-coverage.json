@@ -37,6 +37,10 @@
       "list_mailboxes",
       "create_mailbox",
       "get_mailbox",
+      "list_mailbox_aliases",
+      "save_mailbox_alias",
+      "update_mailbox_alias",
+      "remove_mailbox_alias",
       "update_mailbox_settings",
       "get_mailbox_storage",
       "list_webhooks",
@@ -138,6 +142,7 @@
     ]
   },
   "destructiveTools": [
+    "update_mailbox_alias",
     "remove_workspace_member",
     "delete_email_domain",
     "create_webhook",

@@ -20,13 +20,13 @@ For OAuth mode, use the client's MCP status and tool catalog. Confirm:
 
 ## Catalog expectations
 
-- The full API-key profile currently has a base catalog of 83 tools, including 82 business definitions plus `prepare_destructive_action`. Future releases may add tools.
-- Compatibility verification: the bundled script accepts at least the 63-tool full-catalog floor plus required canaries so it can diagnose gradual deployments while still warning when the current 83-tool base is absent.
+- The full API-key profile currently has a base catalog of 87 tools, including 86 business definitions plus `prepare_destructive_action`. Future releases may add tools.
+- Compatibility verification: the bundled script accepts at least the 63-tool full-catalog floor plus required canaries so it can diagnose gradual deployments while still warning when the current 87-tool base is absent. The repository's production contract validator remains exact and fails on catalog drift; the connectivity helper deliberately accepts additive full-profile tools.
 - Full-profile member OAuth: includes the base catalog and may add `get_paybox_connection`, safe invocation status, MCP App resources, and model-visible live `paybox_*` tools through the workspace owner's active connection.
 - Full-profile owner OAuth: additionally exposes owner-only connect/reauth behavior and legacy Agent Wallet compatibility tools. When a member sees `OWNER_ACTION_REQUIRED`, do not invent a handoff or reconnect the host connector; the workspace owner must connect or repair PayBox in Mermail.
 - `agent-inbox`: exactly 12 tools: `get_api_credit_usage`, `list_workspaces`, `get_workspace`, `list_email_domains`, `list_workspace_mailboxes`, `list_mailboxes`, `create_mailbox`, `get_mailbox`, `list_emails`, `search_emails`, `get_email`, and `get_email_context`. This is a provisioning-plus-safe-read profile, not a read-only profile: `create_mailbox` is the sole scoped provisioning write and must not be called to test connectivity.
 
-Wallet tools, `prepare_destructive_action`, send, delete, Composio, mailbox-agent, and workspace-admin tools must remain absent from `agent-inbox`. A hidden tool call against that profile must fail rather than escaping the profile.
+Wallet tools, `prepare_destructive_action`, send, delete, Composio, mailbox-agent, and alias-administration tools must remain absent from `agent-inbox`; its explicitly listed discovery/provisioning subset above remains unchanged. A hidden tool call against that profile must fail rather than escaping the profile.
 
 ## Failure matrix
 

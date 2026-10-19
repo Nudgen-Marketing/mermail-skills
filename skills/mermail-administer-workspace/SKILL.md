@@ -1,6 +1,6 @@
 ---
 name: mermail-administer-workspace
-description: Inspect Mermail AI, API, and email usage and manage workspaces, members, invitations, email domains, mailboxes, webhooks, and storage. Use for workspace administration, access changes, domain verification, mailbox provisioning or settings, webhook subscriptions and deliveries, storage checks, plan usage, RPM, or credits. Do not use for generic inbox work, composing mail, or third-party app execution.
+description: Inspect Mermail AI, API, and email usage and manage workspaces, members, invitations, email domains, mailboxes and hosted plus-alias settings, webhooks, and storage. Use for administration, access changes, domain verification, mailbox provisioning, alias save/block/unblock/remove, webhook subscriptions and deliveries, storage checks, plan usage, RPM, or credits. Not generic inbox work, composing mail, or third-party app execution.
 metadata:
   openclaw:
     requires:
@@ -19,6 +19,7 @@ Use this skill to turn authenticated Mermail workspace state into clear usage re
 
 Read [tools.md](references/tools.md) for the owned MCP tools and approval requirements. Read [ai-credits.md](references/ai-credits.md) for AI usage, reservations, and failure handling.
 Read [webhooks.md](references/webhooks.md) before creating, changing, testing, retrying, deleting, or rotating a webhook.
+Read [aliases.md](references/aliases.md) before saving, changing, blocking, unblocking or removing a hosted plus-alias shortcut. These identities share one parent inbox, not isolated mailbox permissions.
 
 ## Preferred Deliverables
 
@@ -47,6 +48,7 @@ Read [webhooks.md](references/webhooks.md) before creating, changing, testing, r
 - Preserve workspace boundaries, existing access, routing, domain configuration, and mailbox settings unless the user explicitly asks to change them.
 - Treat role changes, invitations, domain changes, mailbox provisioning, and settings updates as writes. Show the exact target and intended effect before acting when the user's request is not already explicit.
 - Treat member removal, domain deletion, and webhook create/update/delete/test/retry/secret rotation as destructive. Require fresh exact approval and a matching single-use `prepare_destructive_action` token.
+- Every `update_mailbox_alias`, including label-only updates, is catalog-destructive and needs the same exact-argument confirmation. Blocking discards future incoming mail and prevents outgoing/scheduled sends from that alias; it leaves existing mail and routines. `remove_mailbox_alias` removes only a saved shortcut, not delivery or an existing block. Save/remove are separately previewed admin writes, not sends or implicit block/unblock commands.
 - Never send a test event, retry a delivery, or rotate a signing secret merely to check status. Use the webhook and delivery reads. After a timeout or unknown result, reuse the original idempotency key only for the exact same create/test/retry request and do not broaden its destination, event set, or payload.
 - Do not expose full webhook destination URLs, Authorization values, signing secrets, or selected email content in summaries. Secret rotation invalidates the previous secret; state that operational impact before approval.
 - Do not call or invent `delete_workspace`; the current MCP catalog does not expose it.
@@ -80,3 +82,5 @@ Read [webhooks.md](references/webhooks.md) before creating, changing, testing, r
 - "Create an email webhook for the selected events after showing the exact destination and approval boundary."
 - "Rotate this webhook signing secret once and tell me which integration must be updated."
 - "Remove the selected member from this workspace."
+- "List this hosted mailbox's saved and blocked plus aliases; don't change them."
+- "Preview blocking this exact plus tag, including its pending-send impact, and wait for confirmation."
