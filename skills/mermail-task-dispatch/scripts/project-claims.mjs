@@ -8,9 +8,9 @@ function time(value) {
   return Date.parse(value);
 }
 export function projectClaims(scope, events, clock) {
-  const base={authorizesEffect:false,artifactVerified:false};
+  const base={authorizesEffect:false,artifactVerified:false,trackingStopped:true};
   if(!scope || scope.dispatchDelivered!==true || !['workspaceId','mailboxId','threadId','taskId','version','worker','recipient'].every(k=>token(scope[k])) ||
-      !Number.isSafeInteger(scope.pollMax) || scope.pollMax<0 || scope.pollMax>12 ||
+      !Number.isSafeInteger(scope.pollMax) || scope.pollMax<0 || scope.pollMax>40 ||
       !Number.isSafeInteger(scope.pollsUsed) || scope.pollsUsed<0 ||
       !Number.isSafeInteger(scope.checkinMax) || scope.checkinMax<0 ||
       !Number.isSafeInteger(scope.checkinsUsed) || scope.checkinsUsed<0 ||
@@ -52,7 +52,7 @@ export function projectClaims(scope, events, clock) {
   }
   if(bound && !result && status!=='blocked') status='expired';
   return {...base,status,ackMissing,evidence:valid.map(e=>e.id),rejected,
-    trackingStopped:bound,remainingPolls:Math.max(0,scope.pollMax-scope.pollsUsed),
+    trackingStopped:bound || !!result || status==='blocked',remainingPolls:Math.max(0,scope.pollMax-scope.pollsUsed),
     remainingCheckins:Math.max(0,scope.checkinMax-scope.checkinsUsed),
     verificationHandoff:status==='reported_done'||status==='partial'?'owner_selection_required':'none'};
 }
