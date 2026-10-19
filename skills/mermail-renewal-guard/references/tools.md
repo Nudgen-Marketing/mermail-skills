@@ -23,6 +23,10 @@
 
 Do not call `send_email`, `reply_to_email`, `forward_email`, `schedule_email_send`, any destructive tool, any Composio write, or any PayBox / Agent Wallet write from this persona.
 
+The separately requested handoffs in [history.md](history.md) preserve historical-audit follow-through: composition owner for exact approved delivery, inbox owner for organization, automation owner for a configured draft-only inbound task, and wallet owner for independently requested read-only known-request/export corroboration. These do not expand the persona's direct tool ownership or authorize effects from email. No timer, full wallet-history endpoint, label assignment field, cancellation or refund API is invented.
+
+For every selected body use native `query: { require_scan_status: "clean", agent_safe_content: true, max_body_chars: 10000 }`; a missing/unknown/omitted/held result remains metadata-only. Context has native limit at most eight and shares the total body/read budget; if equivalent scan/body bounds cannot be enforced, fetch selected metadata IDs individually instead. A bounded oldest-first context is not complete evidence of the latest terms or cancellation confirmation.
+
 ## Search example
 
 Use a bounded native query appropriate to the current live schema. Example shape:
