@@ -186,6 +186,14 @@ npm run validate:remote
 
 This package is the **official curated** Mermail skills set. Community contributions are welcome through two paths:
 
+This contribution branch also contains `mermail-action-brief`, explicitly marked
+as an **unofficial companion pending placement review**, not a released official
+skill. It produces source-linked action briefs, prioritized task/JSON lists and
+Inbox/Sent open-loop digests; requested draft/organization work is handed to
+existing owners under separate approval. See its
+[task/open-loop reference](skills/mermail-action-brief/references/tasks-and-open-loops.md)
+for coverage preserved from the related proposals and offline test limits.
+
 | Path | Use for |
 | --- | --- |
 | **Official PRs** | Improve existing skills, docs, scenarios, security contracts, or propose a new skill that maps to Mermail MCP tools |

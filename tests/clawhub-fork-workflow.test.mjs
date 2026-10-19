@@ -63,3 +63,14 @@ test('fork execution is pinned, read-only and explicitly dry-run', () => {
   assert.match(job('dry-run'), new RegExp(`package-publish.yml@${pin}`));
   assert.match(job('publish'), new RegExp(`package-publish.yml@${pin}`));
 });
+
+test('skill publish cannot run on fork main; upstream release behavior remains', () => {
+  const skill = readFileSync(new URL('../.github/workflows/clawhub-skill-publish.yml', import.meta.url), 'utf8');
+  const condition = skill.match(/^  publish:\n[\s\S]*?^    if: (.+)$/m)?.[1];
+  assert.ok(condition);
+  const enabled = (repository,event_name) => vm.runInNewContext(condition,{github:{repository,event_name}},{timeout:100});
+  for (const event of ['push','workflow_dispatch','pull_request']) assert.equal(enabled('aminuabkrr/mermail-skills',event),false);
+  assert.equal(enabled('Nudgen-Marketing/mermail-skills','push'),true);
+  assert.equal(enabled('Nudgen-Marketing/mermail-skills','workflow_dispatch'),true);
+  assert.equal(enabled('Nudgen-Marketing/mermail-skills','pull_request'),false);
+});

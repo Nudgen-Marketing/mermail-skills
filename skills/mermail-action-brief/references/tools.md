@@ -53,4 +53,10 @@ No polling, attachments, link fetching or unbounded retries. Authentication/role
 
 ## No effects and placement
 
-Never invoke sends, drafts, moves, labels, deletion, provisioning, triagers, mailbox agents, Composio or wallet tools here. Follow-up requires a separate explicit user request to its canonical owner. This repairs technical calls only; the author's unofficial-companion claim remains unchanged. Maintainers must resolve official-versus-companion placement before using this PR to consolidate official submissions.
+Never invoke sends, drafts, moves, labels, deletion, provisioning, triagers, mailbox agents, Composio or wallet tools here. Follow-up requires a separate explicit user request to its canonical owner. The author's unofficial-companion claim remains unchanged. Functional comparison/consolidation does not grant official placement: maintainers still decide location and graduation before any merge or release.
+
+## Task and open-loop evidence
+
+Inbox and Sent reads use the same six-tool allowlist and cumulative budgets. For requested two-direction review, pass the actual supported folder identifiers to `list_emails` (typically `inbox` and `sent` after schema inspection), splitting the default ten candidate slots, not doubling them. No Sent access means explicit partial coverage. `get_email_context` may require individual safe selected-ID fetches where the live context surface cannot enforce clean gates; do not use unsafe raw thread reads.
+
+There is no `extract_tasks_from_email`, task creation, task synchronization, or durable commitment store in this catalog. Extraction and optional JSON are local analysis. Requested digest/nudge saving or organization is handed to its installed canonical owner with a frozen preview, not executed by this read-only skill. Do not claim a profile limits writes just because this allowlist does.
