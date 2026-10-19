@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Action Brief"
+  short_description: "Source-linked tasks and direction-aware open-loop briefs"
+  default_prompt: "Use $mermail-action-brief to review my selected mailbox's Inbox and Sent within a finite scope, return what I owe versus waiting on others, and keep all actual effects in separate approved owner workflows."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail hosted MCP server; this companion retains a six-tool read-only allowlist independently of connection profile"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
