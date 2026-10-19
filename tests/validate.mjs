@@ -977,7 +977,7 @@ for (const required of [
   "`x-api-key`",
   "full profile",
   "`agent-inbox`",
-  "83 tools",
+  "87 tools",
   "63-tool",
   "exactly 12 tools",
   "`initialize`",
@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  "currentFullCatalogBaseline = 87",
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -2073,7 +2073,7 @@ for (const expected of [
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
 const duplicates = knownTools.filter((tool, index) => knownTools.indexOf(tool) !== index);
-if (allTools.length !== 82) errors.push(`expected 82 business tools, found ${allTools.length}`);
+if (allTools.length !== 86) errors.push(`expected 86 business tools, found ${allTools.length}`);
 if (walletScopedTools.length !== 23) {
   errors.push(`expected 23 wallet-scoped tool canaries, found ${walletScopedTools.length}`);
 }
@@ -2167,8 +2167,8 @@ async function validateRemote() {
   if (!initialized?.result?.serverInfo) errors.push("authenticated MCP initialize did not return serverInfo");
   const listed = await authenticatedMcpRequest(apiKey, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
   const remoteNames = (listed?.result?.tools ?? []).map((tool) => tool.name);
-  if (remoteNames.length !== 83) {
-    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 83`);
+  if (remoteNames.length !== 87) {
+    errors.push(`authenticated tools/list returned ${remoteNames.length} tools, expected 87`);
   }
   if (!remoteNames.includes(coverage.confirmationTool)) {
     errors.push(`authenticated tools/list missing ${coverage.confirmationTool}`);
