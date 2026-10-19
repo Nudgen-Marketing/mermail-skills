@@ -12,7 +12,7 @@ This persona owns no MCP tools. Use the exact identifier exposed by the host, in
 | Fetch one required attachment | `download_attachment` | `mermail-manage-inbox` |
 | Save the approval packet | `save_draft` | `mermail-compose-email` |
 
-Prefer mailbox `public_id` as `mailboxId`. Use metadata-only reads until one candidate is unambiguous, then request bounded agent-safe content with a clean scan status.
+Prefer mailbox `public_id` as `mailboxId`. Use native metadata_only and agent_safe_content reads until one candidate is unambiguous, then native require_scan_status clean, agent_safe_content true and max_body_chars 10000 for selected detail. Bind workspace/mailbox/email/thread before interpretation; unknown authentication is not pass. Native safety holds, omitted/unknown scan or truncated/unseparated content remain metadata-only for the offline helper; never repair them by setting booleans locally or using raw-content fallback. See [offline-preview.md](offline-preview.md).
 
 Example bounded search:
 
@@ -24,6 +24,8 @@ Example bounded search:
     "subject": "invoice",
     "date_start": "2026-09-01T00:00:00.000Z",
     "limit": 25,
+    "metadata_only": true,
+    "agent_safe_content": true,
     "sortColumn": "date",
     "sortDirection": "DESC"
   }
