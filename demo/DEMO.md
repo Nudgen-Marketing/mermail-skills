@@ -2,7 +2,9 @@
 
 Live run recorded 2026-08-26 on a real Mermail workspace via Hermes (official integration).
 
-**Video:** [demo/demo.mp4](./demo.mp4) (2 min 52 s, 1080p, English narration)
+**Video:** [original recorded demo](https://github.com/shojaee76-cmyk/mermail-skills/blob/0e3422778342ff116e0b52dee3ba1b3652662e0d/demo/demo.mp4) (2 min 52 s, 1080p, English narration)
+
+The recording remains in GitHub; `.clawhubignore` excludes only recorded MP4 and generated Python bytecode from the installed bundle to respect the registry's multipart limit. Skill instructions, references, helper scripts, tests and screenshots remain included. This historical recording is not evidence that the later consolidation has been live-rehearsed.
 
 ## What the video shows (all steps real, no mockups)
 
