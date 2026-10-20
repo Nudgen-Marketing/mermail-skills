@@ -1,71 +1,31 @@
-# Workflows
+# Workflow and local reference implementation
 
-## 1. Resolve and bound the scan
+Resolve the workspace and one exact available mailbox through the admin owner. Bind email and public ID plus workspace ID in the private ledger. Stop on ambiguity. A From header alone is insufficient to classify a message as owner-sent.
 
-1. `list_mailboxes` once; pick the mailbox the user named, or the only one that fits. Record its email (the owner identity) and `public_id`.
-2. Load `commitment-ledger.json` from the user's working directory when it exists. Note `generated_at` and the latest `created_at` already recorded — the incremental scan cursor.
-3. Choose the window: first run defaults to the last 30 days; later runs start at the cursor. State the window in the output. Cap discovery at 100 threads.
+Discover metadata within a stated window (first run defaults to 30 days). Revisit selected open ledger items even when their source dates are older. The whole pass shares 100 metadata candidates, 30 threads, 20 interpreted body/context messages, 10,000 characters per message and 40 read calls. Do not widen repeatedly after empty results. Use native query objects, safe content and clean scan gates through the inbox owner; opaque context cursors are not timestamps. Report unprocessed/truncated/blocked evidence. Do not advance a global cursor beyond work actually completed.
 
-## 2. Discover and read
+Extract newest content only, excluding quotes/signatures, under [extraction.md](extraction.md). Compare against existing items using workspace/mailbox, thread, source message and item type. Identical words in another message are another candidate, not automatically a duplicate. Partial snapshots retain absent historical items as not observed; they do not delete them or reopen previously resolved entries.
 
-1. `search_emails` with a native JSON `query` object carrying `date_start` (see [tools.md](tools.md) for the exact shape), `metadata_only: true`, newest first. On an empty result, retry with a wider window once, then fall back to `list_emails`. Stop after five empty attempts.
-2. Skip threads whose latest message predates the cursor and whose ledger items are all closed.
-3. `get_thread` per candidate thread. Bodies with `scan_status` other than `clean` contribute metadata only.
+Review any closure against the exact obligation and participants. A later message with an attachment or another promise does not by itself prove fulfillment or acceptance. Store the source and later evidence IDs. Missing evidence or a passed deadline is not proof of breach. Keep human notes, existing draft IDs and uncertain outcomes intact.
 
-## 3. Extract and reconcile
+For private persistence, select a path outside the skill/public repository. The helper uses schema version 2, identity binding, an exclusive local lock, byte comparison and atomic replacement. A conflicting writer, stale lock, malformed/symlink file or legacy unbound schema stops for review; no automatic lock clearing or destructive migration. It is not a cross-host database. Retain the prior ledger until an explicitly reviewed migration copy is ready.
 
-Apply [extraction.md](extraction.md) per thread, messages in chronological order, then reconcile against the ledger:
+Rank open items using the original urgency heuristic: overdue 50 plus 5/day capped at 30 extra; deadline within three days 30; other-side silence 2/day capped at 25; owner-side age 1/day capped at 15; known deadline 10; high confidence 10; total capped at 100. Resolved items score zero. This is a triage aid, not probability or a contractual breach score. Report Overdue, Waiting on others, Waiting on you and fulfillment evidence, including audit gaps and source IDs.
 
-- **Dedupe key**: thread id + normalized item text. A match updates `last_activity_at` and status inputs; it never creates a second item.
-- **Acceptance closure**: a new `owed_by_me` item in a thread closes that thread's open `waiting_on_me` item as `accepted`.
-- **Answer closure**: a new `owed_to_me` item with subtype `promise` closes the thread's open subtype `asked` item as `answered`.
-- **Fulfillment**: strong evidence (see the extraction contract) sets `fulfilled` and records `evidence_message_id`. Weak evidence marks the briefing line as a candidate only.
-- **Status**: still-open items with a past deadline become `overdue`.
+Prepare nudges only when requested for selected items: overdue or at least four days silent, medium/high confidence, at most one per thread and none already pending/uncertain or drafted in the last seven days. Preview complete recipients/body/thread/quote/signature under the compose owner. Record pending intent and, after success, the exact draft ID; uncertain save stops for one authoritative inspection, not another save. A human-edited existing draft is not replaced. Status updates for owner obligations and optional capture automation follow [promise-ledger.md](promise-ledger.md). This persona never sends, creates a triager itself, or runs in the background.
 
-Persist the ledger before briefing: `{ "mailbox": <email>, "generated_at": <run time>, "items": [...] }`. Write it atomically (write to a temp file, then replace) so an interrupted run cannot corrupt it.
+## Offline helper
 
-## 4. Urgency score and briefing
+The helper does not fetch mail, authenticate evidence, scan content, configure automation or save Mermail drafts. Its input is a bounded operator-reviewed normalized snapshot, not a raw MCP payload or a client-supplied proof of trust. See the extraction reference for the normalization boundary.
 
-Score every open item 0–100:
-
-| Component | Points |
-| --- | --- |
-| Overdue | 50 + 5 per day overdue, capped at +30 |
-| Deadline within 3 days (not yet overdue) | 30 |
-| Silence with the ball on the other side | 2 per silent day, capped at 25 |
-| Age of an item waiting on the owner | 1 per day, capped at 15 |
-| Has a parsed deadline | 10 |
-| Confidence `high` | 10 |
-
-Fulfilled, accepted, and answered items score 0.
-
-Briefing sections, items sorted by score descending, one line per item carrying the item text, counterparty, thread id, source message id, deadline, and overdue/silent day counts:
-
-1. **Overdue** — status `overdue`, both directions.
-2. **Waiting on others** — open `owed_to_me`, not overdue.
-3. **Waiting on you** — open `waiting_on_me` plus open `owed_by_me` not yet overdue.
-4. **Recently fulfilled** — items closed since the previous run, with evidence message ids.
-
-## 5. Nudge drafting (on request only)
-
-Eligibility: `owed_to_me`, status `overdue` **or** silent at least 4 days with the ball on the other side, confidence `high` or `medium`, and no nudge drafted for that thread in the last 7 days. At most one draft per thread — pick the highest-urgency item.
-
-Draft content rules:
-
-- Subject: `Re: <original subject>`.
-- Open with a friendly one-line reference to the original exchange; quote the commitment sentence verbatim with its date ("On Oct 1 you wrote: 'I'll send the final quote by October 2.'"); ask for a status update or a new date; close politely. No threats, no invented consequences, no new commitments on the owner's behalf.
-- Save with `save_draft`; preview recipient and full body in the briefing; state explicitly that nothing was sent and that sending requires `mermail-compose-email` with fresh approval.
-
-## 6. Reference implementation and demo
-
-`scripts/commitment_radar.py` implements this contract offline against a normalized inbox JSON (the shape `get_thread` data is normalized into), so reviewers can verify the logic without a Mermail account:
+The repository test fixture is under `tests/fixtures/commitment-radar/inbox.json`, outside the published skill payload. It includes deliberately adversarial test mail, not operational instructions. Run it only as offline test data with a deliberately chosen private output path:
 
 ```bash
-cd skills/mermail-commitment-radar/scripts
-python3 commitment_radar.py scan --inbox sample_inbox.json --ledger /tmp/ledger.json --now 2026-10-06T09:00:00Z
-python3 commitment_radar.py brief --ledger /tmp/ledger.json --now 2026-10-06T09:00:00Z
-python3 commitment_radar.py nudges --ledger /tmp/ledger.json --now 2026-10-06T09:00:00Z
-python3 test_commitment_radar.py   # full behavior suite, including the injection fixture
+python3 -B skills/mermail-commitment-radar/scripts/commitment_radar.py scan --inbox tests/fixtures/commitment-radar/inbox.json --ledger /private/chosen-directory/commitment-ledger.json --now 2026-10-06T09:00:00Z
+python3 skills/mermail-commitment-radar/scripts/commitment_radar.py brief --ledger /private/chosen-directory/commitment-ledger.json --now 2026-10-06T09:00:00Z
+python3 skills/mermail-commitment-radar/scripts/commitment_radar.py nudges --ledger /private/chosen-directory/commitment-ledger.json --now 2026-10-06T09:00:00Z
+python3 skills/mermail-commitment-radar/scripts/test_commitment_radar.py
+python3 skills/mermail-commitment-radar/scripts/test_ledger_regression.py
 ```
 
-The fixture inbox includes an overdue promise by the owner, an overdue vendor promise that went silent, an unanswered question, a fulfilled promise with attachment evidence, an on-track delivery, an accepted journal request — and a prompt-injection message that must produce zero ledger items. Sample outputs live in `examples/`.
+The directory must already exist; paths containing symlink parents are deliberately unsupported. The first three commands only update/read a local ledger and print text. Printed nudges are proposals, not saved drafts or sends. Existing examples/demo transcripts are historical illustrations, not evidence for the modified head.

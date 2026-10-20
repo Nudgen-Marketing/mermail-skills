@@ -3,8 +3,11 @@ import hashlib
 import json
 import re
 import sys
+import copy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+
+from ledger_store import load_ledger, save_ledger
 
 
 OWNER_KEY = "mailbox"
@@ -108,8 +111,11 @@ def _sentences(body):
 
 
 def load_inbox(path):
-    with open(path, "r", encoding="utf-8") as handle:
-        return json.load(handle)
+    with open(path, "rb") as handle:
+        data = handle.read(2 * 1024 * 1024 + 1)
+    if len(data) > 2 * 1024 * 1024:
+        raise ValueError("Normalized inbox exceeds 2 MiB")
+    return json.loads(data)
 
 
 def parse_deadline(text, msg_date):
@@ -185,12 +191,24 @@ def _counterparty(message, owner):
 
 
 def _message_is_outbound(message, owner):
-    return message.get("from", "").lower() == owner.lower()
+    return (message.get("direction") == "sent"
+            and message.get("from", "").lower() == owner.lower())
 
 
-def _item_id(thread_id, text):
+def _eligible_message(message, owner):
+    return (message.get("scan_status") == "clean"
+            and message.get("direction") in ("sent", "received")
+            and isinstance(message.get("body"), str)
+            and len(message["body"]) <= 10000
+            and ((_message_is_outbound(message, owner))
+                 or (message["direction"] == "received"
+                     and message.get("from", "").lower() != owner.lower()
+                     and owner.lower() in [r.lower() for r in message.get("to", [])])))
+
+
+def _item_id(thread_id, text, message_id="", item_type=""):
     digest = hashlib.sha1(
-        (thread_id + "|" + text).encode("utf-8")
+        json.dumps([thread_id, message_id, item_type, text], ensure_ascii=True).encode("utf-8")
     ).hexdigest()
     return digest[:12]
 
@@ -209,7 +227,7 @@ def _make_item(thread, message, text, item_type, subtype, owner):
 
     ball = "me" if item_type in ("owed_by_me", "waiting_on_me") else "them"
     return {
-        "id": _item_id(thread["id"], text),
+        "id": _item_id(thread["id"], text, message["id"], item_type),
         "type": item_type,
         "subtype": subtype,
         "thread_id": thread["id"],
@@ -230,11 +248,16 @@ def _make_item(thread, message, text, item_type, subtype, owner):
 def extract_items(inbox, now):
     owner = inbox["mailbox"]["email"]
     items = []
+    if len(inbox.get("threads", [])) > 30:
+        raise ValueError("At most 30 threads per normalized pass")
+    message_count = sum(len(t.get("messages", [])) for t in inbox.get("threads", []))
+    if message_count > 20:
+        raise ValueError("At most 20 body messages per normalized pass")
 
     for original_thread in inbox.get("threads", []):
         thread = dict(original_thread)
         messages = sorted(
-            thread.get("messages", []),
+            [m for m in thread.get("messages", []) if _eligible_message(m, owner)],
             key=lambda message: _as_datetime(message["date"]),
         )
         if not messages:
@@ -271,7 +294,7 @@ def extract_items(inbox, now):
                         )
                     )
 
-                if has_request:
+                if has_request and not has_promise:
                     if outbound:
                         thread_items.append(
                             _make_item(
@@ -297,26 +320,48 @@ def extract_items(inbox, now):
 
         thread_items.sort(key=lambda item: _as_datetime(item["created_at"]))
 
+        def related_message(item, kind):
+            # Links are operator-reviewed normalization, never fields extracted
+            # from mail instructions. This helper cannot authenticate that review.
+            for message in messages:
+                if _as_datetime(message["date"]) <= _as_datetime(item["created_at"]):
+                    continue
+                if not any(link == {"kind": kind, "source_message_id": item["source_message_id"], "item_id": item["id"]}
+                           for link in message.get("reviewed_links", [])):
+                    continue
+                sender = message.get("from", "").lower()
+                if kind == "accepts" and not _message_is_outbound(message, owner):
+                    continue
+                if kind == "answers" and sender != item["counterparty"].lower():
+                    continue
+                if kind == "fulfills":
+                    owing = owner if item["type"] == "owed_by_me" else item["counterparty"]
+                    other = item["counterparty"] if item["type"] == "owed_by_me" else owner
+                    content = _newest_content(message["body"])
+                    if sender == owing.lower():
+                        if not (message.get("attachments") or DELIVERY_PATTERN.search(content)):
+                            continue
+                    elif sender == other.lower():
+                        if not RECEIPT_PATTERN.search(content):
+                            continue
+                    else:
+                        continue
+                return message
+            return None
+
         for item in thread_items:
             item_time = _as_datetime(item["created_at"])
             if item["type"] == "waiting_on_me":
-                later_promise = any(
-                    other["type"] == "owed_by_me"
-                    and _as_datetime(other["created_at"]) > item_time
-                    for other in thread_items
-                )
+                later_promise = related_message(item, "accepts")
                 if later_promise:
                     item["status"] = "accepted"
+                    item["evidence_message_id"] = later_promise["id"]
 
             if item["type"] == "owed_to_me" and item["subtype"] == "asked":
-                later_promise = any(
-                    other["type"] == "owed_to_me"
-                    and other["subtype"] == "promise"
-                    and _as_datetime(other["created_at"]) > item_time
-                    for other in thread_items
-                )
+                later_promise = related_message(item, "answers")
                 if later_promise:
                     item["status"] = "answered"
+                    item["evidence_message_id"] = later_promise["id"]
 
         for item in thread_items:
             is_promise_item = item["type"] == "owed_by_me" or (
@@ -325,29 +370,10 @@ def extract_items(inbox, now):
             if item["status"] != "open" or not is_promise_item:
                 continue
 
-            owing_party = (
-                owner
-                if item["type"] == "owed_by_me"
-                else item["counterparty"]
-            )
-            item_time = _as_datetime(item["created_at"])
-            for message in messages:
-                message_time = _as_datetime(message["date"])
-                if message_time <= item_time:
-                    continue
-                sender = message.get("from", "").lower()
-                content = _newest_content(message.get("body", ""))
-                delivered = sender == owing_party.lower() and (
-                    bool(message.get("attachments"))
-                    or DELIVERY_PATTERN.search(content)
-                )
-                confirmed = sender != owing_party.lower() and (
-                    RECEIPT_PATTERN.search(content)
-                )
-                if delivered or confirmed:
-                    item["status"] = "fulfilled"
-                    item["evidence_message_id"] = message["id"]
-                    break
+            message = related_message(item, "fulfills")
+            if message:
+                item["status"] = "fulfilled"
+                item["evidence_message_id"] = message["id"]
 
         current_date = _as_datetime(now).date()
         for item in thread_items:
@@ -363,6 +389,46 @@ def extract_items(inbox, now):
         items.extend(thread_items)
 
     return items
+
+
+def reconcile_ledger(inbox, previous, now):
+    identity = inbox.get("mailbox", {})
+    if not all(isinstance(identity.get(k), str) and identity[k] for k in ("email", "public_id", "workspace_id")):
+        raise ValueError("Exact normalized workspace and mailbox identity required")
+    if previous is not None and previous.get("identity") != identity:
+        raise ValueError("Ledger belongs to another identity or requires reviewed legacy migration")
+    old = {x["id"]: copy.deepcopy(x) for x in (previous or {}).get("items", [])}
+    seen = set()
+    for item in extract_items(inbox, now):
+        key = item["id"]
+        seen.add(key)
+        existing = old.get(key)
+        if existing:
+            immutable = ("thread_id", "source_message_id", "text", "type", "counterparty", "created_at")
+            if any(existing.get(k) != item.get(k) for k in immutable):
+                raise ValueError("Conflicting source identity; review required")
+            # Human annotations and prior stronger evidence survive partial scans.
+            merged = {**existing, **item}
+            for k in ("human_note", "last_nudge_at", "draft_id", "draft_state"):
+                if k in existing:
+                    merged[k] = existing[k]
+            if existing.get("status") in ("fulfilled", "accepted", "answered", "cancelled"):
+                merged["status"] = existing["status"]
+                merged["evidence_message_id"] = existing.get("evidence_message_id")
+            old[key] = merged
+        else:
+            old[key] = item
+        old[key]["audit_state"] = "observed"
+    for key, item in old.items():
+        if key not in seen:
+            item["audit_state"] = "not_observed_this_pass"
+    messages = [m for t in inbox.get("threads", []) for m in t.get("messages", [])]
+    eligible = sum(_eligible_message(m, identity["email"]) for m in messages)
+    scope = {"threads_in_snapshot": len(inbox.get("threads", [])), "messages_in_snapshot": len(messages),
+             "eligible_messages": eligible, "skipped_messages": len(messages) - eligible,
+             "observed_items": len(seen), "retained_unobserved_items": len(old) - len(seen)}
+    return {"schema_version": 2, "identity": copy.deepcopy(identity), "mailbox": identity["email"],
+            "generated_at": _as_datetime(now).isoformat(), "scope": scope, "items": list(old.values())}
 
 
 def urgency_score(item, now):
@@ -414,12 +480,15 @@ def _brief_line(item, now):
     else:
         age = _age_text(item, now)
     due = item["deadline"] or "no date"
-    return (
+    line = (
         f"- [{urgency_score(item, now)}] {item['text']} — "
         f"{item['counterparty']} · thread `{item['thread_id']}` · "
         f"source `{item['source_message_id']}` · due {due} · "
         f"{age}"
     )
+    if item.get("audit_state") == "not_observed_this_pass":
+        line += " · NOT REVERIFIED THIS PASS (prior status only)"
+    return line
 
 
 def render_briefing(ledger, now):
@@ -463,7 +532,12 @@ def render_briefing(ledger, now):
         ),
     ]
 
+    scope = ledger.get("scope")
     output = []
+    if scope:
+        output.extend([f"Coverage: {scope['observed_items']} observed items; "
+                       f"{scope['retained_unobserved_items']} retained without re-verification; "
+                       f"{scope['skipped_messages']} skipped messages. Partial snapshots do not prove full mailbox coverage.", ""])
     for heading, selected in sections:
         output.append(heading)
         selected.sort(
@@ -489,6 +563,10 @@ def render_nudges(ledger, now):
         if item["type"] == "owed_to_me"
         and item["status"] in ("open", "overdue")
         and item["confidence"] in ("high", "medium")
+        and item.get("audit_state", "observed") == "observed"
+        and item.get("draft_state") not in ("pending", "uncertain")
+        and (not item.get("last_nudge_at") or
+             (_as_datetime(now) - _as_datetime(item["last_nudge_at"])).days >= 7)
         and (
             item["status"] == "overdue"
             or (
@@ -540,15 +618,10 @@ def _parse_now(value):
 def _scan(args):
     now = _parse_now(args.now)
     inbox = load_inbox(args.inbox)
-    items = extract_items(inbox, now)
-    ledger = {
-        "mailbox": inbox["mailbox"]["email"],
-        "generated_at": now.isoformat().replace("+00:00", "Z"),
-        "items": items,
-    }
-    with open(args.ledger, "w", encoding="utf-8") as handle:
-        json.dump(ledger, handle, indent=2)
-        handle.write("\n")
+    previous, expected = load_ledger(args.ledger)
+    ledger = reconcile_ledger(inbox, previous, now)
+    save_ledger(args.ledger, ledger, expected)
+    items = ledger["items"]
 
     counts = {}
     for item in items:
@@ -557,20 +630,24 @@ def _scan(args):
     summary = ", ".join(
         f"{key}:{counts[key]}" for key in sorted(counts)
     )
-    print(f"Scanned {len(items)} items" + (f" ({summary})" if summary else ""))
+    scope = ledger["scope"]
+    print(f"Observed {scope['observed_items']} items; retained {scope['retained_unobserved_items']} "
+          f"unobserved items; skipped {scope['skipped_messages']} messages" + (f" ({summary})" if summary else ""))
 
 
 def _brief(args):
     now = _parse_now(args.now)
-    with open(args.ledger, "r", encoding="utf-8") as handle:
-        ledger = json.load(handle)
+    ledger, _ = load_ledger(args.ledger)
+    if ledger is None or ledger.get("schema_version") != 2 or not ledger.get("identity"):
+        raise ValueError("Select a bound version-2 ledger or review migration first")
     sys.stdout.write(render_briefing(ledger, now))
 
 
 def _nudges(args):
     now = _parse_now(args.now)
-    with open(args.ledger, "r", encoding="utf-8") as handle:
-        ledger = json.load(handle)
+    ledger, _ = load_ledger(args.ledger)
+    if ledger is None or ledger.get("schema_version") != 2 or not ledger.get("identity"):
+        raise ValueError("Select a bound version-2 ledger or review migration first")
     sys.stdout.write(render_nudges(ledger, now))
 
 

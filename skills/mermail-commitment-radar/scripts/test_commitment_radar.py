@@ -19,7 +19,7 @@ sys.path.insert(0, str(HERE))
 import commitment_radar as cr  # noqa: E402
 
 NOW = datetime(2026, 10, 6, 9, 0, 0, tzinfo=timezone.utc)
-FIXTURE = HERE / "sample_inbox.json"
+FIXTURE = HERE.parents[2] / "tests/fixtures/commitment-radar/inbox.json"
 
 
 def by_thread(items):
@@ -117,7 +117,7 @@ def main():
 
     # --- CLI smoke test ---------------------------------------------------
     with tempfile.TemporaryDirectory() as tmp:
-        ledger_path = Path(tmp) / "ledger.json"
+        ledger_path = Path(tmp).resolve() / "ledger.json"
         scan = subprocess.run(
             [sys.executable, str(HERE / "commitment_radar.py"), "scan",
              "--inbox", str(FIXTURE), "--ledger", str(ledger_path),
