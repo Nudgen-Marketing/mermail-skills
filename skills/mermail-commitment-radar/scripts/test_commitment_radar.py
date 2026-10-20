@@ -119,7 +119,7 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         ledger_path = Path(tmp).resolve() / "ledger.json"
         scan = subprocess.run(
-            [sys.executable, str(HERE / "commitment_radar.py"), "scan",
+            [sys.executable, "-B", str(HERE / "commitment_radar.py"), "scan",
              "--inbox", str(FIXTURE), "--ledger", str(ledger_path),
              "--now", "2026-10-06T09:00:00Z"],
             capture_output=True, text=True,
@@ -128,7 +128,7 @@ def main():
         saved = json.loads(ledger_path.read_text())
         assert len(saved["items"]) == 10
         brief = subprocess.run(
-            [sys.executable, str(HERE / "commitment_radar.py"), "brief",
+            [sys.executable, "-B", str(HERE / "commitment_radar.py"), "brief",
              "--ledger", str(ledger_path), "--now", "2026-10-06T09:00:00Z"],
             capture_output=True, text=True,
         )
