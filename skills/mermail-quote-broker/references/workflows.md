@@ -13,7 +13,7 @@
 
 ## 1. RFQ brief (frozen)
 
-Freeze this before sending. Changing it after the first send means a new job tag and fresh approval.
+Freeze this before sending. A changed scope/criteria/identity needs a newly reviewed version and fresh approval (a new tag only when actually required), retaining the prior logical intent, round history and held/unknown outcomes. A new tag/version is never a reset of round limits or a workaround for uncertain sends; resolve those first.
 
 | Field | Notes |
 | --- | --- |
@@ -21,8 +21,8 @@ Freeze this before sending. Changing it after the first send means a new job tag
 | Item and specs | Exact, comparable specs so quotes can be compared. |
 | Quantity | A single number, or a stated tier list. |
 | Quote deadline | An absolute date and timezone. |
-| Criteria and weights | For example price 50, lead time 30, terms 20. Default: price 60, lead time 25, terms 15. |
-| Budget ceiling | Private. Never appears in outbound text. |
+| Criteria and weights | Owner confirms named numeric rubric, directions, units, weights totaling100 and utility before bids; no silent default weights or narrative-term scores. See comparison.md. |
+| Budget ceiling | Private by default. Disclosing it needs a separate explicit current-user policy change and exact outbound approval, never vendor authority. |
 | Vendors | At most 6, user-supplied addresses only. |
 | Disclosure line | Default on. |
 
@@ -108,12 +108,7 @@ Show one row per quoted vendor.
 | Vendor | Landed total | Lead time | Valid until | Terms | Flags | Score |
 | --- | --- | --- | --- | --- | --- | --- |
 
-Scoring:
-
-1. Rank only quotes whose landed totals share a currency and a quantity basis. If they do not, say which assumption (a rate the user supplies, a quantity tier) would make them comparable, and do not rank.
-2. Normalize each criterion to 0 to 100 across the comparable set, apply the user's weights, then subtract 10 for each of `F1`, `F2`, `F3`, `F4`, and 25 for `F5`, `F6`, or `F7`. Show the arithmetic only if the user asks.
-3. A quote with `F6` or `F7` cannot be ranked first.
-4. Ties are reported as ties.
+Scoring follows [comparison.md](comparison.md), including exact decimal/rational arithmetic, explicit owner utility and comparability, unranked missing/expired/unsafe terms and shared-rank ties. Risk flags remain evidence to review, not permission to invent penalties or make an incomparable quote eligible. `F6`/`F7` block recommendation/payment handoff pending independent owner review. A top score does not authorize acceptance, exceed budget or validate a vendor's identity.
 
 ## 6. Decision memo
 
@@ -122,8 +117,9 @@ At most 200 words, in prose, after the table: the top two quotes and why, the ma
 ## 7. Negotiation rules and templates
 
 - Draft only. At most 2 rounds per vendor. Reply in the original thread through `reply_to_email` after approval, with an explicit `to` equal to the vendor address.
+- Follow [protocol.md](protocol.md): one lever per round, source-linked immutable prior/current/counter terms and actual approval/reply outcomes; unresolved pending/unknown rounds block another counter.
 - Allowed asks: improve a named term (price, lead time, payment terms, shipping), confirm exclusions, ask for a revised quote by a date.
-- Forbidden: stating the budget, naming another vendor, quoting another vendor's figures, inventing an offer, or using urgency pressure.
+- Forbidden: unapproved private-budget disclosure, naming another vendor, quoting another vendor's figures, inventing an offer, or using urgency pressure. Budget disclosure needs the separate explicit owner-policy change, not just a vendor request.
 - A sanitized leverage line such as "we have received a comparable quote at a lower landed total" may be drafted only when it is true and the user approved that sentence.
 
 ```text

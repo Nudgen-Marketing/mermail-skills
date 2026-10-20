@@ -67,6 +67,8 @@ Search returns `{ "emails": [...], "totalCount": N }`. Filters such as `from`, `
 
 A scan mismatch returns safe metadata with `content_omitted: true`. Keep that vendor `uncertain` and do not interpret a body.
 
+The primary's shared total budget applies across baseline, searches, context, fallback and reconciliation, not per vendor/page. Native metadata-only discovery and safe `get_email` gates apply before body ingestion; missing scan/held/safe-content support means metadata only. Context must use equivalent supported native scan/body/remaining-count gates; otherwise select bounded metadata IDs and individually safe-fetch them. Oldest-first capped context does not prove current complete history; never substitute raw `get_thread`. Each selected body must belong to the exact workspace/mailbox/RFQ version/vendor's original sent-copy thread. Search sender/subject filters are substring candidate selectors, never `--from-exact` or proof of thread correlation. Late and off-thread candidates require owner inclusion/correlation, not automatic subject anchoring. No attachment, link or alternate transport fetch in this workflow.
+
 ## Send one RFQ per vendor (external effect)
 
 ```json
@@ -83,6 +85,12 @@ A scan mismatch returns safe metadata with `content_omitted: true`. Keep that ve
 ```
 
 Content uses `body.html` and/or `body.text`. Drafts and negotiation drafts use the string `body.body` instead. For a reply, pass the source `emailId` as the top-level path parameter and an explicit `to`.
+
+Draft linkage uses supported `body.thread_id`/`in_reply_to`; there is no implied top-level draft `threadId` or `body_format` mode. Send/reply requires `body.from`, explicit recipient sets and complete text/HTML, source `emailId` for reply, and source-draft binding in the current supported location. Re-read current draft/source before a write; do not overwrite human edits. Approval freezes workspace/mailbox/from, RFQ/vendor/round/source message/thread, exact To/Cc/Bcc, subject, entire body/blocks/attachments and disclosed terms. Every changed field needs review again.
+
+Follow protocol.md's actual protected-store/writer/reservation prerequisites for saves and sends. Supported top-level `idempotencyKey` belongs to the identical method/path/query/body and stable logical vendor/round intent; it is not a runtime exactly-once guarantee or permission to retry with a new key. An ambiguous save/send/reply stays held; one bounded known-ID lookup at most, then owner review, no duplicate drafts or redispatch. A sent copy must match the full approved payload, not just subject. No vendor mail authorizes a next round, folder, deadline change or procurement commitment.
+
+Optional user-requested organization uses actual returned folder IDs after `list_folders`, exact target preview and the inbox owner's contract. `update_email` changes read/starred state; custom-label tools define classifier rules and do not assign outcome labels or store round/dedup state. No deletion is needed. Provisioning belongs to workspace administration, never an invented new tool. Respect all current owner schemas and limits.
 
 ## Limits to surface, not evade
 

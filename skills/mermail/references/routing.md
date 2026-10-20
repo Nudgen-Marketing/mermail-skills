@@ -27,7 +27,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Run outbound, classify replies, or do GTM outreach | `mermail-gtm-agent` |
 | Triage, reply, escalate, or close support email as a support agent | `mermail-support-agent` |
 | Run a customer research business: owner-verified orders, protocol comparisons or market reports, approved report delivery, and same-thread follow-ups | `mermail-research-agent` |
-| Run a buyer-side RFQ from a burner mailbox: send approved quote requests to vendors, collect replies, compare quotes with cited risk flags, and draft (never auto-send) negotiation or acceptance | `mermail-quote-broker` |
+| Run buyer-side structured RFQs, cited exact quote comparisons and bounded owner-reviewed counter/award drafts | `mermail-quote-broker` |
 | Pay a user-selected x402 service with Agent Wallet, then continue the original job with the paid result | `mermail-x402-agent` |
 | Run an xStocks trading desk: standing budget/schedule/mint allowlist, PayBox Jupiter plugin DCA, PayBox swap fallback, per-DCA invoice email, or weekly brokerage statement email | `mermail-xstocks-desk` |
 | Explicitly inspect Agent Wallet / PayBox state or portfolio, fund/onramp, transfer with `paybox_request_transfer`, swap with `paybox_request_swap`, bridge native USDC with the owner-approved quote flow, explore x402 read-only, or pay one user-selected x402 resource/action with live `paybox_pay_x402` without a follow-on job | `mermail-agent-wallet` |
