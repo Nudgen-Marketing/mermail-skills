@@ -1,0 +1,10 @@
+{
+  "fictional": true,
+  "legacyFilenameOnly": true,
+  "status": "not_attempted",
+  "actualVerification": false,
+  "actualReservation": false,
+  "paymentPerformed": false,
+  "emailSent": false,
+  "note": "Offline illustration; not a ledger, authoritative acceptance or settlement receipt."
+}

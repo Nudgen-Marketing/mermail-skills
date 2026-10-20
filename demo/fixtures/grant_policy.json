@@ -1,0 +1,43 @@
+{
+  "fictional": true,
+  "notLiveEvidence": true,
+  "agreement": {
+    "workspaceId": "fictional-workspace",
+    "mailboxId": "fictional-mailbox",
+    "emailId": "fictional-source",
+    "threadId": "fictional-thread",
+    "granteeId": "fictional-contractor",
+    "agreementId": "fictional-agreement",
+    "agreementRevision": "r2",
+    "milestoneId": "m2",
+    "milestoneVersion": "v1",
+    "ownerConfirmed": true,
+    "kind": "contractor",
+    "legalPayer": "fictional-payer",
+    "acceptanceAuthority": "fictional-sponsor",
+    "criteria": [
+      {
+        "id": "docs",
+        "owner": "selected-read-only-owner",
+        "target": "fictional-document",
+        "version": "doc-r2"
+      }
+    ]
+  },
+  "budget": {
+    "ownerConfirmed": true,
+    "historyComplete": true,
+    "currentMilestoneAlreadyReserved": false,
+    "legalPayer": "fictional-payer",
+    "agreementId": "fictional-agreement",
+    "network": "explicit-owner-network",
+    "assetIdentity": "explicit-owner-asset",
+    "windowId": "fictional-period",
+    "revision": "policy-r2",
+    "decimals": 2,
+    "amount": "10.00",
+    "milestoneCap": "10.00",
+    "budgetCap": "100.00"
+  },
+  "entries": []
+}

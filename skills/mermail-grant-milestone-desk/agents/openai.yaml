@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Grant Milestone Desk"
+  short_description: "Review milestone evidence and supervised payout terms"
+  default_prompt: "Use $mermail-grant-milestone-desk to review this agreement-bound milestone and evidence, prepare a draft, and stop before any payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and optional PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
