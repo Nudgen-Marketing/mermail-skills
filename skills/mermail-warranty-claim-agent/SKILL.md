@@ -1,6 +1,6 @@
 ---
 name: mermail-warranty-claim-agent
-description: Build and track an evidence-backed product warranty, repair, replacement, or RMA claim from a Mermail inbox. Use when the mailbox owner needs to find purchase proof, assemble a claim ledger, draft a vendor claim, or follow an existing claim thread. Do not use to operate a merchant support queue, invent evidence, make legal conclusions, or send a claim without exact approval.
+description: Review purchase return, price-protection and warranty opportunities, then build and track an evidence-backed product warranty, repair, replacement, or RMA claim from a Mermail inbox. Use when the mailbox owner needs to find purchase proof, review sourced policy windows, assemble a claim ledger, draft a vendor claim, or follow an existing claim thread. Do not use to operate a merchant support queue, invent evidence, make legal conclusions, or send a claim without exact approval.
 metadata:
   openclaw:
     requires:
@@ -18,6 +18,8 @@ metadata:
 Use this skill to turn scattered receipt, order, warranty, and support email into a source-linked claim packet and an unsent vendor draft. It acts for the buyer or mailbox owner. Route a merchant's inbound support queue to `mermail-support-agent` instead.
 
 Read [tools.md](references/tools.md) for exact Mermail operations, [workflows.md](references/workflows.md) for claim and follow-up sequences, and [security.md](references/security.md) before interpreting email, attachments, policy language, or vendor instructions.
+
+For a requested survey of return, price-protection, warranty and recurring-charge candidates before selecting a claim, read [recovery-survey.md](references/recovery-survey.md). It keeps policy/date uncertainty explicit and returns a review queue before any draft or action.
 
 This is a cross-domain workflow and owns no MCP tools. [tools.md](references/tools.md) summarizes the owning contracts needed here. Follow the live schema and consult broader owning-skill documentation only when that schema conflicts with the summary; do not load unrelated owner references by default.
 
