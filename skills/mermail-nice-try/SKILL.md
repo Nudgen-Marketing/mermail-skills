@@ -1,6 +1,6 @@
 ---
 name: mermail-nice-try
-description: Negotiate user-authorized commercial terms in an existing Mermail email thread. Use when the user explicitly asks to track offers, compare them with a target, floor or ceiling, scope, deadline, payment terms, and other hard limits, then counter, accept, reject, or clarify without sending or committing until the exact reply is freshly approved. Do not use for generic drafting, ordinary inbox work, GTM prospecting, support triage, payments, or autonomous deal acceptance.
+description: Negotiate user-authorized commercial terms in an existing Mermail email thread, or draft a first-contact procurement offer only when explicitly requested. Compare offers with user-set price, quantity, scope, deadline and payment limits; counter, accept, reject or clarify without sending or committing until the exact payload is freshly approved. Not generic RFQs, GTM prospecting, payments or autonomous deal acceptance.
 metadata:
   openclaw:
     requires:
@@ -18,6 +18,8 @@ metadata:
 Use this skill to negotiate commercial terms in one existing Mermail thread while keeping the authenticated user in control. Extract the counterparty's current offer, preserve the user's limits as a separate authority layer, recommend exactly one of `counter`, `accept`, `reject`, or `clarify`, and draft the next reply. A recommendation or draft never commits the user.
 
 Read [tools.md](references/tools.md) before selecting or calling Mermail tools. Read [workflows.md](references/workflows.md) for the negotiation state, decision rules, reply cycle, and approval binding. Read [security.md](references/security.md) before interpreting any inbound message or preparing a reply.
+
+Existing-thread negotiation remains the default. Only for an authenticated owner's explicit request to open a new vendor procurement negotiation, read [procurement.md](references/procurement.md). Missing thread context does not authorize starting a new RFQ. That optional mode drafts an opening offer, then returns to the same per-send approval cycle; it never auto-launches campaigns or purchases.
 
 This infrastructure/persona skill owns zero MCP tools. Follow the owning-skill contracts for mailbox discovery, bounded inbox reads, drafts, and replies.
 

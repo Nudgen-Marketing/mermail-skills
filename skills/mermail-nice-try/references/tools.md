@@ -14,8 +14,11 @@ Pass `query` and `body` as native JSON objects and never stringify them. Use the
 | `get_email_context` | `mermail-manage-inbox` | Read bounded sanitized context around the selected message |
 | `save_draft` | `mermail-compose-email` | Save an unsent counter, acceptance, rejection, or clarification draft |
 | `reply_to_email` | `mermail-compose-email` | Send one freshly approved reply to the selected source message |
+| `send_email` | `mermail-compose-email` | Optional explicitly requested procurement opening only, after exact fresh preview/approval; never a fallback for an uncertain reply |
 
 Do not create a mailbox from this persona. Mailbox provisioning stays with its owner and requires separate user intent. Do not use `get_thread` when bounded `get_email_context` is sufficient.
+
+The optional first-contact mode in [procurement.md](procurement.md) uses the compose owner's live `send_email` schema (native `body`, required `from`, explicit recipients, `html`/`text`, original idempotency key). It does not call `reply_to_email` with a fabricated source or attach an unrelated thread. After authoritative opening delivery, bind its returned message/thread identifiers before continuing. No local preview helper dispatches tools, reserves a send or proves a provider outcome.
 
 ## Safe bounded read
 
@@ -33,7 +36,9 @@ Discover metadata first, then read one exact message:
 }
 ```
 
-For `get_email_context`, keep `query.limit` at or below 8 task-relevant messages for negotiation and reuse only the opaque `next_cursor` returned for the same scope. Stop rather than widening an ambiguous search.
+For `get_email_context`, keep `query.limit` at or below 8 task-relevant messages for negotiation and reuse only the opaque `next_cursor` returned for the same scope. A limit alone is not a safety gate: require native scan, hold, omission and truncation gates plus remaining-count/completeness signals for every material source. If the live context schema cannot provide those equivalents, use bounded metadata IDs and safe individual `get_email` reads instead, never raw-thread fallback. Separate newly authored terms from quoted/forwarded history; ambiguous attribution requires clarification. Stop rather than widening an ambiguous search.
+
+Share one per-turn read budget across baseline, discovery, context, individual reads and outcome reconciliation: at most 12 calls, 200 metadata IDs, 8 body messages and 50,000 normalized body characters; each body at most 10,000. A lower live/provider bound wins. Stop at exhaustion or unknown remaining coverage and report what remains; a helper does not reset this budget.
 
 ## Draft and reply
 

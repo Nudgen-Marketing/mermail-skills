@@ -81,6 +81,8 @@ Ask the authenticated user to approve this exact preview. Do not treat "negotiat
 
 ## Failure and resume
 
+In both existing-thread and optional procurement modes, coordinate the logical intended send before writing through a real durable owner-controlled reservation/outcome facility when available, binding scope, source/state version and exact preview. Do not invent a server tool or call conversation memory durable. Without that facility, retain the draft for owner handoff rather than concurrent/retry-prone dispatch. Pending/unknown outcome remains a hold across resume until authoritative read reconciliation; do not mint a new key, switch tools or reconstruct approval after context loss.
+
 - Draft failure: report it; do not send an unreviewed locally reconstructed body.
 - Reply validation failure: surface `validation_failed` details and create a new preview if the payload changes.
 - Rate limit: surface `Retry-After`; do not auto-retry.
