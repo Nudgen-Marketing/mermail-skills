@@ -2051,7 +2051,7 @@
     "skill": "mermail",
     "tools": [],
     "approval": "none",
-    "expected": "route-grant-milestone-desk-to-mermail-grant-milestone-desk"
+    "expected": "route-to-grant-milestone-desk"
   },
   {
     "prompt": "Load the standing grant policy for the Superteam Mobile SDK grant and check remaining budget without paying.",
