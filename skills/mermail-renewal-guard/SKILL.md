@@ -23,6 +23,8 @@ This persona owns no MCP tools. It composes existing Mermail owners. Read [tools
 
 For trial conversions, changed notices, decision briefs or resumed reviews, also read [renewal-record.md](references/renewal-record.md). This is a one-shot assisted review, not a background monitor or vendor billing database.
 
+For separately requested trial reminders or a read-only affordability check, read [trial-followup.md](references/trial-followup.md). These handoffs preserve the scheduling and wallet owners; they never authorize cancellation, renewal or payment from email.
+
 For historical charges, monthly-cost audit, disputes and separately requested delivery/organization/draft-only triage handoffs, read [history.md](references/history.md). Historical projections never establish vendor renewal dates or verified settlement. The offline [history helper](scripts/history.mjs) implements bounded exact projections, not MCP effects or persistent monitoring.
 
 ## Preferred Deliverables
