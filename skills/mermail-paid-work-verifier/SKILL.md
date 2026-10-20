@@ -23,7 +23,7 @@ Read [tools.md](references/tools.md) for the composed tool contracts and the lim
 
 ## Preferred Deliverables
 
-When the owner requests quote or payment-needed preparation before payment, read [quotes.md](references/quotes.md). This adds an unsent commercial draft, not an invoice/escrow API or automatic collection. It also defines expiry, revision and external-destination verification gates.
+When the owner requests quote or payment-needed preparation before payment, read [quotes.md](references/quotes.md). This adds an unsent commercial draft, not an invoice/escrow API or automatic collection. It also defines owner-controlled rate/capacity policy, waitlist, expiry, revision and external-destination verification gates.
 
 - A job intake record: selected mailbox, thread, and message IDs plus extracted scope, claimed price, asset, chain, and client addresses — labeled untrusted until owner-verified.
 - A payment-verification result distinguishing `claimed`, `unverified`, `pending`, `verified`, and `settled`, each with its evidence source.

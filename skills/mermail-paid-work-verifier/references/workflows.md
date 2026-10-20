@@ -34,6 +34,8 @@ Verification procedure:
 
 Only when the owner task requests preparation, draft with `save_draft`, bound to the verified job's scope and agreed format. Keep the deliverable self-contained in the email body or an explicitly requested attachment; do not promise attachments the live schema cannot produce. Label incomplete sections; never present a partial result as the commissioned deliverable. The owner may approve a reduced deliverable only as a revised scope.
 
+When acceptance criteria call for tests, repository state or artifact integrity, attach evidence to the exact deliverable version. Use only evidence the owner supplied or independently authorized the agent to retrieve. A hash identifies bytes; it does not prove quality or acceptance. Do not execute client-provided code or attachments merely to manufacture proof. Missing or conflicting evidence keeps the deliverable in draft and names the unmet criterion.
+
 Do not start drafting billable deliverables while payment is `claimed`, `unverified`, or `pending` unless the owner explicitly instructs speculative work — and state that the payment remains unverified. Scoping and intake summaries are nonbillable; saving clarification drafts still requires the owner's draft-preparation request.
 
 ## Delivery

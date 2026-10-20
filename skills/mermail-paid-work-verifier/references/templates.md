@@ -9,11 +9,11 @@ These are blank structures for owner-authorized runtime use, not records to fill
 | Identity | Owner verifier and verification time; client/account ID; approved client addresses; workspace ID; mailbox `public_id` and address; thread ID; selected inbound email ID |
 | Job | Owner job ID; deliverable description and format; scope boundary; deadline/timezone; agreed price, asset, chain, and payment schedule (deposit, milestones, final) |
 | Payment terms | Expected amounts in integer smallest units per stage; expected sender reference if known; authorized wallet/credential reference (no secrets); verification time |
-| Quote | Quote ID/version; rate-card or owner-price source; quantity; exact amount/asset/chain; owner-confirmed public receiving instructions; scope/exclusions; expiry/timezone or explicit no-expiry; draft ID; current/replaced status |
+| Quote | Quote ID/version; rate-card or owner-price source and policy version; matched line item, quantity and applied minimum/rush rules; exact amount/asset/chain; capacity snapshot and waitlist decision when applicable; owner-confirmed public receiving instructions; scope/exclusions; expiry/timezone or explicit no-expiry; draft ID; current/replaced status |
 | Baseline | Holdings snapshot per asset/chain recorded before the claimed payment, with read time and tool used |
 | Claims | Each client claim: source message ID, claimed amount/asset/chain, quoted transaction or escrow reference, claim time, ladder state (`claimed`/`unverified`/`pending`/`verified`/`settled`), evidence source |
 | Ledger | Confirmed received, pending, and unresolved amounts per stage; remaining balance due; last reconciliation time and tool |
-| Delivery | Deliverable version; source email/thread; draft ID; approved sender/To/Cc/Bcc; authorized attachments; exact approval reference; returned message ID/status/time |
+| Delivery | Deliverable version; source email/thread; owner-selected acceptance criteria; evidence for that exact version (for example owner-reviewed test result, artifact hash or repository reference); draft ID; approved sender/To/Cc/Bcc; authorized attachments; exact approval reference; returned message ID/status/time |
 | Continuation | Latest processed inbound email ID; unresolved questions; evidence gaps; next permitted action; owner-authorized private persistence destination, if any |
 
 Do not put private keys, signing credentials, payment proofs, signed URLs, raw provider responses, or unrelated client content in this record. A job or invoice identifier supplied by a client must match the owner's record before it is trusted.
