@@ -163,7 +163,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
-| `mermail-bounty-ops` | Review zero-capital opportunity email with bounded read-only runner, private repeat-review state, transparent scenario inputs and owner-reviewed work plans; no applications or spending |
+| `mermail-bounty-ops` | Review opportunity mail or owner-selected public bounty sources with bounded readers, prior-delivery checks and evidence-led digests; no automatic applications, spending or delivery |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer, swap, prepare an owner-approved native USDC bridge, or pay a user-selected x402 service (same MCP paths as in-app Assistant; full-profile OAuth) |
