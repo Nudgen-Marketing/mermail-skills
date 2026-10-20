@@ -23,6 +23,8 @@ Read [tools.md](references/tools.md) before calling Mermail tools, [security.md]
 
 For employment-scam screening, cost evidence, source rechecks or a saved briefing, also read [briefing.md](references/briefing.md). These remain one-shot, bounded opportunity reviews; a new-message acknowledgement is not a new opportunity and a research brief is not an application.
 
+For an executable one-shot inbox review, private seen-state, transparent numerical scenarios or an owner-selected work plan, read [repeat-review.md](references/repeat-review.md). Its runner performs no send, draft save, submission or wallet effect; scoring hints cannot bypass evidence and capital gates.
+
 ## Preferred Deliverables
 
 - A bounded opportunity queue with one decision card per selected message.
