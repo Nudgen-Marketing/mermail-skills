@@ -21,6 +21,8 @@ This persona uses existing Mermail tools and owns none. It does not invent crede
 
 Use [qualification-record.md](references/qualification-record.md) for economics, source conflicts, RFQ fit and changed-term review. Read [optional-triage.md](references/optional-triage.md) only for explicitly requested automation or organization; a one-off queue never installs a monitor.
 
+For inbound partnership/sponsorship leads and separately requested enrichment or human handoff, read [partner-intake.md](references/partner-intake.md). These modes retain the same read budget and independent owner authority; no fee, forward or triager is created by qualification alone.
+
 ## Preferred Deliverables
 
 - A bounded intake report identifying the workspace, mailbox, time window, filters, candidate count, and any truncated or quarantined messages.
