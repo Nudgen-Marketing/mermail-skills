@@ -2,6 +2,8 @@
 
 This persona owns no MCP tools. Use the exact identifier exposed by the host, including a host-qualified form such as `Mermail:get_email` when present. Pass `query` and `body` as native JSON objects, never stringified JSON.
 
+The separately owner-selected AR mode in [receivables.md](receivables.md) reuses composition for payment-request/receipt drafts and explicitly approved sends. It does not call the AP transfer path, create an invoice/checkout API, enumerate inbound transfers or treat holdings as customer settlement. A real incoming-evidence adapter is an independently authorized capability prerequisite, not a tool added by this skill.
+
 ## Intake and evidence
 
 | Operation | Tool | Canonical owner |

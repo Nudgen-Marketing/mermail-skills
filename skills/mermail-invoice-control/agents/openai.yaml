@@ -1,7 +1,7 @@
 interface:
   display_name: "Mermail Invoice Control"
-  short_description: "Review invoices, stop duplicates, and prepare approved payments"
-  default_prompt: "Use $mermail-invoice-control to review one invoice email, build an approval packet, and keep any payment or remittance behind separate owner approval."
+  short_description: "Review AP invoices or owner-supervised customer receivables"
+  default_prompt: "Use $mermail-invoice-control to review an AP invoice or an owner-selected customer receivable, keeping money direction explicit and every payment or send behind separate approval."
 dependencies:
   tools:
     - type: "mcp"

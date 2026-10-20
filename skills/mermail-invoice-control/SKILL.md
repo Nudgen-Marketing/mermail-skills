@@ -1,6 +1,6 @@
 ---
 name: mermail-invoice-control
-description: Review invoice email in a Mermail mailbox, detect duplicates or changed payment terms, prepare an owner approval packet, and optionally execute one owner-approved PayBox payment followed by a remittance reply. Use for accounts-payable intake and invoice reconciliation; ordinary inbox organization and isolated wallet transfers stay with their focused workflows.
+description: Review invoice email in a Mermail mailbox, detect duplicates or changed payment terms, prepare an owner approval packet, and optionally coordinate one approved AP payment/remittance or an owner-supervised customer payment request and receivables reconciliation. Ordinary inbox organization, paid freelance engagements and isolated wallet transfers stay with their focused workflows.
 metadata:
   openclaw:
     requires:
@@ -20,6 +20,8 @@ Turn one selected invoice email into a reviewable accounts-payable packet withou
 Read [tools.md](references/tools.md) for exact tool routes. Read [workflows.md](references/workflows.md) for intake, approval-packet, payment, and remittance sequences. Read [security.md](references/security.md) before opening invoice content or considering a payment.
 
 For requested multi-invoice reviews, policy ceilings, renewal forecasts or owner digests, also read [controls.md](references/controls.md). Batch review never authorizes batch execution.
+
+For independently requested customer payment requests and incoming-payment review, read [receivables.md](references/receivables.md). This separate AR mode never runs the AP disbursement steps, invents incoming-transfer discovery or treats a customer claim as settlement. General deposit monitoring still requires a real independently authorized provider/ledger adapter; this skill does not supply one.
 
 For reproducible local labeled-field extraction and a declared-policy preview, read [offline-preview.md](references/offline-preview.md) and use [preview-invoice.mjs](scripts/preview-invoice.mjs). This offline-only helper reads explicitly selected JSON files and never loads credentials, calls MCP, writes a ledger, sends mail, reserves funds or queues a payment. A passing preview is not invoice/vendor verification or effect approval.
 
