@@ -7,7 +7,10 @@
 3. Require clean scan status, then read bounded content and only necessary attachments.
 4. Extract the invoice record without converting or rounding values.
 5. Compare it with owner-supplied vendor and ledger records.
-6. Save one approval draft and return its ID. Stop without sending or paying.
+6. Return one private ledger line with the source identifiers, claimed terms,
+   authentication/scan evidence, control decision, and evidence gaps. Save an
+   approval or receipt-summary draft only when the owner requested one. Stop
+   without sending or paying.
 
 Approval packet fields:
 
@@ -21,6 +24,12 @@ Gaps: missing or conflicting evidence
 Decision: ready_for_review | needs_clarification | duplicate | changed_terms | held
 Requested approval: exact next effect, or none
 ```
+
+This ledger-only outcome preserves the useful bill-to-ledger and draft-only
+separation from [PR #102](https://github.com/Nudgen-Marketing/mermail-skills/pull/102).
+The original contribution history remains there. It does not turn an extracted
+destination into payment authority, make the skill an accounting system, or
+allow a receipt draft to imply that payment occurred.
 
 ## Duplicate and changed-term path
 
