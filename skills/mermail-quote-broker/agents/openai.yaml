@@ -1,6 +1,6 @@
 interface:
   display_name: "Mermail Quote Broker"
-  short_description: "Buyer-side RFQs from a burner Mermail inbox: quotes, cited comparison, draft-only negotiation"
+  short_description: "Compare vendor quotes and draft approved counteroffers"
   default_prompt: "Use $mermail-quote-broker to get quotes from these vendors, show me every email before sending, and compare the replies."
 dependencies:
   tools:
