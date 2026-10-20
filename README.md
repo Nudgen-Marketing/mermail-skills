@@ -154,7 +154,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail` | Route broad or cross-domain requests |
 | `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
 | `mermail-cli` | Install and use the CLI for deterministic shell automation |
-| `mermail-onboarding-agent` | Coordinate API/SaaS signup or newsletter/waitlist enrollment with a reusable mailbox, strict attempt correlation, and approved completion |
+| `mermail-onboarding-agent` | Coordinate named signup/enrollment, strict verification and approved completion; optional paid activation is a separate wallet/x402-owner handoff |
 | `mermail-agent-inbox` | Reuse or provision an agent mailbox and handle expected verification mail |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |

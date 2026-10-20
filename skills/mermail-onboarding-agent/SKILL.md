@@ -21,6 +21,8 @@ This workflow owns no MCP tools. Read [tools.md](references/tools.md) for existi
 
 For an existing-account response, newsletter/waitlist enrollment without a challenge, or a completion receipt, read [completion.md](references/completion.md). These are bounded alternatives, not permission for account recovery, repeated signup, or automatic payments.
 
+For named-service signup with an optional owner-requested activation charge, read [signup-payment.md](references/signup-payment.md). Freeze free/verification-only versus paid scope before intake. Free/verification-only work never probes a wallet; paid continuation reuses the canonical x402 owner rather than a parallel payment/probe helper.
+
 ## Preferred Deliverables
 
 - A resolved service-scoped mailbox and non-secret attempt record captured before onboarding triggers mail.

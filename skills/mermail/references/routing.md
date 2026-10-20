@@ -16,7 +16,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 
 | Request intent | Skill |
 | --- | --- |
-| Coordinate a complete third-party API/SaaS signup or newsletter/waitlist enrollment, attempt baseline, strictly correlated verification when required, and approved service-side completion | `mermail-onboarding-agent` |
+| Coordinate named API/SaaS signup or enrollment, strict verification and approved completion; optionally hand off independently authorized activation payment | `mermail-onboarding-agent` |
 | Reuse or provision a service-scoped mailbox and correlate expected mail for an active third-party verification, sign-in, onboarding, purchase, receipt, or order flow | `mermail-agent-inbox` |
 | Read, search, move, organize, download, manage folders or custom-label definitions, or delete ordinary/historical mail outside an active third-party identity flow | `mermail-manage-inbox` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |

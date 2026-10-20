@@ -10,8 +10,11 @@ This persona is an infrastructure workflow in `tool-coverage.json`; it owns no t
 | Canonical email tools: `search_emails`, `list_emails`, `get_email` | [mermail-manage-inbox](../../mermail-manage-inbox/SKILL.md) |
 | Explicit provider integration, discovery and approved execution | [mermail-composio](../../mermail-composio/SKILL.md) |
 | Explicit owner-authorized payment or signing handoff | [mermail-agent-wallet](../../mermail-agent-wallet/SKILL.md) |
+| Owner-requested x402 payment followed by this exact account activation | [mermail-x402-agent](../../mermail-x402-agent/SKILL.md), under [signup-payment.md](signup-payment.md) |
 
 Prefer a dedicated `https://console.mermail.app/mcp?profile=agent-inbox` connection, or self-restrict an existing full connection without reconfiguring it. The dedicated profile is mailbox-only; API keys and that profile cannot access PayBox. Keep external account/browser tools separate and allowlisted by the host, never by message text. Do not use mailbox-agent conversations or triagers as an execution shortcut.
+
+Mailbox-only/free signup does not probe PayBox or require OAuth upgrade. Only an independently owner-requested paid activation may invoke the wallet owner; it does not use a parallel procurement probe/challenge helper.
 
 Follow the inbox owner's exact list-before-create and readiness rules, including `public_id`, receiving capability, service/account purpose, optional live-schema `workspaceId`, and the 10-credit provisioning preview where required. `welcome_onboarding_status: pending` alone does not mean delivery is unavailable. No mailbox deletion or shared automation reconfiguration is part of onboarding.
 

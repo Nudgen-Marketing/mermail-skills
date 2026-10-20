@@ -111,6 +111,25 @@ function correlate(attempt, messages) {
 }
 
 function evaluate(fixture) {
+  // Normalized decision fixtures only; not a payment/challenge implementation.
+  if (fixture.stage === "signup-payment") {
+    const p = fixture.payment ?? {};
+    if (["free", "verification_only"].includes(p.mode)) {
+      return p.chargePresented === true ? "hold-unrequested-charge" : "continue-without-wallet";
+    }
+    if (p.mode !== "paid_activation_requested" || p.authority !== "owner") return "awaiting-financial-terms";
+    if (p.attemptMatches !== true || p.termsUnchanged !== true) return "blocked-payment-binding";
+    if (p.uncertain === true) return "uncertain-no-retry";
+    if (p.phase === "proof_ready") return "proof-ready-not-activated";
+    if (p.phase === "merchant_activated") {
+      return p.authoritativeExactAccount === true ? "resume-frozen-onboarding" : "uncertain-no-success-proof";
+    }
+    if (p.fullProfileOAuth !== true) return "blocked-wallet-profile";
+    if (p.secureContinuation !== true) return "blocked-before-payment";
+    if (p.durableExclusiveAttempt !== true) return "preview-only-no-reservation";
+    if (p.withinCap !== true || p.exactApproval !== true) return "awaiting-payment-approval";
+    return "handoff-canonical-x402";
+  }
   // Synthetic service-result fixtures, not a browser adapter or live account proof.
   if (fixture.stage === "account-outcome") {
     const service = fixture.service ?? {};
@@ -169,6 +188,9 @@ function evaluateEffect(effect, attempt) {
 }
 
 const REQUIRED_CASES = [
+  "signup-free-no-wallet", "signup-verification-no-wallet", "signup-unexpected-fee", "signup-email-authority",
+  "signup-paid-canonical", "signup-paid-api-key", "signup-no-continuation", "signup-no-reservation",
+  "signup-proof-only", "signup-merchant-activated", "signup-unproven-activation", "signup-payment-uncertain",
   "existing-account", "no-challenge", "welcome-only", "wrong-account-completion", "verification-still-required",
   "terms-boundary", "signup-uncertain", "receipt-secret", "receipt-unapproved", "receipt-approved", "receipt-uncertain",
   "reuse", "no-mailbox", "disabled-mailbox", "ambiguous-mailbox", "otp", "safe-url",
@@ -196,7 +218,7 @@ export async function validateOnboardingAgent(root, scenarios, coverage) {
   const errors = [];
   const skill = "mermail-onboarding-agent";
   const skillRoot = path.join(root, "skills", skill);
-  for (const relative of ["SKILL.md", "agents/openai.yaml", "references/tools.md", "references/security.md", "references/workflows.md", "references/completion.md"]) {
+  for (const relative of ["SKILL.md", "agents/openai.yaml", "references/tools.md", "references/security.md", "references/workflows.md", "references/completion.md", "references/signup-payment.md"]) {
     try {
       const file = path.join(skillRoot, relative);
       const content = await readFile(file, "utf8");
