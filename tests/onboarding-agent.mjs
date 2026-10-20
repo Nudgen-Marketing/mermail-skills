@@ -111,6 +111,28 @@ function correlate(attempt, messages) {
 }
 
 function evaluate(fixture) {
+  // Supplied normalized declarations, not secure-store/provider attestation.
+  // No branch here creates, stores, uses or reveals a credential.
+  if (fixture.stage === "credential-handoff") {
+    const c = fixture.credential ?? {};
+    if (c.uncertain === true) return "uncertain-no-remint";
+    if (c.authority !== "owner") return "awaiting-credential-owner";
+    if (c.exactBinding !== true || c.authoritativeAccount !== true) return "blocked-credential-binding";
+    if (c.minimumScopes !== true || c.lifetimeReviewed !== true || c.termsUnchanged !== true) return "review-credential-terms";
+    if (c.created === true && c.stored !== true) return "created-storage-pending";
+    if (c.operation === "test") {
+      if (c.created !== true || c.stored !== true || c.protectedVersionBound !== true) return "blocked-credential-use";
+      if (c.testApproval !== true) return "awaiting-test-approval";
+      if (c.boundedTest !== true || c.safeInjection !== true) return "manual-test-handoff";
+      return "approved-protected-test-handoff";
+    }
+    if (c.operation !== "create") return "blocked-credential-operation";
+    if (c.created === true && c.stored === true) return "credential-stored-no-remint";
+    if (c.providerCapability !== true || c.privateStoreCapability !== true || c.protectedOutput !== true || c.safeInjection !== true) return "manual-credential-handoff";
+    if (c.durableExclusiveAttempt !== true) return "preview-only-no-credential-reservation";
+    if (c.exactApproval !== true) return "awaiting-credential-approval";
+    return "approved-protected-create-handoff";
+  }
   // Normalized decision fixtures only; not a payment/challenge implementation.
   if (fixture.stage === "signup-payment") {
     const p = fixture.payment ?? {};
@@ -188,6 +210,10 @@ function evaluateEffect(effect, attempt) {
 }
 
 const REQUIRED_CASES = [
+  "credential-email-authority", "credential-binding", "credential-scope", "credential-no-provider",
+  "credential-no-store", "credential-output", "credential-no-injection", "credential-no-reservation",
+  "credential-no-approval", "credential-create-handoff", "credential-uncertain", "credential-created-only", "credential-already-stored",
+  "credential-test-no-version", "credential-test-no-approval", "credential-test-unbounded", "credential-test-handoff",
   "signup-free-no-wallet", "signup-verification-no-wallet", "signup-unexpected-fee", "signup-email-authority",
   "signup-paid-canonical", "signup-paid-api-key", "signup-no-continuation", "signup-no-reservation",
   "signup-proof-only", "signup-merchant-activated", "signup-unproven-activation", "signup-payment-uncertain",
@@ -218,7 +244,7 @@ export async function validateOnboardingAgent(root, scenarios, coverage) {
   const errors = [];
   const skill = "mermail-onboarding-agent";
   const skillRoot = path.join(root, "skills", skill);
-  for (const relative of ["SKILL.md", "agents/openai.yaml", "references/tools.md", "references/security.md", "references/workflows.md", "references/completion.md", "references/signup-payment.md"]) {
+  for (const relative of ["SKILL.md", "agents/openai.yaml", "references/tools.md", "references/security.md", "references/workflows.md", "references/completion.md", "references/signup-payment.md", "references/credentials.md"]) {
     try {
       const file = path.join(skillRoot, relative);
       const content = await readFile(file, "utf8");

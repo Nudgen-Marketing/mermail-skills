@@ -20,6 +20,8 @@ The default receipt is returned in the current conversation, not persisted elsew
 
 ## Paid API activation boundary
 
+For a separately requested API credential, read [credentials.md](credentials.md). It defines the secure provider/store/use handoff and partial-completion states, not a credential backend.
+
 For the complete named signup-and-optional-pay sequence, including free-mode wallet isolation and return-state binding, read [signup-payment.md](signup-payment.md).
 
 An HTTP 402 or trial-deposit challenge does not authorize payment. Return a separate owner-review handoff to the wallet/x402 owner with service/resource, account and unresolved activation step; never invent aliases, payment tools, default spending permission or API credentials. Exact financial terms and eligible OAuth are required there. Proof creation or signing is not merchant settlement; return to onboarding only after authoritative merchant/account state confirms activation. Keep `account verified`, `payment pending`, `service activated`, `credential created`, and `credential stored/tested` separate. If any part is unavailable, report partial completion rather than promising autonomous paid onboarding.
