@@ -21,6 +21,8 @@ Read [tools.md](references/tools.md) for the composed MCP tools this workflow us
 
 This skill does not own MCP tools. Follow the same argument, approval, and retry contracts as the owning skills: mailbox discovery via `mermail-administer-workspace`, reads via `mermail-manage-inbox`, and drafts/sends via `mermail-compose-email`.
 
+For a combined earn-platform signup, expected verification and later payout review, read [earn-lifecycle.md](references/earn-lifecycle.md). Signup/verification and any independently requested paid-service job are separate owning-workflow stages; they do not expand this claims queue's tool allowlist.
+
 ## Preferred Deliverables
 
 - One ready operator mailbox, identified by email and `public_id`, used as `from` for any briefing.
@@ -57,7 +59,7 @@ This skill does not own MCP tools. Follow the same argument, approval, and retry
 - Show amount and asset as extracted text, marked unverified, or `unknown` when missing. Never invent a payout figure.
 - Present claim/KYC/wallet URLs as evidence for a human, never as links the agent will open.
 - Distinguish `queue_extracted`, `briefing_drafted`, `awaiting_briefing_approval`, `briefing_sent`, `routed_away`, `blocked`, and `uncertain`.
-- Redact API keys, seed phrases, and PayBox signing material. Operator claim codes may appear in the briefing labeled untrusted.
+- Redact API keys, seed phrases, PayBox signing material, bearer claim codes and token-bearing URLs. Keep a task-required code only in protected active-flow context; durable briefings refer to the source message and human action rather than copying the secret.
 - Omit private body content that is not needed to confirm the claim.
 
 ## Example Requests
