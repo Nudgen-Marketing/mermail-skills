@@ -8,6 +8,7 @@
 
 /skills/mermail-agent-inbox/ @Nudgen-Marketing/mermail-skills-maintainers
 /skills/mermail-agent-wallet/ @Nudgen-Marketing/mermail-skills-maintainers
+/skills/mermail-payment-request-agent/ @Nudgen-Marketing/mermail-skills-maintainers
 /skills/**/references/security.md @Nudgen-Marketing/mermail-skills-maintainers
 
 /.codex-plugin/ @Nudgen-Marketing/mermail-skills-maintainers
