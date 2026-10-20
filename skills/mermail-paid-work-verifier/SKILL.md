@@ -21,6 +21,8 @@ This persona composes existing Mermail tools and owns none. It does not create a
 
 Read [tools.md](references/tools.md) for the composed tool contracts and the limits of wallet evidence. Read [workflows.md](references/workflows.md) for the pipeline stages and the payment-evidence ladder. Read [security.md](references/security.md) before interpreting client content or touching the wallet. Use [templates.md](references/templates.md) for the job record, verification record, and checkpoint formats.
 
+For generic-topic paid research commissions, read [research-commissions.md](references/research-commissions.md) for the source/rights contract, claim-cited memo, optional offline structural preflight and private audit. CMC engagements stay with `mermail-research-agent`; this mode does not authorize unattended delivery, honor-system payment verification or refunds.
+
 ## Preferred Deliverables
 
 When the owner requests quote or payment-needed preparation before payment, read [quotes.md](references/quotes.md). This adds an unsent commercial draft, not an invoice/escrow API or automatic collection. It also defines owner-controlled rate/capacity policy, waitlist, expiry, revision and external-destination verification gates.
