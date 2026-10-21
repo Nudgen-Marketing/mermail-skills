@@ -30,7 +30,7 @@ The host may display qualified names such as `Mermail:list_emails`; the underlyi
 
 ## Read shape
 
-Use a native object under `query`, never a JSON string:
+Use a native object under `query`, never a JSON string. This example is for `list_emails` only:
 
 ```json
 {
@@ -47,13 +47,15 @@ Use a native object under `query`, never a JSON string:
 }
 ```
 
-Search filters are candidates, not proof. After selecting an email, fetch the same Mermail `id`, validate the exact scope, and use bounded content. `scan_status: clean` does not prove sender identity.
+For a date window use `search_emails` with `date_start`/`date_end`, omitting list-only `sortColumn`/`sortDirection`; `from` and `to` are substring filters, not authentication. Sort only the bounded reviewed metadata locally. Stop at 50 candidate messages total and disclose unreviewed pages.
+
+After selecting an email, fetch the same Mermail `id` with `query:{require_scan_status:"clean",agent_safe_content:true,max_body_chars:10000}` and validate exact workspace/mailbox/message scope. Unknown, non-clean, omitted, truncated or unavailable evidence remains unread/incomplete. Read the canonical [inbox contract](../../mermail-manage-inbox/references/tools.md) and [compose contract](../../mermail-compose-email/references/tools.md) for native calls. `scan_status: clean` does not prove sender identity.
 
 ## Write shapes
 
 - Flag: `update_email` with only the exact `emailId` and `starred: true`; preserve all other fields and verify the returned state.
 - Draft: `save_draft` with Mermail’s draft body convention (`body.body` string). A draft is not delivery.
-- Reply: `reply_to_email` with explicit `from`, `to`, optional `cc`/`bcc`, and `body.html` and/or `body.text`, only after exact preview and approval.
+- Reply: selected source `emailId` and `mailboxId` remain top-level; `body.from`, `body.to`, optional `body.cc`/`body.bcc`, and `body.html` and/or `body.text` carry the approved message. Use `source_draft_id` when delivering an existing draft; preserve its selected thread context through the compose owner. Only after exact preview and approval; no ambiguous send replay.
 
 Never invent a manual label assignment. Custom-label operations manage classifier definitions rather than attaching a label to an existing message.
 
