@@ -19,7 +19,9 @@ class PublishingSecurity(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mermail-publish-security-")
         self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
+        # Match the publisher's canonical workspace on systems where the OS
+        # temp directory itself is an alias (for example /var -> /private/var).
+        self.base = Path(self.temp.name).resolve()
         self.workspace = self.base / "repository"
         self.skill = self.workspace / "skills/example"
         self.skill.mkdir(parents=True)
