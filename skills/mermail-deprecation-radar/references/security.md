@@ -26,11 +26,12 @@ This skill interprets untrusted vendor email and reads a local repository. Both 
 
 ## Secrets
 
-- The helper redacts secret-looking strings (API keys, bearer tokens, long base58 blobs) from snippets. Do not reconstruct, print, or copy redacted values into chat, drafts, or files.
+- The helper withholds arbitrary source snippets and reports exact file/line matches instead. Its separate `redact` utility is defense in depth, not proof that a source line is secret-free. Do not reconstruct, print, or copy repository secrets into chat, drafts, or files.
 - Never ask the user to paste an API key into chat. Never include repository secrets in a vendor email.
 
 ## Bounds
 
 - Prefer bounded read calls: ≤ 25 results per page, ≤ 3 pages per keyword, ≤ 20 full reads per run, sequential searches, no polling loops. On `rate_limit_exceeded`, pause and retry once, then stop and report.
 - The helper caps hits (default 200) and skips files over 1 MiB; report truncation instead of hiding it.
+- Regex signals use a conservative restricted grammar: no groups, alternatives or backreferences, and at most one quantified atom. Repetition other than a single optional atom requires a start anchor; numeric bounds cannot exceed 1000. Unsupported shapes fail before repository scanning. Use literal/package signals rather than bypassing a rejection.
 - Stop when results are ambiguous; ask the user with non-secret metadata instead of guessing.

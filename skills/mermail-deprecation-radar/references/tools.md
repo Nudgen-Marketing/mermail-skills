@@ -93,6 +93,11 @@ Checked against the hosted MCP (`https://console.mermail.app/mcp`) on a Free-pla
 ```bash
 node <skill-dir>/scripts/scan-repo.mjs --signals /tmp/notices.json --root . --json
 node <skill-dir>/scripts/scan-repo.mjs --self-test
+node --test <skill-dir>/tests/scan-repo.test.mjs
 ```
 
-Signal types: `literal` (host, path, header, env var name), `regex` (≤ 200 chars), `package` (import/require string plus `package.json` range check with optional `below` minimum version).
+Signal types: `literal` (host, path, header, env var name), `regex` (1–200 chars under the restricted grammar below), `package` (import/require string plus `package.json` range check with optional `below` minimum version).
+
+Prefer literal/package signals. Regex supports literal/escaped characters, character classes and anchors, with at most one quantified atom. A single optional atom (`?`) may be unanchored; `*`, `+` and numeric repeats require a start anchor (`^`), and numeric bounds cannot exceed 1000. Groups, alternatives, backreferences, lookarounds and lazy/nested repeats are unsupported. For example `legacy\.vendor\.example`, `https?://legacy.example` and `^v[0-9]+$` are accepted. A rejected signal is a scan error, never a zero-hit result; do not bypass it through another execution surface.
+
+Each hit retains `file`, `line` and `signal`. `text` is an explicit source-withheld placeholder and `snippet_status` is `withheld`; neither JSON nor human output echoes the arbitrary matching source line. Importing the helper exposes `scan`, `redact`, `urgency` and `validateRegexPattern` without starting the CLI.

@@ -28,15 +28,19 @@ import { readFile, readdir, stat, mkdtemp, writeFile, mkdir, rm } from "node:fs/
 import path from "node:path";
 import os from "node:os";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", "out", ".next", "target", "vendor", ".venv", "venv", "__pycache__", "coverage", ".turbo", ".cache"]);
 const TEXT_EXT = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".json", ".py", ".rs", ".go", ".java", ".kt", ".rb", ".php", ".cs", ".swift", ".toml", ".yaml", ".yml", ".env.example", ".md", ".sh", ".sol", ".move", ".html", ".vue", ".svelte", ".txt", ".cfg", ".ini"]);
 const MAX_FILE_BYTES = 1024 * 1024;
 const SECRET_PATTERNS = [
-  /(?:api[_-]?key|secret|token|authorization|bearer|password)\s*[:=]\s*["'`]?[A-Za-z0-9_\-./+=]{12,}/gi,
+  /(?:api[_-]?key|secret|token|authorization|bearer|password|private[_-]?key|seed[_-]?phrase|mnemonic)\s*[:=]\s*["'`]?(?:Bearer\s+)?[A-Za-z0-9_\-./+=]{8,}/gi,
   /\b(?:sk|pk|jup|ghp|gho|xox[abp])[_-][A-Za-z0-9_-]{16,}\b/g,
   /\b[1-9A-HJ-NP-Za-km-z]{64,88}\b/g, // base58 blobs that look like Solana secret keys
+  /\b0x[0-9a-f]{64}\b/gi,
+  /\b[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g,
 ];
+const WITHHELD_SNIPPET = "[source snippet withheld; inspect the reported file and line locally]";
 
 function parseArgs(argv) {
   const args = { root: ".", maxHits: 200, json: false };
@@ -53,6 +57,8 @@ function parseArgs(argv) {
 }
 
 export function redact(line) {
+  // Defense in depth only: arbitrary source snippets are not emitted by scan().
+  if (/-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----/i.test(line)) return "[REDACTED: private-key material]";
   let out = line;
   for (const re of SECRET_PATTERNS) out = out.replace(re, "[REDACTED]");
   return out.length > 200 ? `${out.slice(0, 197)}...` : out;
@@ -95,10 +101,61 @@ function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// A deliberately small, bounded-backtracking subset, not a JavaScript-regex
+// sandbox. Literal/package signals remain the preferred deprecation matchers.
+// One optional atom is allowed anywhere. A single repeated atom requires a
+// start anchor; groups, alternatives, backreferences and nested/lazy repeats
+// are rejected before RegExp is constructed or repository text is processed.
+export function validateRegexPattern(value) {
+  if (typeof value !== "string" || !value.length || value.length > 200) throw new Error("regex signal must contain 1–200 characters");
+  const anchored = value.startsWith("^");
+  let i = anchored ? 1 : 0;
+  let quantifiers = 0;
+  const unsupported = () => { throw new Error("unsupported regex shape: use literal signals or an anchored pattern with one repeated atom; groups, alternatives and backreferences are not supported"); };
+  function escaped() {
+    i += 1;
+    if (i >= value.length || !/[dDsSwWbBtrnfv\\/.$^\[\]{}()*+?|\-]/.test(value[i])) unsupported();
+    i += 1;
+  }
+  while (i < value.length) {
+    if (value[i] === "$" && i === value.length - 1) { i += 1; continue; }
+    if (value[i] === "\\") escaped();
+    else if (value[i] === "[") {
+      i += 1;
+      if (value[i] === "^") i += 1;
+      const start = i;
+      while (i < value.length && value[i] !== "]") {
+        if (value[i] === "\\") escaped();
+        else i += 1;
+      }
+      if (i === start || i >= value.length) unsupported();
+      i += 1;
+    } else {
+      if (/[()|{}*+?^$]/.test(value[i])) unsupported();
+      i += 1;
+    }
+    const quantifier = value[i];
+    if (quantifier === "?" || quantifier === "*" || quantifier === "+" || quantifier === "{") {
+      quantifiers += 1;
+      if (quantifiers > 1 || (quantifier !== "?" && !anchored)) unsupported();
+      if (quantifier === "{") {
+        const match = value.slice(i).match(/^\{(\d+)(?:,(\d*))?\}/);
+        if (!match) unsupported();
+        const minimum = Number(match[1]);
+        const maximum = match[2] === undefined ? minimum : match[2] === "" ? Infinity : Number(match[2]);
+        if (minimum > 1000 || maximum < minimum || (maximum !== Infinity && maximum > 1000)) unsupported();
+        i += match[0].length;
+      } else i += 1;
+    }
+  }
+  return true;
+}
+
 function compileSignal(signal) {
+  if (!signal || typeof signal.value !== "string" || !signal.value.length) throw new Error("signal value must be a non-empty string");
   if (signal.type === "literal") return new RegExp(escapeRegex(signal.value), "g");
   if (signal.type === "regex") {
-    if (signal.value.length > 200) throw new Error("regex signal too long");
+    validateRegexPattern(signal.value);
     return new RegExp(signal.value, "g");
   }
   if (signal.type === "package") return new RegExp(`["'\`]${escapeRegex(signal.value)}["'\`/]`, "g");
@@ -154,7 +211,9 @@ export async function scan(root, notices, maxHits = 200, today = new Date()) {
           re.lastIndex = 0;
           if (!re.test(lines[i])) continue;
           if (total >= maxHits) continue;
-          c.hits.push({ file: rel, line: i + 1, signal: signal.value, text: redact(lines[i].trim()) });
+          // A heuristic cannot prove that arbitrary source is secret-free.
+          // Preserve exact navigation/matching evidence without echoing it.
+          c.hits.push({ file: rel, line: i + 1, signal: signal.value, text: WITHHELD_SNIPPET, snippet_status: "withheld" });
           total += 1;
         }
       }
@@ -239,13 +298,16 @@ async function selfTest() {
   }
 }
 
-const args = parseArgs(process.argv.slice(2));
-if (args.selfTest) {
-  await selfTest();
-} else {
-  if (!args.signals) throw new Error("--signals is required");
-  const parsed = JSON.parse(await readFile(args.signals, "utf8"));
-  const result = await scan(args.root, parsed.notices ?? [], args.maxHits);
-  if (args.json) console.log(JSON.stringify(result, null, 2));
-  else printHuman(result);
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.selfTest) {
+    await selfTest();
+  } else {
+    if (!args.signals) throw new Error("--signals is required");
+    const parsed = JSON.parse(await readFile(args.signals, "utf8"));
+    const result = await scan(args.root, parsed.notices ?? [], args.maxHits);
+    if (args.json) console.log(JSON.stringify(result, null, 2));
+    else printHuman(result);
+  }
 }
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main().catch((error) => { console.error(error.message); process.exitCode = 1; });
