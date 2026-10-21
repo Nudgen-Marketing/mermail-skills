@@ -51,8 +51,7 @@ exactly this situation. Use them instead of hand-rolling equivalents.
 
 ### What each mode actually returns
 
-Measured against `https://console.mermail.app/mcp`, not inferred from docs. The
-differences decide the workflow order in [SKILL.md](../SKILL.md):
+Historical observations, not a guarantee for the current schema. The native safe-read contract and omissions take precedence over this field inventory. See [SKILL.md](../SKILL.md) for bounded, scan-gated selection:
 
 | Field | `metadata_only` | `agent_safe_content` | no flags |
 | --- | --- | --- | --- |
@@ -72,8 +71,7 @@ Two consequences that are easy to get wrong:
   that call silently drops the platform's own threat list and substitutes its own
   guesswork.
 
-So the full read is not optional — it is simply **last**, and its output is
-inventoried rather than believed.
+Structural inspection is optional and last, only when the live schema can return it while retaining `require_scan_status: "clean"` and `max_body_chars: 10000`. Never request an unguarded/no-flags response. If unavailable, report that targets/threat details could not be inspected; do not treat visible text as the destination or absence of details as clean. Never render HTML or interpret raw headers as authentication. Input ordering alone is not a sandbox.
 
 When `content_omitted: true` arrives with
 `content_omission_reason: "scan_status_not_clean"`, that is the finding. Do not
@@ -82,15 +80,14 @@ threat into an uncaught one.
 
 ## Response fields this skill reads
 
-Verified against the live server (`https://console.mermail.app/mcp`,
-`tools/list` reports 72 tools):
+Resolve available fields from the selected authenticated session's current schema; a historical catalog count does not prove current compatibility:
 
 | Field | Notes |
 | --- | --- |
 | `sender_authentication.status` | `pass` / `fail` / `unknown`. The only authentication signal. |
 | `sender_authentication.spf` \| `.dkim` \| `.dmarc` | Component results, reported alongside the status rather than instead of it. |
 | `sender_authentication.reason` | Populated when the check did not run — e.g. `inbound_provider_unavailable`. Quote it: a check that did not run is a different situation from one that ran and failed. |
-| `scan_status`, `scan_threats` | Platform scan result. `scan_status` is on every read; `scan_threats` only on the unflagged read. A populated `scan_threats` array is a finding on its own and outranks manual inspection. Note `scan_status` is `null` on outbound copies — the platform scans what arrives, not what it sent. |
+| `scan_status`, `scan_threats` | Platform scan metadata when returned. Never relax the scan gate to obtain threat details. Missing/unknown state is not clean, and a populated threat array needs review. |
 | `attachments` | Inventory source. Filename, extension and declared type — no download. |
 | `date` | Bucketing timestamp for Workflow B. Never take a date from the body. |
 | `custom_labels`, `category`, `is_urgent` | Context only. All three are assignable, so none is evidence of legitimacy. |
