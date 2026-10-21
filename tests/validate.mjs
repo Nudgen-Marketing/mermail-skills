@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -2124,6 +2124,26 @@ errors.push(...await validateResearchAgent(root, scenarios, coverage));
 if (process.argv.includes("--remote")) await validateRemote();
 
 await validatePluginManifests();
+
+// Preserve these instruction-following fixtures as declarative contracts only;
+// matching their shape does not execute an agent or prove financial accuracy.
+const spendAuditorRegressions = [
+  "keep-independent-vendor-account-events-despite-shared-invoice-reference",
+  "keep-charge-and-two-refunds-merge-only-clear-resend-net15-40",
+  "count-explicit-current-correction-retain-trail-unlinked-conflicts-unresolved",
+  "runrate40-two-subscriptions-no-false-duplicate-or-price-increase",
+  "history-unavailable-no-request-enumeration-no-zero-spend-claim",
+  "no-pending-or-cross-asset-verified-match-no-payment-reuse",
+  "due-and-failed-not-spend-explicit-reported-charge-retained-with-uncertainty",
+  "current-runrate10-projected12-not22-for-same-plan",
+];
+const spendReadTools = new Set(["list_workspaces", "list_mailboxes", "get_mailbox", "list_emails", "search_emails", "get_email", "get_email_context", "get_paybox_connection", "paybox_get_portfolio", "paybox_get_request"]);
+for (const expected of spendAuditorRegressions) {
+  const fixture = scenarios.find(item => item.skill === "mermail-spend-auditor" && item.expected === expected);
+  if (!fixture || fixture.fixtureType !== "declarative" || fixture.approval !== "none" || fixture.tools.some(tool => !spendReadTools.has(tool))) {
+    errors.push(`mermail-spend-auditor: missing or unsafe declarative regression ${expected}`);
+  }
+}
 
 if (errors.length) {
   for (const error of errors) console.error(`ERROR: ${error}`);
