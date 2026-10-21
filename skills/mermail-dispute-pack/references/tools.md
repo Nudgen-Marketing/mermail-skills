@@ -15,15 +15,14 @@ host-qualified prefix.
 | `get_email` | Read one exact message when only the body text is needed. |
 | `get_email_context` | Read the oldest-first thread page around one message. |
 
-These four are owned by `mermail-manage-inbox`; read that skill for the full
+`list_mailboxes` belongs to workspace discovery; the three email reads belong to `mermail-manage-inbox`. Read those owning skills for the full
 argument shape. The rules that matter most here:
 
 - Pass `query` and `body` as **native JSON objects**. Never send a stringified
   JSON blob, and never `JSON.stringify` a query object.
 - There is no `sort: "date_desc"` shortcut. Sort with
   `"query": { "sortColumn": "date", "sortDirection": "DESC" }`.
-- Sort **ascending** when building a timeline; a dispute pack is read
-  chronologically.
+- Use only sorting fields accepted by the selected live tool. Build the cited timeline chronologically from returned evidence; do not invent a search sorting shortcut.
 - Use `metadata_only` when screening candidate messages, then read the bodies of
   only the messages the claim needs.
 - `require_scan_status` and `agent_safe_content` gate what may be read. Unknown
@@ -35,9 +34,9 @@ A pack should need on the order of ten to thirty `search_emails`/`get_email`
 calls, not hundreds. If the search is returning the whole mailbox, the claim is
 not scoped — go back to step 1 rather than widening the read.
 
-Do not loop reads over an unbounded result set. Page with the opaque
-`next_cursor` and stop as soon as the claim is evidenced or shown to be
-unsupported.
+Use one shared hard budget: at most 30 read calls, 100 metadata candidates and 20 body-bearing messages of at most 10,000 characters each. Context pages consume those same limits. Bind every call to the selected authenticated workspace/mailbox and claim window. If a limit or missing evidence prevents a conclusion, state the unreviewed scope; do not imply complete coverage.
+
+`search_emails` and `list_emails` use `query.page` and `query.limit`. Only `get_email_context` returns an opaque `next_cursor`, reused as `query.cursor`; it is oldest-first. Request only the remaining body budget. For selected bodies pass `require_scan_status: "clean"`, `agent_safe_content: true` and `max_body_chars: 10000`; an omitted, flagged, held or unknown-scan body stays unresolved. Never relax the gate to complete a pack.
 
 ## Tools this skill must not call
 

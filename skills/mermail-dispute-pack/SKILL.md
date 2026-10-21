@@ -59,6 +59,7 @@ down before searching — an unscoped search produces a pile of mail, not a pack
 
 Confirm with the operator:
 
+- the authenticated workspace and exact mailbox returned by discovery; do not combine threads or reuse IDs from a different mailbox
 - the counterparty identity (domain **and** display name — they often differ)
 - the disputed amount and currency, if any
 - the window: earliest plausible contact date to now
@@ -92,10 +93,7 @@ Record the identity finding even when it is clean — it is part of the pack.
 Put every amount into one table: value, currency, date, message ID. Never add
 amounts across currencies without a stated conversion and a stated rate date.
 
-Only a message that **asserts a charge** — a receipt, invoice, order
-confirmation, or renewal notice — contributes a row. A support reply that merely
-*mentions* an amount is evidence of what was said, not of what was charged, and
-must not be counted as a payment.
+Classify each cited row as a stated paid charge, amount due, order commitment, renewal forecast, requested refund or completed-refund claim. An invoice, order confirmation or renewal notice alone does not establish a paid charge. Even an authenticated receipt is a stated payment, not independently verified bank settlement. A support reply merely mentioning an amount remains narrative evidence, not another payment. Keep these categories and currencies separate in totals; unknown origin and conflicting evidence remain review-only. Two distinct invoices with equal amounts are not automatically duplicate debits.
 
 Flag explicitly: two charges with no distinct order ID; a charge with no matching
 commitment; a commitment with no matching charge; an amount that appears only in
