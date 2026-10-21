@@ -1,0 +1,11 @@
+interface:
+  display_name: "Web3 Community Collaboration"
+  short_description: "Manage Web3 project-to-community collaborations through Mermail."
+  default_prompt: "Use $mermail-web3-community-collab to manage this Web3 community collaboration safely from outreach to final reporting."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
