@@ -42,6 +42,8 @@ Read [tools.md](references/tools.md), [workflows.md](references/workflows.md), a
 
 ## Write Safety
 
+The optional `demo.mjs` is an offline simulated walkthrough. It executes local arithmetic/chain helpers in a new temporary directory; all mail, payment and payout states are explicitly synthetic. It creates no payment link or provider request and is not end-to-end settlement evidence. Existing files beside the skill are never overwritten or deleted by the demo.
+
 - **Blocked ledger capabilities:** the shipped local JSON helper has no authenticated external checkpoint, immutable storage or multi-writer lock. A rewritten chain or truncated valid prefix can pass verification. If the workflow requires immutable receipts, independent authorship or concurrent-safe settlement bookkeeping, report `blocked` pending that backend; do not claim those guarantees or invent a custody/locking service.
 
 - Outbound emails (`send_email`, `reply_to_email`) are external effects requiring exact recipient, subject, and body previews with fresh owner approval.
