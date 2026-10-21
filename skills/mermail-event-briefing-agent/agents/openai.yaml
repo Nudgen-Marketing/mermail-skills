@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Event Briefing Agent"
+  short_description: "Reconcile event mail into a sourced attendance brief"
+  default_prompt: "Use $mermail-event-briefing-agent to brief me on my upcoming events, reconcile changes and cancellations, and show any supported overlaps."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
