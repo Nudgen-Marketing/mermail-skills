@@ -195,13 +195,10 @@ export function decide(packet) {
       warnings,
     );
   }
-  if (
-    packet.mailbox_id &&
-    packet.reply.mailbox_id &&
-    packet.mailbox_id !== packet.reply.mailbox_id
-  ) {
+  const identityProblem = replyIdentityProblem(packet);
+  if (identityProblem) {
     return applyOperator(
-      result("missing_proof", "mailbox_mismatch", delivered, warnings),
+      result("missing_proof", identityProblem, delivered, warnings),
       evidence,
       warnings,
     );
@@ -418,6 +415,21 @@ function deliveryCoverageProblem(packet) {
   if (packet.delivery.notice_digest == null) return "notice_required";
   const canonical = buildNotice(packet.task, packet.artifact, packet.requester);
   if (packet.delivery.notice_digest !== canonical.notice_digest) return "notice_digest_mismatch";
+  return null;
+}
+
+// These identities come from the selected mailbox and exact native message reads,
+// never from email text. Missing metadata is not a wildcard for any marker.
+function replyIdentityProblem(packet) {
+  const id = value => typeof value === "string" && MESSAGE_ID.test(value);
+  if (![packet.mailbox_id, packet.delivery.mailbox_id, packet.reply.mailbox_id].every(id)) {
+    return "missing_mailbox_identity";
+  }
+  if (packet.delivery.mailbox_id !== packet.mailbox_id || packet.reply.mailbox_id !== packet.mailbox_id) {
+    return "mailbox_mismatch";
+  }
+  if (![packet.delivery.thread_id, packet.reply.thread_id].every(id)) return "missing_thread_identity";
+  if (packet.delivery.thread_id !== packet.reply.thread_id) return "thread_mismatch";
   return null;
 }
 

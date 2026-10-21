@@ -6,6 +6,7 @@ export const ARTIFACT_DIGEST = `sha256:${createHash("sha256").update("synthetic-
 export function basePacket(overrides = {}) {
   const packet = {
     intent: "prepare",
+    mailbox_id: "mailbox-enrolled",
     task: {
       id: "synthetic-finished-work",
       predicates: [
@@ -30,6 +31,8 @@ export function deliveryFor(packet, messageId = "msg-delivery-1") {
   const notice = buildNotice(packet.task, packet.artifact, packet.requester);
   return {
     message_id: messageId,
+    mailbox_id: packet.mailbox_id,
+    thread_id: "thread-delivery-1",
     artifact_digest: packet.artifact.digest,
     predicate_ids: packet.task.predicates.map((predicate) => predicate.id),
     notice_digest: notice.notice_digest,
@@ -39,6 +42,8 @@ export function deliveryFor(packet, messageId = "msg-delivery-1") {
 export function replyFor(overrides = {}) {
   return {
     message_id: "msg-reply-1",
+    mailbox_id: "mailbox-enrolled",
+    thread_id: "thread-delivery-1",
     folder_id: "inbox",
     from: "Requester <requester@example.com>",
     sender_authentication: { status: "pass" },

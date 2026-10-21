@@ -416,3 +416,59 @@ test("an authored acceptance without an observed inbound folder is not acceptanc
     assert.equal(verdict.observations.later_use, false);
   }
 });
+
+test("unrelated-thread and missing-mailbox DEFECT cannot consume a revision (library and CLI)", () => {
+  for (const fault of ["wrong-thread", "missing-mailbox"]) {
+    const packet = basePacket({ intent: "record" });
+    packet.delivery = deliveryFor(packet);
+    packet.reply = replyFor({ text: "DEFECT open: the second predicate failed" });
+    if (fault === "wrong-thread") packet.reply.thread_id = "thread-unrelated";
+    else delete packet.reply.mailbox_id;
+    const before = JSON.stringify(packet);
+    const expectedReason = fault === "wrong-thread" ? "thread_mismatch" : "missing_mailbox_identity";
+    const decision = check(packet, { disposition: "missing_proof", reason: expectedReason, next_action: "stop_no_send" });
+    assert.equal(decision.detail.revisions_used_after, undefined);
+    assert.equal(packet.prior.revisions_used, 0);
+    assert.equal(JSON.stringify(packet), before);
+    const cli = spawnSync(process.execPath, [bin, "-"], { input: before, encoding: "utf8" });
+    assert.equal(cli.status, 2, cli.stderr);
+    assert.deepEqual(JSON.parse(cli.stdout), decision);
+  }
+});
+
+test("all markers require complete exact delivery/reply mailbox and thread identities", () => {
+  for (const text of [`ACCEPT ${ARTIFACT_DIGEST}`, "DEFECT open: fix it", "QUESTION: explain it", "CHANGE: different work"]) {
+    for (const [part, field] of [[null, "mailbox_id"], ["delivery", "mailbox_id"], ["reply", "mailbox_id"], ["delivery", "thread_id"], ["reply", "thread_id"]]) {
+      for (const value of [undefined, "", " ", 42, { id: "mailbox-enrolled" }]) {
+        const packet = basePacket({ intent: "record" });
+        packet.delivery = deliveryFor(packet);
+        packet.reply = replyFor({ text });
+        (part ? packet[part] : packet)[field] = value;
+        const decision = decide(packet);
+        assert.equal(decision.disposition, "missing_proof", `${text}: ${part}.${field}`);
+        assert.equal(decision.observations.acceptance, false);
+        assert.equal(decision.detail.revisions_used_after, undefined);
+        assert.deepEqual(decision.effects, []);
+      }
+    }
+    for (const part of ["delivery", "reply"]) {
+      const packet = basePacket({ intent: "record" });
+      packet.delivery = deliveryFor(packet);
+      packet.reply = replyFor({ text });
+      packet[part].mailbox_id = "mailbox-other";
+      check(packet, { disposition: "missing_proof", reason: "mailbox_mismatch" });
+    }
+  }
+});
+
+test("bound same-thread feedback still revises once and enforces replay and effort bounds", () => {
+  const packet = basePacket({ intent: "record" });
+  packet.delivery = deliveryFor(packet);
+  packet.reply = replyFor({ text: "DEFECT open: the second predicate failed" });
+  const revision = check(packet, { disposition: "revise_within_bound", reason: "defect_inside_bound" });
+  assert.equal(revision.detail.revisions_used_after, 1);
+  packet.prior.revisions_used = revision.detail.revisions_used_after;
+  check(packet, { disposition: "effort_exhausted", reason: "revision_budget_spent" });
+  packet.prior.reply_message_ids.push(packet.reply.message_id);
+  check(packet, { disposition: "duplicate_retry", reason: "reply_already_recorded" });
+});

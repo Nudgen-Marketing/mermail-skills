@@ -19,7 +19,7 @@ The notice body is the decider's `notice.body`. Do not add a greeting, tracking 
 ## Classify a reply
 
 1. `get_email` for the exact message id in the enrolled mailbox. Stop if the folder is not inbox, if `scan_status` is not `clean`, or if the sender or body is missing. Do not fill either field from a local expectation.
-2. Run the decider with the original delivery object plus this reply. Do not edit `sender_authentication`. Ignore marker lines that only repeat the delivery notice.
+2. Run the decider with the original delivery object plus this reply. Bind the enrolled packet `mailbox_id` to the native delivery and reply `mailbox_id` values, and require both native `thread_id` values to match. Missing or mismatched identities stop with `missing_proof`; do not classify a marker or consume a revision. Do not edit `sender_authentication`. Ignore marker lines that only repeat the delivery notice.
 3. `record_acceptance` stores acceptance only. An `operator_evidence` reference does not store payment or later use. `verified: true` on that reference is refused.
 4. `revise_within_bound` names one predicate. The worker edits that predicate, produces a new digest, and starts again at prepare. The old digest stays in `prior.artifact_digests_delivered`.
 5. `clarify` lets the user approve one answer that stays inside the existing predicates.
