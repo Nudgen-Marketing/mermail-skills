@@ -36,13 +36,15 @@
 
 ## 3. Settle-up algorithm
 
-Use integer cents end to end. If a shell is available, run the bundled deterministic calculator; otherwise apply the same rules by hand and show the arithmetic.
+Use BigInt integer cents end to end. Run the bundled exact calculator when available. Do not substitute greedy or informal arithmetic while claiming the global minimum. If the exact calculation cannot be performed, the minimal plan is blocked; keep the reviewed receipts and balances available rather than invent a plan.
 
 ```bash
 node scripts/settle.mjs < ledger.json
 ```
 
 Input contains only lines the owner approved as included:
+
+Amounts are nonnegative plain decimal strings, at most two fractional digits and 64 integer digits. Numeric JSON amounts are rejected instead of recovering an already rounded Number. This is a two-decimal currency model; currencies with other minor-unit precision need an appropriate adapter. Each approved source line has a unique nonempty `id` (use email ID plus an owner-reviewed line suffix only when one email genuinely holds multiple distinct receipts). The roster and every explicit sharer list must be unique; an explicit empty split is invalid. Omitted `split` means the whole roster. Duplicate forwarded receipts with different email IDs still need evidence review; source-ID validation alone does not detect them. A provided line currency must match settlement currency. The input is bounded to 100 roster members, 100 receipts and 1 MiB JSON.
 
 ```json
 {
@@ -60,8 +62,10 @@ Rules:
 
 1. For each line, divide the cents equally among its sharers (default: all members). Give leftover cents one at a time to sharers in roster order.
 2. `balance = paid − share` per member. The balances must sum to exactly 0; otherwise stop.
-3. Repeat: the member with the largest debt pays the member with the largest credit `min(debt, credit)`; break ties by roster order. This yields at most `members − 1` transfers and never a circular payment.
+3. Exclude zero balances from optimization. Exact subset dynamic programming maximizes the number of disjoint zero-sum components; the global minimum number of transfers is `nonzero members − components`. Reconstruct those components deterministically, then settle each by largest debtor/creditor with roster-order ties. A maximum-component partition has no further proper zero-sum subdivision, so each component takes exactly `size − 1` direct debtor-to-creditor transfers, with no circular payments. All amounts remain BigInt cents.
 4. Label each transfer `owner_pays`, `owner_receives`, or `between_members`.
+
+The exact calculation is bounded to **18 nonzero balances** (`O(n × 2^n)`); zero-balance roster members do not consume that bound. Above it, the helper returns an error and no plan. Do not split one group's ledger into subgroups and claim that the combined answer is globally minimal. Expose this computation limit and retain the original use case pending a larger exact solver if required. Output `optimization.exact` and `transferCount` describe the computed plan, not a wallet capability or permission to execute it.
 
 Worked example with the ledger above (all lines included): Oliver paid 4.50, share 8.60 → −4.10; Alice paid 18.00, share 11.60 → +6.40; Bob paid 9.30, share 11.60 → −2.30. Plan: Oliver → Alice 4.10 (`owner_pays`), Bob → Alice 2.30 (`between_members`).
 
@@ -111,7 +115,7 @@ Only for `owner_pays` lines. Follow the `mermail-agent-wallet` Transfer workflow
 2. **Always** call `get_paybox_connection` once. If it returns `connect_handoff` / `reauth_handoff`, present it once and pause. `OWNER_ACTION_REQUIRED` means the workspace owner must repair PayBox.
 3. `paybox_list_credentials` → select a credential compatible with the chain (preserve an explicit `credential_id`; prefer the sole eligible `approval_mode: autonomous` wallet; ask when several remain).
 4. `paybox_get_portfolio` → read the USDC token and balance on that chain. If the balance is short, offer the Funding handoff from `mermail-agent-wallet` and stop; Funding never authorizes the payment.
-5. Preview: mailbox, credential, asset, chain, exact amount, destination (first 4 + last 4), and the ledger line it settles. If the owner's latest message already stated these exact terms, do not add a second approval round trip.
+5. Preview: mailbox, credential, asset, chain, exact amount, full owner-typed destination, and the ledger line it settles. Masking is for later summaries, not approval. If the owner's latest message already stated these exact terms, do not add a second approval round trip.
 6. `paybox_request_transfer` once with live-schema arguments.
 7. Classify the result: `pending_signature` → `show_paybox_signing` with the returned `signing_handoff.invocation_id` (or the returned `signing_handoff.console_url`) and end the turn; `pending_execution` / `pending_confirmation` / `pending_settlement` → keep the `request_id` and report pending; `setup_required` → show the returned setup handoff; terminal success → mark the ledger line `settled_onchain` with the `request_id`.
 8. When the owner says they signed or asks for status, `paybox_get_request` once. Never start a replacement transfer.

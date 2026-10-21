@@ -85,7 +85,7 @@ Approved send (one call, one stable key):
 }
 ```
 
-Free workspaces: at most 10 To+Cc+Bcc recipients per request, 10/minute, 50/hour, 200/day. On `email_send_recipient_limit_exceeded`, `email_send_rate_limit_exceeded`, or `email_send_rate_limit_unavailable`, stop and report; never auto-retry or reshape the recipient set.
+Use current authoritative workspace capacity rather than historical hardcoded quotas. On `email_send_recipient_limit_exceeded`, `email_send_rate_limit_exceeded`, or `email_send_rate_limit_unavailable`, stop and report the stable code and any `Retry-After`; never auto-retry, fragment a rejected delivery or reshape the recipient set to evade the limit.
 
 ## Optional USDC settle-up (Agent Wallet / PayBox)
 
