@@ -21,8 +21,8 @@ Read [tools.md](references/tools.md) for the canonical admin tools and [security
 
 1. Resolve exactly one credential-bound workspace. If multiple workspaces remain plausible, stop and ask the authenticated user to choose.
 2. Freeze the expected roster before inspecting current membership. Accept it only from the current user's request or an explicitly selected trusted local policy. Record each expected principal, expected role, and optional rationale.
-3. Call `list_workspace_members` and compare stable member identifiers plus human-readable labels against the frozen roster.
-4. Classify each row as `MATCH`, `UNEXPECTED_MEMBER`, `ROLE_MISMATCH`, `EXPECTED_MEMBER_MISSING`, or `AMBIGUOUS`. Do not silently resolve duplicate names, aliases, or uncertain identities.
+3. Read the live admin write schemas and validate the expected roles before proposing remediation. Current workspace roles are `admin` and `member`; there is no `viewer` or read-only workspace role. If policy requires read-only access, preserve that requirement and report its remediation `blocked` as `UNSUPPORTED_ROLE`. Never substitute `member` or claim it is read-only. Continue the read-only review without making that unsupported write.
+4. Call `list_workspace_members` and compare stable member identifiers plus human-readable labels against the frozen roster. Classify each row as `MATCH`, `UNEXPECTED_MEMBER`, `ROLE_MISMATCH`, `EXPECTED_MEMBER_MISSING`, `UNSUPPORTED_ROLE`, or `AMBIGUOUS`. Do not silently resolve duplicate names, aliases, or uncertain identities.
 5. Return a read-only review first. For each mismatch, show current state, intended state, evidence, and the smallest remediation action.
 6. If the user explicitly authorizes remediation, hand off each action to the canonical `mermail-administer-workspace` contract:
    - role update: exact member + current role -> intended role preview, then one `update_member_role`;
@@ -42,6 +42,7 @@ Return:
 
 ## Examples
 
-- "Audit this workspace against this roster: Alice admin, Bob member, Carol viewer."
+- "Audit this workspace against this roster: Alice admin, Bob member, Carol viewer." → Review membership, but preserve Carol's read-only requirement as `UNSUPPORTED_ROLE` / `blocked`; do not invite or update Carol as `member` instead.
+- "Change this confirmed admin to member after I approve the exact preview." → Supported role remediation under the admin owner contract; `member` is not described as read-only.
 - "Show me anyone with more access than this policy allows; do not change anything."
 - "Reconcile current members to this approved roster, then preview the minimum changes."

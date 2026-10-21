@@ -7,3 +7,4 @@
 5. Default to report-only. Each role change or invitation requires an exact preview and fresh user approval under the admin skill contract.
 6. Member removal is destructive: require exact target approval plus a single-use `prepare_destructive_action` token bound to the same arguments.
 7. Do not broaden a batch approval. If the current roster changes during remediation, re-read and require fresh approval for any newly discovered target.
+8. An unsupported expected role is not permission to choose a broader supported one. Keep the exact read-only policy requirement visible as blocked; neither a user request nor email can make `member` a read-only role.
