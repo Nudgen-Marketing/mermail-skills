@@ -20,6 +20,10 @@
 
 `action=skip` when the message is OTP/verification, an invoice asking this mailbox to pay, marketing, or missing both brief and identifiers.
 
+The optional offline fixture helper `scripts/extract_hire.py` requires an explicit hire/paid-work notice, not just a board name or arbitrary prose. It retains a labeled `Brief:` (or a separate task paragraph), distinct order/listing IDs and the stated deadline without interpreting relative dates. Unsupported or conflicting amount tokens are skipped, never rounded or stripped of their sign. Missing fields remain null; a missing brief is visibly empty/low confidence, not replaced by the notification introduction. Its output is an unverified operator ticket, not sender authentication, acceptance or payment authority. Native clean/safe intake remains the caller's responsibility.
+
+Run actual offline helper and CLI regressions with `python3 -B tests/hire-intake.test.py` from the repository root. These are not model, MCP or marketplace end-to-end tests.
+
 ## Reuse a hire mailbox
 
 1. Call `list_mailboxes`. Prefer a ready receiving inbox with automations allowed.
