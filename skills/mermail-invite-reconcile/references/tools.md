@@ -21,4 +21,8 @@ npm install --prefix <skill-dir> --ignore-scripts --registry=https://registry.np
 
 Do not use a repository-level `node_modules` lookup as evidence that a copied
 skill is installable. The local `package.json` and `package-lock.json` are the
-runtime manifest for this skill; the parser implementation is unchanged.
+runtime manifest for this skill.
+
+For repository-local offline checks after installing the locked dependency with lifecycle scripts
+disabled, run `node --test tests/invite-reconcile.mjs tests/invite-prior-regression.mjs`.
+These exercise the actual parser and prior-state validation with synthetic ICS only, not a provider.

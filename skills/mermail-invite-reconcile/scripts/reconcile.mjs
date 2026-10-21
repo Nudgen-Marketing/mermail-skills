@@ -62,8 +62,8 @@ function normalizeEvent(component) {
   const stamp = utcProperty(component, "dtstamp");
   const start = utcProperty(component, "dtstart");
   const end = utcProperty(component, "dtend");
-  if (!uid) return { error: "missing UID" };
-  if (!organizer) return { error: "missing ORGANIZER" };
+  if (typeof uid !== "string" || !uid.trim() || uid.includes("\u0000")) return { error: "invalid UID" };
+  if (!organizer || organizer.includes("\u0000")) return { error: "invalid ORGANIZER" };
   if (!Number.isSafeInteger(sequence) || sequence < 0) return { error: "SEQUENCE must be a nonnegative safe integer" };
   for (const item of [stamp, start, end]) if (item.reason) return { error: item.reason };
   const startTime = Date.parse(start.value);
@@ -96,12 +96,66 @@ export function parseInvite(ics) {
   }
 }
 
-export function reconcileInvites(inputs, prior = {}) {
+// A prior winner is a normalized record returned by this helper, not a trusted
+// calendar authority. Rebuild it from its canonical content and revalidate every
+// comparison field so arbitrary maps cannot silently authorize downstream use.
+function validatePrior(prior) {
+  const fail = (reason) => ({ ok: false, reason });
+  if (!prior || typeof prior !== "object" || Array.isArray(prior) ||
+      ![Object.prototype, null].includes(Object.getPrototypeOf(prior))) return fail("prior state unavailable or malformed");
+  const entries = Object.entries(prior);
+  if (entries.length > 100) return fail("prior state exceeds 100-event limit");
+  const winners = new Map();
+  const uids = new Set();
+  let bytes = 0;
+  try {
+    for (const [key, event] of entries) {
+      if (!event || typeof event !== "object" || Array.isArray(event) ||
+          Object.keys(event).sort().join(",") !== "canonical,dtend,dtstamp,dtstart,organizer,sequence,uid" ||
+          typeof event.canonical !== "string" || Buffer.byteLength(event.canonical, "utf8") > MAX_ICS_BYTES ||
+          typeof event.uid !== "string" || !event.uid.trim() || event.uid.includes("\u0000") ||
+          typeof event.organizer !== "string" || !event.organizer || event.organizer.includes("\u0000") ||
+          normalizeOrganizer(event.organizer) !== event.organizer ||
+          key !== `${event.uid}\u0000${event.organizer}`) return fail("prior event identity or schema is invalid");
+      bytes += Buffer.byteLength(JSON.stringify([key, event]), "utf8");
+      if (bytes > MAX_TOTAL_BYTES) return fail("prior state exceeds 5 MiB limit");
+      if (uids.has(event.uid)) return fail("prior state has conflicting organizers for the same UID");
+      uids.add(event.uid);
+      const rows = JSON.parse(event.canonical);
+      if (!Array.isArray(rows) || rows.some((row) => !row || typeof row !== "object" ||
+          Object.keys(row).sort().join(",") !== "name,params,type,values" ||
+          typeof row.name !== "string" || typeof row.type !== "string" ||
+          !row.params || typeof row.params !== "object" || Array.isArray(row.params) ||
+          !Array.isArray(row.values) || row.name === "dtstamp")) return fail("prior canonical content is invalid");
+      const component = new ICAL.Component(["vevent", [
+        ...rows.map((row) => [row.name, row.params, row.type, ...row.values]),
+        ["dtstamp", {}, "date-time", event.dtstamp],
+      ], []]);
+      const normalized = normalizeEvent(component);
+      if (normalized.error || Object.keys(normalized).some((field) => normalized[field] !== event[field])) {
+        return fail("prior canonical content disagrees with event fields or is invalid");
+      }
+      winners.set(key, normalized);
+    }
+  } catch {
+    return fail("prior event content could not be validated");
+  }
+  return { ok: true, winners };
+}
+
+export function reconcileInvites(inputs, prior) {
   if (!Array.isArray(inputs)) throw new TypeError("inputs must be an array");
   if (inputs.length > 100) throw new RangeError("at most 100 invitation versions may be reconciled");
   const totalBytes = inputs.reduce((sum, input) => sum + Buffer.byteLength(typeof input?.ics === "string" ? input.ics : "", "utf8"), 0);
   if (totalBytes > MAX_TOTAL_BYTES) throw new RangeError("invitation inputs exceed 5 MiB total limit");
-  const winners = new Map(Object.entries(prior));
+  const validatedPrior = validatePrior(arguments.length < 2 ? {} : prior);
+  if (!validatedPrior.ok) {
+    return {
+      decisions: [{ label: "prior", decision: "needs_review", reason: validatedPrior.reason }],
+      winners: {}, unresolved: {}, hasReview: true, safeToUseWinners: false,
+    };
+  }
+  const winners = validatedPrior.winners;
   const unresolved = new Map();
   const decisions = [];
   for (const input of inputs) {

@@ -35,6 +35,12 @@ Read [tools.md](references/tools.md) and [security.md](references/security.md) b
 5. For the same UID and organizer, accept a strictly higher sequence. Ignore a lower sequence as `stale_ignored` without replacing the winner. `DTSTAMP` is recorded for evidence; it does not let an older sequence win.
 6. For the same sequence, compare canonical event content independent of property order. Identical content is `duplicate`; different content is `needs_review`, even when its DTSTAMP is later.
 7. When a conflict occurs, return `unresolved` candidates and no winner for that UID. Never turn a parser decision into an invite send or calendar write.
+8. When continuing from prior winners, pass only the normalized `winners` map from a verified
+   previous result whose `safeToUseWinners` was true. Prior is bounded to 100 events and 5 MiB total (1 MiB canonical content
+   per event). Identity keys, UTC instants, sequence and canonical content must agree, with only
+   one organizer per UID. Missing/unavailable prior is not an empty initial state: explicit `undefined` or `null` must
+   hold. Omit the second argument or use `{}` only for a genuinely new comparison. Invalid prior blocks the whole
+   batch, even with no new input; reconcile source evidence rather than deleting conflicting history.
 
 ## Output conventions
 
