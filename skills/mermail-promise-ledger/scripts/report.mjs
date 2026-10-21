@@ -10,7 +10,17 @@ function text(value, label, max = 2000) {
 }
 function nullable(value, label) { if (value !== null) text(value, label); }
 function array(value, label, max) { requireValue(Array.isArray(value) && value.length <= max, `${label}: expected array (max ${max})`); }
-function instant(value) { return typeof value === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)$/.test(value) && Number.isFinite(Date.parse(value)); }
+function instant(value) {
+  if (typeof value !== 'string' || value.length > 64) return false;
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(?:Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
+  if (!parts || !Number.isFinite(Date.parse(value))) return false;
+  const [year, month, day, hour, minute, second] = parts.slice(1, 7).map(v => Number(v ?? 0));
+  const calendar = new Date(0);
+  calendar.setUTCFullYear(year, month - 1, day); calendar.setUTCHours(0, 0, 0, 0);
+  return calendar.getUTCFullYear() === year && calendar.getUTCMonth() + 1 === month && calendar.getUTCDate() === day &&
+    hour <= 23 && minute <= 59 && second <= 59 && Number(parts[8] ?? 0) <= 14 && Number(parts[9] ?? 0) <= 59 &&
+    !(Number(parts[8]) === 14 && Number(parts[9]) !== 0);
+}
 
 // Validates references and literal evidence; semantic interpretation remains the agent's job.
 export function validateLedger(d) {

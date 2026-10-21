@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, mkdtemp, access, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, access, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validateLedger, renderLedger, deadlineStatus, writeReport } from '../skills/mermail-promise-ledger/scripts/report.mjs';
@@ -57,6 +57,30 @@ test('timestamps need offsets and ambiguous deadlines cannot be fabricated by om
   const e = copy(); e.commitments[4].dueAt = '2026-10-09T17:00:00Z';
   assert.throws(() => validateLedger(e), /needs source wording/);
 });
+
+test('impossible local dates/times cannot become as-of, message or deadline evidence', () => {
+  for (const date of ['2026-02-30T17:00:00+01:00', '2026-02-29T00:00:00Z', '2026-04-31T12:00:00Z',
+    '2026-10-09T24:00:00Z', '2026-10-09T12:60:00Z', '2026-10-09T12:00:60Z',
+    '2026-10-09T12:00:00+14:01', '2026-10-09T12:00:00+01:60', '2026-10-09T12:00:00.0001Z']) {
+    for (const field of ['asOf', 'message', 'due']) {
+      const d = copy();
+      if (field === 'asOf') d.asOf = date;
+      else if (field === 'message') d.messages[0].date = date;
+      else d.commitments[0].dueAt = date;
+      assert.throws(() => validateLedger(d), /ISO timestamp|invalid message date/, `${field}: ${date}`);
+    }
+  }
+});
+
+test('real leap days and equivalent offset instants remain valid without string ordering', () => {
+  const d = copy(); d.asOf = '2028-02-29T12:00:00+05:30';
+  d.messages[0].date = '2028-02-29T00:00:00.001Z';
+  d.commitments[0].dueAt = '2028-02-29T06:30:00Z';
+  assert.doesNotThrow(() => validateLedger(d));
+  assert.equal(deadlineStatus(d.commitments[0], d), 'Upcoming as of review');
+  d.commitments[0].dueAt = '2028-02-29T06:29:59.999Z';
+  assert.equal(deadlineStatus(validateLedger(d).commitments[0], d), 'Overdue as of review');
+});
 test('partial coverage is visible and fixture output never claims live proof', () => {
   const d = copy(); d.coverage = { status: 'partial', detail: 'A cursor remains; earlier history is unavailable.' };
   const r = renderLedger(d);
@@ -83,5 +107,21 @@ test('CLI helper writes both reports only after validation', async () => {
     const result = await writeReport(new URL('../skills/mermail-promise-ledger/assets/demo-ledger.json', import.meta.url), dir);
     assert.equal(result.messages, 5); await access(join(dir, 'ledger.html')); await access(join(dir, 'ledger.md'));
     assert.match(await readFile(join(dir, 'ledger.html'), 'utf8'), /Unsent/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('invalid source instant is rejected before existing report files can change', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'promise-ledger-invalid-'));
+  try {
+    const d = copy(); d.messages[0].date = '2026-02-30T00:00:00Z';
+    const input = join(dir, 'input.json'); await writeFile(input, JSON.stringify(d));
+    await writeFile(join(dir, 'ledger.html'), 'SYNTHETIC_HTML_SENTINEL');
+    await writeFile(join(dir, 'ledger.md'), 'SYNTHETIC_MD_SENTINEL');
+    await assert.rejects(writeReport(input, dir), /invalid message date/);
+    assert.equal(await readFile(join(dir, 'ledger.html'), 'utf8'), 'SYNTHETIC_HTML_SENTINEL');
+    assert.equal(await readFile(join(dir, 'ledger.md'), 'utf8'), 'SYNTHETIC_MD_SENTINEL');
+    const absent = join(dir, 'new-output');
+    await assert.rejects(writeReport(input, absent), /invalid message date/);
+    await assert.rejects(access(absent));
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
