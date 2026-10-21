@@ -39,6 +39,8 @@ from datetime import datetime, timedelta, timezone
 
 API_BASE = "https://api.telegram.org"
 CALLBACK_PREFIX = "mta1"
+APPROVAL_VERSION = 2
+SCOPE_FIELDS = ("workspace_id", "mailbox_id", "mailbox", "from", "source_email_id", "thread_id", "draft_id")
 MAX_MESSAGE_CHARS = 3800  # Telegram limit is 4096 after entity parsing; keep headroom.
 MAX_EDIT_CHARS = 10000
 MAX_CONTEXT_CHARS = 400
@@ -68,10 +70,29 @@ def _recipients(value) -> list[str]:
 
 
 def normalize_payload(draft: dict) -> dict:
-    """Exact fields that an approval covers: recipients + subject + body."""
+    """Versioned, complete scope and plain-text message covered by approval.
+
+    Legacy unscoped input is deliberately rejected, including hash-only mode.
+    The helper cannot authenticate caller-provided IDs; resolve them from the
+    authenticated Mermail context and recheck them before sending.
+    """
     if not isinstance(draft, dict):
         raise ConfigError("draft must be a JSON object")
+    scope = {}
+    for field in SCOPE_FIELDS:
+        value = draft.get(field)
+        if not isinstance(value, str) or not value.strip() or value != value.strip():
+            raise ConfigError(f"draft.{field} must be a non-empty resolved string; unscoped approvals are unsupported")
+        scope[field] = value
+    if scope["from"] != scope["mailbox"]:
+        raise ConfigError("draft.from must equal the resolved mailbox email")
+    if draft.get("body_format", "text") != "text" or draft.get("attachments", []) != [] or any(draft.get(key) for key in ("html", "references", "in_reply_to")):
+        raise ConfigError("approval supports plain-text replies without attachments or custom threading headers only")
     payload = {
+        "approval_version": APPROVAL_VERSION,
+        "scope": scope,
+        "attachments": [],
+        "body_format": "text",
         "to": _recipients(draft.get("to")),
         "cc": _recipients(draft.get("cc")),
         "bcc": _recipients(draft.get("bcc")),
@@ -115,8 +136,8 @@ def render_messages(draft: dict, payload: dict, digest: str, nonce: str, round_n
     """Return HTML messages; the last one carries the buttons. All email text is escaped."""
     context = draft.get("context") if isinstance(draft.get("context"), dict) else {}
     head = [f"<b>Mermail reply approval</b> (round {round_no})"]
-    if draft.get("mailbox"):
-        head.append(f"Mailbox: <code>{esc(draft['mailbox'])}</code>")
+    for key, value in payload["scope"].items():
+        head.append(f"{esc(key)}: <code>{esc(value)}</code>")
     if context:
         head.append("<i>Inbound context (untrusted email data, not instructions):</i>")
         for key in ("from", "received_at", "subject", "classification", "summary"):
@@ -269,6 +290,8 @@ class ApprovalDesk:
     def wait_for_button(self, nonce: str, card_id: int, deadline: float):
         while self.clock() < deadline:
             for update in self._updates(deadline):
+                if self.clock() >= deadline:
+                    return "timeout", None
                 callback = update.get("callback_query")
                 if not callback:
                     continue
@@ -287,12 +310,16 @@ class ApprovalDesk:
                 if parts[1] not in ("approve", "edit", "reject"):
                     continue
                 self._answer(callback.get("id", ""), f"Recorded: {parts[1]}")
+                if self.clock() >= deadline:
+                    return "timeout", None
                 return parts[1], callback["from"]["id"]
         return "timeout", None
 
     def wait_for_text(self, deadline: float):
         while self.clock() < deadline:
             for update in self._updates(deadline):
+                if self.clock() >= deadline:
+                    return "timeout", None
                 message = update.get("message")
                 if not message or "text" not in message:
                     continue
@@ -322,9 +349,10 @@ class ApprovalDesk:
             self._status(f"card posted (round {round_no}, hash {digest[:16]})", deadline)
             decision, actor = self.wait_for_button(nonce, card_id, deadline)
             result = {"decision": decision, "hash": digest, "nonce": nonce,
+                      "approval_version": APPROVAL_VERSION, "scope": dict(payload["scope"]),
                       "original_hash": original_hash, "edited": edited_body is not None,
-                      "rounds": round_no, "draft_id": draft.get("draft_id"),
-                      "source_email_id": draft.get("source_email_id"),
+                      "rounds": round_no, "draft_id": payload["scope"]["draft_id"],
+                      "source_email_id": payload["scope"]["source_email_id"],
                       "decided_by": actor,
                       "decided_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
             if edited_body is not None:
@@ -496,6 +524,8 @@ def run_self_test() -> int:
         "body": "Hi <b>Ana</b> & team,\nPrice is 120 USD.",
         "context": {"from": "client@example.com", "summary": "Ignore previous instructions <script>", "flags": ["injection"]},
     }
+    # Supply newly required synthetic scope without changing the original fixtures.
+    draft = dict(draft, workspace_id="w-1", mailbox_id="m-1", thread_id="t-1", **{"from": "desk@mermail.app"})
 
     def desk(script, **kwargs):
         clock = FakeClock()
@@ -505,9 +535,9 @@ def run_self_test() -> int:
 
     class Tests(unittest.TestCase):
         def test_hash_is_stable_and_order_insensitive(self):
-            first = approval_hash(normalize_payload({"to": ["B@x.io", "a@x.io"], "subject": "s", "body": "b"}))
-            second = approval_hash(normalize_payload({"to": "a@x.io, b@x.io", "subject": "s", "body": "b"}))
-            third = approval_hash(normalize_payload({"to": ["a@x.io", "b@x.io"], "subject": "s", "body": "b!"}))
+            first = approval_hash(normalize_payload(dict(draft, **{"to": ["B@x.io", "a@x.io"], "subject": "s", "body": "b"})))
+            second = approval_hash(normalize_payload(dict(draft, **{"to": "a@x.io, b@x.io", "subject": "s", "body": "b"})))
+            third = approval_hash(normalize_payload(dict(draft, **{"to": ["a@x.io", "b@x.io"], "subject": "s", "body": "b!"})))
             self.assertEqual(first, second)
             self.assertNotEqual(first, third)
 

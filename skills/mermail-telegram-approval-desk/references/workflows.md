@@ -23,11 +23,11 @@
 3. Optional `get_email_context` when earlier messages matter (limit ≤ 8).
 4. Decide the reply from the user's rules (prices, tone, signature). Do not promise anything the user did not provide. Use `clarify` to ask the client a question instead.
 5. `save_draft` with explicit `to` (the sender), `Re:` subject, `body.body`, `body_format: "text"`, `in_reply_to` (source email id), and `thread_id` (source thread). Record the latest `draft_id`.
-6. Write the draft JSON and run the helper with `--draft-file`.
+6. Write fully scoped version-2 draft JSON (authenticated workspace ID, mailbox public ID/email/From, source email/thread and latest draft ID) and run the helper with `--draft-file`. Resolve an unknown workspace through the admin owner's read-only discovery; stop on ambiguity. The workflow supports plain text without attachments; do not rely on inherited draft attachments.
 7. Exit `0` / `approve`:
-   1. Build the final payload: same `to`/`cc`/`bcc`/`subject`, body = `edited_body` if present, else the draft body.
-   2. Run `--hash-only` on it and compare with the helper's `hash`. On a mismatch, report `blocked` and do not send.
-   3. Check folder `sent` and the thread once so a reply never goes twice, then call `reply_to_email` once with `idempotencyKey: "tad-<nonce>"`, `body.from`, explicit recipients, `subject`, `text`, and `source_draft_id`. It returns `status: "queued"` and `undo_until`; after that time, confirm the message in folder `sent`.
+   1. Recheck and bind the exact current workspace/mailbox/From/source/thread/latest draft context, same `to`/`cc`/`bcc`/`subject`, body = `edited_body` if present, else the draft body.
+   2. Run `--hash-only` on the complete scoped input; require version 2, identical scope and helper `hash`. Missing scope/version or a mismatch means `blocked`, no send, fresh card required. Never silently upgrade historical approvals.
+   3. Check folder `sent` and the thread once so a reply never goes twice, then call `reply_to_email` once with `idempotencyKey: "tad-<nonce>"`, approved `body.from`, explicit recipients, `subject`, `text`, `source_draft_id` and `attachments: []`. Do not add HTML, attachments or custom threading headers. It returns `status: "queued"` and `undo_until`; after that time, confirm the message in folder `sent`.
    4. On success, `update_email` `{"read": true}` and `--notify "Sent reply to <sender> (hash <prefix>)"`.
 8. Exit `10` / `reject`: keep the draft and report `rejected`. Optionally `--notify "Kept as draft: <subject>"`.
 9. Exit `20` / `timeout`: keep the draft and report `timed_out`. Never send on timeout. Offer to re-post the card later or approve in chat.

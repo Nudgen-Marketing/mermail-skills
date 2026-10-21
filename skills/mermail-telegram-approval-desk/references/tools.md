@@ -8,6 +8,7 @@ Use the exact tool identifier the current host exposes (for example `reply_to_em
 
 | Step | Tool | Owner | Effect |
 | --- | --- | --- | --- |
+| Resolve current workspace only when unknown | `list_workspaces` | `mermail-administer-workspace` | Read; no switching based on email |
 | Resolve mailbox | `list_mailboxes` | `mermail-administer-workspace` | Read |
 | Discover batch | `list_emails`, `search_emails` | `mermail-manage-inbox` | Read |
 | Read one message | `get_email` | `mermail-manage-inbox` | Read |
@@ -86,7 +87,8 @@ Send after an approved, hash-matched decision (send uses `body.text`/`body.html`
     "to": "client@example.com",
     "subject": "Re: Telegram bot quote",
     "text": "APPROVED BODY EXACTLY AS HASHED",
-    "source_draft_id": "DRAFT_ID"
+    "source_draft_id": "DRAFT_ID",
+    "attachments": []
   }
 }
 ```
@@ -112,9 +114,13 @@ Options: `--timeout` (default 600 s), `--edit-timeout` (default 300 s), `--max-e
 
 ```json
 {
+  "workspace_id": "AUTHENTICATED_WORKSPACE_ID",
+  "mailbox_id": "MAILBOX_PUBLIC_ID",
   "draft_id": "DRAFT_ID",
   "source_email_id": "SOURCE_EMAIL_ID",
+  "thread_id": "SOURCE_THREAD_ID",
   "mailbox": "desk@mermail.app",
+  "from": "desk@mermail.app",
   "to": ["client@example.com"],
   "cc": [],
   "bcc": [],
@@ -130,12 +136,14 @@ Options: `--timeout` (default 600 s), `--edit-timeout` (default 300 s), `--max-e
 }
 ```
 
-The approval hash is `sha256` over canonical JSON of `{to, cc, bcc, subject, body}` (recipients lower-cased, de-duplicated, and sorted). `context` is display-only and never hashed.
+Version-2 approval hashes canonical JSON of `{approval_version:2, scope:{workspace_id,mailbox_id,mailbox,from,source_email_id,thread_id,draft_id}, attachments:[], body_format:"text", to,cc,bcc,subject,body}` (recipients lower-cased, de-duplicated, and sorted). All scope fields must be non-empty resolved strings, and `from` must equal the mailbox email. Obtain them from the authenticated workspace/mailbox, selected source and latest saved draft; if workspace identity is unavailable, use the admin owner's read-only `list_workspaces` and stop on ambiguity. `context` is display-only and never hashed. HTML, attachments and custom threading headers are rejected; send `attachments: []` explicitly to prevent source-draft inheritance. Plain-text body maps only to `body.text`.
+
+Before sending, build this same complete input from the actual frozen send arguments and context, not merely a copy of the previous helper output. Require `approval_version: 2`, identical returned `scope`, and the same hash. An old hash/result without verifiable version-2 scope is invalid: obtain a new card rather than guessing omitted IDs or reusing historical approval.
 
 ### Result JSON (stdout) and exit codes
 
 ```json
-{"decision": "approve", "hash": "…64 hex…", "nonce": "3f9c2a7b1d4e6f80", "original_hash": "…", "edited": true,
+{"decision": "approve", "approval_version": 2, "scope": {"workspace_id":"AUTHENTICATED_WORKSPACE_ID","mailbox_id":"MAILBOX_PUBLIC_ID","mailbox":"desk@mermail.app","from":"desk@mermail.app","source_email_id":"SOURCE_EMAIL_ID","thread_id":"SOURCE_THREAD_ID","draft_id":"DRAFT_ID"}, "hash": "…64 hex…", "nonce": "3f9c2a7b1d4e6f80", "original_hash": "…", "edited": true,
  "edited_body": "Updated text", "rounds": 2, "draft_id": "DRAFT_ID", "source_email_id": "SOURCE_EMAIL_ID",
  "decided_by": 123456789, "decided_at": "2026-09-30T09:15:02+00:00"}
 ```
