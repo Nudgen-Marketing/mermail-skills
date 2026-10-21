@@ -59,6 +59,12 @@ If the selected message was sent by the current mailbox, preserve the original e
 
 If the timezone is unknown or the requested local time is ambiguous because of a daylight-saving transition, ask the user rather than guessing.
 
+## Inspect, cancel, or repeat a schedule
+
+- Inspect through `mermail-manage-inbox`: use a bounded metadata search, then read only the exact scheduled draft needed. Report its subject, recipients, absolute delivery time, and identifier without claiming it is already delivered.
+- Cancel through `mermail-manage-inbox`: freeze one exact scheduled draft, preview the cancellation, obtain explicit destructive authorization and a matching `prepare_destructive_action` token, then call `delete_email` once. Verify the returned scheduled-cancellation state; do not describe it as permanent deletion or a Trash move.
+- External MCP does not expose recurrence. Do not chain schedules or pre-create a series. Offer one approved future delivery, or explain that recurring delivery requires a separately supported automation surface.
+
 ## External send limits and deferral
 
 Before any send-like preview, count every To, Cc, and Bcc address. On a known Free workspace, stop before the tool call when the total exceeds 10; do not split the delivery or remove recipients without fresh user approval.

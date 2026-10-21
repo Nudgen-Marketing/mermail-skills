@@ -26,6 +26,7 @@ Read [tools.md](references/tools.md) for exact MCP operations and payload shapes
 - A forward plan with newly authorized recipients and a clear representation of the selected source message.
 - A delivery preview showing the exact payload, attachment intent, and whether delivery is immediate or scheduled.
 - A scheduled-send result with an absolute timestamp, stated source timezone, and returned schedule or draft ID.
+- For an inspection or cancellation request, a bounded inventory and an explicit handoff to `mermail-manage-inbox`; recurring delivery remains unsupported.
 - A verified final result with the authoritative status and identifiers, without treating a draft, timeout, or ambiguous response as delivery success.
 
 ## Workflow
@@ -40,6 +41,7 @@ Read [tools.md](references/tools.md) for exact MCP operations and payload shapes
    For AI regeneration, follow [AI credit handling](../mermail-administer-workspace/references/ai-credits.md): on `ai_credits_exhausted` or `ai_credit_accounting_unavailable`, stop; on `ai_action_in_progress` or an uncertain result, reconcile the original action and idempotency key before any new generation or send.
 8. Present the final preview with mailbox/from, To/Cc/Bcc, **total To+Cc+Bcc recipient units**, subject, body summary or exact body when useful, attachments, source/thread, and delivery time. Obtain approval immediately before `send_email`, `reply_to_email`, `forward_email`, or `schedule_email_send`, unless the same user message already unambiguously approves that exact payload.
 9. Generate one idempotency key for the approved logical delivery. Execute the approved write once, verify the authoritative response, and never replay an ambiguous external effect with a new key. Apply the external email limits and failure behavior in [workflows.md](references/workflows.md); never remove recipients or claim a deferred scheduled send was delivered.
+10. For requests to inspect or cancel an existing schedule, follow the real discovery and scheduled-draft cancellation contract in `mermail-manage-inbox`; do not invent list/cancel-schedule tools. Do not approximate recurrence by pre-scheduling a series.
 
 ## Write Safety
 
@@ -48,6 +50,7 @@ Read [tools.md](references/tools.md) for exact MCP operations and payload shapes
 - A draft save or regeneration does not authorize delivery. Review regenerated text and obtain delivery approval separately.
 - For Reply All over external MCP, explicitly calculate recipients from the selected message and user overrides; exclude the sending mailbox and duplicates, and never carry original Bcc forward.
 - Use `schedule_email_send` alone for future delivery. Do not call `reply_to_email` or `send_email` first, and do not claim that saving a draft scheduled it.
+- Recurring email schedules are not exposed on external MCP. Offer one approved schedule, not a chained or pre-created series.
 - Interpret relative times in the authenticated workspace timezone only when known. Otherwise ask for the timezone. Convert the approved future time to an absolute ISO-8601 datetime for `scheduled_send_at`.
 - Reuse an idempotency key only for the identical approved method, path, query, and body. Do not retry an ambiguous send, reply, forward, or schedule automatically.
 - Free-plan API/MCP sends allow at most 10 total To+Cc+Bcc recipients per request and are also limited to 10 recipient units/minute, 50/hour, and 200/day. Never split one approved logical delivery, drop recipients, or change recipient roles to evade a limit.

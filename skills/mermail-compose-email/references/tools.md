@@ -11,6 +11,8 @@ Read this reference when choosing an external MCP composition operation or const
 | Forward email | `forward_email` | External effect |
 | Schedule delivery | `schedule_email_send` | Deferred external effect |
 
+External MCP has no recurring-schedule, `list_capsules`, or `cancel_capsule` tool. Existing scheduled drafts are discovered with the bounded inbox reads owned by `mermail-manage-inbox`; cancelling one uses that skill's exact scheduled-draft `delete_email` contract plus destructive confirmation. Do not claim tool ownership here or substitute an immediate send.
+
 The in-app Assistant uses specialized tools such as `save_draft_reply`, `schedule_send_draft`, and `discard_draft`, and can set `replyAll`. External MCP does not expose those semantics. Do not call or invent those tool names on this surface.
 
 ## MCP argument nesting

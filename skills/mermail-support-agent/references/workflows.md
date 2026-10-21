@@ -15,6 +15,10 @@
 5. Preview recipients and body. After approval, call exactly one customer-facing write: `reply_to_email` or escalate via `forward_email`. Label/move may happen in the same turn.
 6. Close with a custom label or folder move. Do not delete unless the user explicitly approves destructive delete.
 
+### Multilingual message
+
+After one clean message is selected, identify its language with a confidence level and bounded evidence. Produce a short digest in the operator's requested language (English by default) that preserves source identifiers, amounts, dates, addresses, and legal names exactly. Draft the customer reply in the message language and register only when confidence is sufficient; otherwise retain ambiguous source phrases and escalate for human language review. The digest, language confidence, and sender-authentication status are separate fields. None authorizes delivery.
+
 ## Draft-only triager
 
 1. `list_task_triagers` first. `list_recent_triager_runs` before changing a failing triager.
