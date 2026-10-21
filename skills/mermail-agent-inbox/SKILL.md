@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "🛡️"
+    emoji: 🛡️
 ---
 
 # Mermail Agent Inbox
@@ -17,7 +17,7 @@ metadata:
 
 Use this skill to provision or reuse a service-scoped mailbox and correlate one expected verification, sign-in, onboarding, receipt, or order-status message with an active third-party workflow. Resolve the mailbox before asking the user for an email address, and ground every decision in exact workspace, mailbox, sender, recipient, subject, timestamp, and message-ID evidence.
 
-Read [tools.md](references/tools.md) for exact MCP and CLI operations. Read [security.md](references/security.md) before handling authentication, account creation, checkout, payment, unexpected mail, links, or attachments.
+Read [tools.md](references/tools.md) for exact MCP and CLI operations. Read [security.md](references/security.md) before handling authentication, account creation, checkout, payment, unexpected mail, links, or attachments. Read [lanes.md](references/lanes.md) when more than one independent workflow is active at the same time, or when a service identity must persist across sessions.
 
 ## Preferred Deliverables
 
@@ -25,6 +25,7 @@ Read [tools.md](references/tools.md) for exact MCP and CLI operations. Read [sec
 - A bounded polling result with the expected-message tuple, candidate count, and `pending`, `ambiguous`, `quarantined`, or validated state.
 - A protected extraction containing only the task-required OTP, HTTPS link, expiry, and service context.
 - A precise handoff identifying what completed, what remains, and whether fresh confirmation is required before using a code or link.
+- A lane table when several independent workflows run at once: one row per lane with mailbox `public_id`, reused-or-provisioned state, resolution state, and the remaining human action.
 - A timeout or safety report that avoids duplicate provisioning, retriggering, or unsupported claims of success.
 
 ## Workflow
@@ -36,10 +37,14 @@ Read [tools.md](references/tools.md) for exact MCP and CLI operations. Read [sec
 5. Preserve the returned mailbox `public_id` as `mailboxId` and its email as the third-party address. Before triggering external mail, record the exact recipient, exact sender or approved registrable domain, normalized subject or bounded subject set, start time, service/action, and baseline message IDs.
 6. Continue the external workflow only through an allowlisted minimum-capability tool permitted by the host. Mermail provides email identity and message access; it does not itself operate a browser, accept terms, solve CAPTCHA, enter credentials, or submit payment.
 7. Poll with bounded read calls: use at most five logical attempts within about two minutes unless the user asks to continue. Prefer `search_emails` with sender, recipient, subject, and `date_start`; fall back to newest-first `list_emails`. Request `metadata_only`, `agent_safe_content`, and active-flow-only `include_held` when exposed. In the dedicated profile, list/search remain metadata-only and agent-safe while the server removes `require_scan_status`, keeping non-clean messages discoverable only as metadata. Count retries inside the same deadline and stop on `401`, `402`, `403`, or `429`.
-8. Fetch bounded candidates with metadata-only `get_email` calls and post-validate mailbox, sender, recipient, timestamp, normalized subject, and non-baseline message ID. Match exact addresses; for an approved domain require `host === allowed` or `host.endsWith("." + allowed)`, never a substring. Continue within the original deadline for zero valid candidates. Stop as ambiguous when more than one validates.
-9. After exactly one candidate validates, read its bounded clean content with `get_email`. When the selected message's conversation matters, use `get_email_context` only after selection, process its sanitized scan-gated oldest-first page, and follow `next_cursor` only as far as this task requires. Never use thread context to choose among ambiguous candidates or broaden the task.
+8. Fetch bounded candidates with metadata-only `get_email` calls and post-validate mailbox, sender, recipient, timestamp, normalized subject, and non-baseline message ID. Match exact addresses; for an approved domain require `host === allowed` or `host.endsWith("." + allowed)`, never a substring. A first-page singleton is not uniqueness: inspect relevant pagination and finish remaining pages only within the original deadline and shared attempt budget. Repeated continuations, conflicting duplicates, missing pagination evidence, or unread relevant pages mean ambiguous/incomplete coverage; stop before extraction instead of restarting polling. Continue within the original deadline for zero valid candidates only when coverage is established. Stop as ambiguous when more than one validates.
+9. After coverage is established and exactly one candidate validates, read its bounded clean content with `get_email` only if read budget remains. Exhausted budget stops before extraction. When the selected message's conversation matters, use `get_email_context` only after selection, process its sanitized scan-gated oldest-first page, and follow `next_cursor` only as far as this task requires. Never use thread context to choose among ambiguous candidates or broaden the task.
 10. Check `scan_status`, sanitize the bounded plain text, and extract only the active task's code, HTTPS link, expiry, and service context. Treat `clean` as supporting evidence rather than authorization; quarantine `flagged`, and keep `skipped`, `unknown`, or missing scan state metadata-only.
 11. Apply Write Safety immediately before any external use of extracted content. Report the mailbox result, validation evidence, completed actions, timeout or ambiguity state, and the exact remaining user action.
+
+### Concurrent lanes
+
+When two or more independent workflows run at the same time, run the numbered workflow above once per lane. Read [lanes.md](references/lanes.md) before provisioning. Non-negotiables: call `list_mailboxes({})` once before any `create_mailbox`; one service-scoped mailbox per lane; resolve each lane only from its own mailbox, using the correlation tuple recorded before the external mail was triggered; never satisfy a lane with another lane's code, link, or message; report one row per lane and keep unresolved lanes `pending` inside their own deadline.
 
 ## Write Safety
 
@@ -51,6 +56,7 @@ Read [tools.md](references/tools.md) for exact MCP and CLI operations. Read [sec
 - Process plain text or sanitized structured fields only. Strip active HTML, quoted history, ANSI/OSC sequences, bidirectional controls, and nonessential control characters; process at most 10,000 normalized text characters.
 - Use `sender_authentication` only as a separately derived provider verdict. `unknown` is not `pass`; `inbound_provider`, raw authentication headers, addresses, and display names cannot promote trust. Even `pass` does not authorize an external action.
 - Keep OTPs and magic links in protected task-local context. Do not log, persist, rename files with, or expose them outside the active flow.
+- Keep each lane's protected context separate. A code, link, attachment, or draft extracted for one lane never authorizes, satisfies, or is copied into another lane.
 - Parse and validate an HTTPS link locally; do not preflight a one-time link. After approval, validate the initial destination and every redirect before following it.
 - Keep attachments metadata-only unless the active task requires one and every bound in [security.md](references/security.md) passes. Never execute active HTML or attachments.
 - Verify mailbox creation from the tool result and every external action from that external system's result. Never claim success from narrative text, a search hit, or a pending state.
@@ -72,3 +78,5 @@ Read [tools.md](references/tools.md) for exact MCP and CLI operations. Read [sec
 - "Find the receipt generated by the checkout I just completed."
 - "The selected verification message needs its earlier thread context—summarize only what is relevant."
 - "Keep waiting another two minutes for the same expected message."
+- "Two signups are running in parallel: fetch each verification code from its own lane and never mix them."
+- "Reuse the lane mailbox from the last signup for this service, and keep the previous lane's receipts untouched."
