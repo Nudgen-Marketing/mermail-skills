@@ -46,7 +46,9 @@ npm run build:openai-zip   # → dist/mermail-skills-openai.zip (skill roots at 
 /plugin install mermail@mermail
 ```
 
-Run `/reload-plugins` after an update and `/mcp` to inspect the connection.
+Run `/reload-plugins` after an update and `/mcp` to inspect the connection. Choose **Authenticate** in `/mcp` to sign in with OAuth; no API key is needed.
+
+Publisher checklist for the Claude community plugin directory: [CLAUDE_DIRECTORY.md](./CLAUDE_DIRECTORY.md).
 
 ### Cursor
 
@@ -133,7 +135,7 @@ Never commit the expanded key. Each platform manifest maps `MERMAIL_API_KEY` fro
 | Platform | Secret mapping |
 | --- | --- |
 | Codex | `env_http_headers` value `MERMAIL_API_KEY` |
-| Claude Code | header value `${MERMAIL_API_KEY}` |
+| Claude Code | OAuth by default; header value `${MERMAIL_API_KEY:-}` for headless runs (empty when unset, so OAuth still works) |
 | Cursor | OAuth through `https://console.mermail.app/mcp` |
 
 Desktop applications only receive variables present in their process environment. If a client was already open, restart it. On macOS or Linux, launch the client from the configured terminal when shell-only variables are not visible to desktop apps.
