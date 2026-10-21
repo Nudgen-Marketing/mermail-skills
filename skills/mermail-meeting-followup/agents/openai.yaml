@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Meeting Follow-up"
+  short_description: "Turn meeting threads into recaps, action items, and approved follow-up emails"
+  default_prompt: "Use $mermail-meeting-followup to turn this meeting thread into a recap, action items, and a ready-to-send follow-up."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
