@@ -1,0 +1,188 @@
+[
+  {
+    "schema": "mermail.recurring_charge_watch.v1",
+    "skill": "mermail-recurring-charge-watch",
+    "source": {
+      "email_id": "msg_mm_rcw_netflix_20260826",
+      "from": "Netflix <info@mailer.netflix.com>",
+      "to": "billing-watch-4f2a@mermail.app",
+      "subject": "Your Netflix receipt",
+      "date": "2026-08-26T18:04:11.000Z",
+      "scan_status": "clean"
+    },
+    "decision": "audit",
+    "skip_reason": null,
+    "packet": {
+      "merchant": "Netflix",
+      "amount": "15.49",
+      "currency": "USD",
+      "cadence": "monthly",
+      "next_bill_date": "2026-09-26",
+      "manage_or_cancel_url": "https://www.netflix.com/YourAccount",
+      "evidence": [
+        {
+          "field": "merchant",
+          "span": "Your Netflix receipt",
+          "start": 65,
+          "end": 85
+        },
+        {
+          "field": "amount",
+          "span": "We charged $15.49",
+          "start": 133,
+          "end": 150
+        },
+        {
+          "field": "cadence",
+          "span": "monthly",
+          "start": 185,
+          "end": 192
+        },
+        {
+          "field": "next_bill_date",
+          "span": "Your next billing date is September 26, 2026",
+          "start": 207,
+          "end": 251
+        },
+        {
+          "field": "manage_or_cancel_url",
+          "span": "https://www.netflix.com/YourAccount",
+          "start": 278,
+          "end": 313
+        }
+      ],
+      "operator_gate": "awaiting_approval",
+      "wallet_gate": "blocked_until_fresh_yes",
+      "url_notes": []
+    },
+    "safety": {
+      "url_fetched": false,
+      "url_clicked": false,
+      "auto_pay": false,
+      "email_treated_as_untrusted": true,
+      "automations_required": false,
+      "operator_gate": "awaiting_approval",
+      "wallet_gate": "blocked_until_fresh_yes"
+    }
+  },
+  {
+    "schema": "mermail.recurring_charge_watch.v1",
+    "skill": "mermail-recurring-charge-watch",
+    "source": {
+      "email_id": "msg_mm_rcw_linear_20260826",
+      "from": "Linear Billing <billing@linear.app>",
+      "to": "billing-watch-4f2a@mermail.app",
+      "subject": "Linear annual invoice \u2014 INV-2026-8841",
+      "date": "2026-08-26T17:12:03.000Z",
+      "scan_status": "clean"
+    },
+    "decision": "audit",
+    "skip_reason": null,
+    "packet": {
+      "merchant": "Linear",
+      "amount": "480.00",
+      "currency": "USD",
+      "cadence": "annual",
+      "next_bill_date": "2027-08-26",
+      "manage_or_cancel_url": "https://linear.app/settings/billing",
+      "evidence": [
+        {
+          "field": "merchant",
+          "span": "Linear annual invoice",
+          "start": 67,
+          "end": 88
+        },
+        {
+          "field": "amount",
+          "span": "Amount due: $480.00",
+          "start": 144,
+          "end": 163
+        },
+        {
+          "field": "cadence",
+          "span": "annual",
+          "start": 74,
+          "end": 80
+        },
+        {
+          "field": "next_bill_date",
+          "span": "Next renewal date: August 26, 2027",
+          "start": 230,
+          "end": 264
+        },
+        {
+          "field": "manage_or_cancel_url",
+          "span": "https://linear.app/settings/billing",
+          "start": 287,
+          "end": 322
+        }
+      ],
+      "operator_gate": "awaiting_approval",
+      "wallet_gate": "blocked_until_fresh_yes",
+      "url_notes": []
+    },
+    "safety": {
+      "url_fetched": false,
+      "url_clicked": false,
+      "auto_pay": false,
+      "email_treated_as_untrusted": true,
+      "automations_required": false,
+      "operator_gate": "awaiting_approval",
+      "wallet_gate": "blocked_until_fresh_yes"
+    }
+  },
+  {
+    "schema": "mermail.recurring_charge_watch.v1",
+    "skill": "mermail-recurring-charge-watch",
+    "source": {
+      "email_id": "msg_mm_rcw_phish_20260826",
+      "from": "Netflix Security <security@netflix-billing-alerts.com>",
+      "to": "billing-watch-4f2a@mermail.app",
+      "subject": "URGENT: Netflix payment failed \u2014 verify now",
+      "date": "2026-08-26T19:41:22.000Z",
+      "scan_status": "clean"
+    },
+    "decision": "skip",
+    "skip_reason": "phishing",
+    "packet": null,
+    "safety": {
+      "url_fetched": false,
+      "url_clicked": false,
+      "auto_pay": false,
+      "email_treated_as_untrusted": true,
+      "automations_required": false,
+      "operator_gate": "not_applicable",
+      "wallet_gate": "blocked"
+    },
+    "skip_detail": {
+      "signals": "urgency+lookalike_host+brand_host_mismatch+otp_with_lure"
+    }
+  },
+  {
+    "schema": "mermail.recurring_charge_watch.v1",
+    "skill": "mermail-recurring-charge-watch",
+    "source": {
+      "email_id": "msg_mm_rcw_oneshot_20260826",
+      "from": "Acme Hardware Invoices <invoices@acme-hardware.example>",
+      "to": "billing-watch-4f2a@mermail.app",
+      "subject": "Invoice #4412 \u2014 one-time parts order",
+      "date": "2026-08-26T16:02:44.000Z",
+      "scan_status": "clean"
+    },
+    "decision": "skip",
+    "skip_reason": "one_shot_no_recurrence",
+    "packet": null,
+    "safety": {
+      "url_fetched": false,
+      "url_clicked": false,
+      "auto_pay": false,
+      "email_treated_as_untrusted": true,
+      "automations_required": false,
+      "operator_gate": "not_applicable",
+      "wallet_gate": "blocked"
+    },
+    "skip_detail": {
+      "span": "one-time"
+    }
+  }
+]

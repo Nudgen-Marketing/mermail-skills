@@ -1,0 +1,9 @@
+{
+  "id": "msg_mm_rcw_oneshot_20260826",
+  "from": "Acme Hardware Invoices <invoices@acme-hardware.example>",
+  "to": "billing-watch-4f2a@mermail.app",
+  "subject": "Invoice #4412 — one-time parts order",
+  "date": "2026-08-26T16:02:44.000Z",
+  "scan_status": "clean",
+  "body": "Thank you for your purchase.\n\nInvoice #4412\nAmount due: $237.50 USD\nThis is a one-time invoice for hardware parts. It is not a subscription\nand has no recurring charges.\n\nPay online:\nhttps://pay.acme-hardware.example/invoice/4412\n\nDo not emit a cancellation/audit packet. One-shot invoices without\nrecurrence signals are out of scope for mermail-recurring-charge-watch.\n"
+}
