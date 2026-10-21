@@ -2037,7 +2037,7 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
 const allTools = Object.values(coverage.domains).flat();
 const updatedContracts = [
   ["mermail-agent-wallet/references/workflows.md", ["credential_id", "approval_mode: autonomous", "setup_required", "pending_execution", "pending_confirmation", "pending_settlement", "recovery_required", "show_paybox_signing", "list_bridge_routes", "prepare_bridge", "get_bridge_status", "quoteId", "idempotencyKey"]],
-  ["mermail-administer-workspace/references/webhooks.md", ["list_webhooks", "create_webhook", "list_webhook_deliveries", "test_webhook", "retry_webhook_delivery", "rotate_webhook_secret", "prepare_destructive_action", "idempotencyKey", "write-only"]],
+  ["mermail-administer-workspace/references/webhooks.md", ["list_webhooks", "create_webhook", "list_webhook_deliveries", "test_webhook", "retry_webhook_delivery", "rotate_webhook_secret", "prepare_destructive_action", "idempotencyKey", "write-only", "no matching retained attempt observed", "eventId.timestamp.rawPayload", "webhook-id", "webhook-timestamp", "webhook-signature", "stable event ID", "durable receiver storage"]],
   ["mermail-administer-workspace/references/ai-credits.md", ["observe", "enforce", "charged", "reserved", "remaining", "ai_credits_exhausted", "ai_credit_accounting_unavailable", "ai_action_in_progress"]],
   ["mermail-support-agent/references/workflows.md", ["draft_for_review", "automatic_triage", "update_mailbox_settings", "verification-isolated"]],
   ["mermail-manage-inbox/references/workflows.md", ["movedToTrashCount", "Trash"]],
@@ -2063,12 +2063,34 @@ for (const expected of [
   "inspect-original-action-no-duplicate-generation-or-send", "stop-on-accounting-unavailable-no-bypass",
   "inspect-webhooks-and-deliveries-read-only", "admin-create-webhook-once-with-token-and-idempotency",
   "inspect-original-create-no-new-key-or-broader-events", "test-webhook-once-with-token-and-idempotency",
+  "report-no-matching-retained-attempt-not-event-absence", "report-transport-ack-downstream-processing-unverified",
+  "receiver-deduplicate-stable-event-id-after-signature-check", "stop-rotation-on-unknown-receiver-no-automatic-test",
   "inspect-delivery-before-same-key-retry-no-duplicate", "rotate-once-with-token-never-echo-secrets",
   "confirm-trash-move-and-report-movedToTrashCount",
 ]) {
   if (!scenarios.some((scenario) => scenario.expected === expected)) {
     errors.push(`missing release scenario ${expected}`);
   }
+}
+for (const expected of [
+  "report-no-matching-retained-attempt-not-event-absence",
+  "report-transport-ack-downstream-processing-unverified",
+  "stop-rotation-on-unknown-receiver-no-automatic-test",
+]) {
+  const scenario = scenarios.find((item) => item.expected === expected);
+  if (
+    !scenario ||
+    scenario.approval !== "none" ||
+    scenario.tools.some((tool) => ["test_webhook", "retry_webhook_delivery", "rotate_webhook_secret"].includes(tool))
+  ) {
+    errors.push(`webhook diagnostic scenario must remain read-only: ${expected}`);
+  }
+}
+const receiverReplayScenario = scenarios.find(
+  (item) => item.expected === "receiver-deduplicate-stable-event-id-after-signature-check",
+);
+if (!receiverReplayScenario || receiverReplayScenario.approval !== "none" || receiverReplayScenario.tools.length !== 0) {
+  errors.push("receiver replay guidance must not claim a Mermail receiver-side effect");
 }
 const walletScopedTools = Object.values(walletScopedDomains).flat();
 const knownTools = [...allTools, ...walletScopedTools];
