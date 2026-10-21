@@ -4,6 +4,8 @@
 
 This contract applies to paid, free, verify-only and externally-paid receipt paths. Preserve independent stage state; one blocked stage does not erase successful earlier work.
 
+The claims helper preserves any known clean-source `mismatch` even when another source is blocked, incomplete or malformed; it reports that separate gap as `evidence_incomplete: true`. Without a known mismatch, a gap remains `pending`, never `claims_consistent`. Blocked business fields are not compared. `unique_claims` counts distinct usable business-value claims, including conflicting versions from one source, not settled charges. None of these results authorizes payment or proves settlement.
+
 ## Durable identity before money
 
 Use only a storage location and access model the user selected for this task. Inspect its real schema/locking/idempotency contract. There is no Mermail procurement/upsert/reservation tool. Do not invent one, quietly create a database, claim a draft/label is a lock, or persist secrets.
