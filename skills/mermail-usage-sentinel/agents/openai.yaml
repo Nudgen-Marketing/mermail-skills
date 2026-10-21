@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Usage Sentinel"
+  short_description: "Workspace burn reports, cost anomaly detection, and owner briefings"
+  default_prompt: "Use $mermail-usage-sentinel when the task is a workspace usage or burn review — AI/API credit and email usage reporting, storage pressure, runaway-automation correlation, or an approval-gated owner briefing — not an isolated single usage lookup or any payment."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
