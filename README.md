@@ -46,7 +46,9 @@ npm run build:openai-zip   # → dist/mermail-skills-openai.zip (skill roots at 
 /plugin install mermail@mermail
 ```
 
-Run `/reload-plugins` after an update and `/mcp` to inspect the connection.
+Run `/reload-plugins` after an update and `/mcp` to inspect the connection. Choose **Authenticate** in `/mcp` to sign in with OAuth; no API key is needed.
+
+Publisher checklist for the Claude community plugin directory: [CLAUDE_DIRECTORY.md](./CLAUDE_DIRECTORY.md).
 
 ### Cursor
 
@@ -131,10 +133,9 @@ export MERMAIL_API_KEY
 Never commit the expanded key. Each platform manifest maps `MERMAIL_API_KEY` from the process environment onto the Mermail MCP API key header (`x-api-key` after JSON parse; tracked files may spell that header with a JSON unicode hyphen).
 
 | Platform | Secret mapping |
-|  | Turn an inbound invoice, receipt, or contract into structured JSON by paying a per-document x402 fee with the Agent Wallet, then reply on the same thread with the fields and the payment receipt |
 | --- | --- |
 | Codex | `env_http_headers` value `MERMAIL_API_KEY` |
-| Claude Code | header value `${MERMAIL_API_KEY}` |
+| Claude Code | OAuth by default; header value `${MERMAIL_API_KEY:-}` for headless runs (empty when unset, so OAuth still works) |
 | Cursor | OAuth through `https://console.mermail.app/mcp` |
 
 Desktop applications only receive variables present in their process environment. If a client was already open, restart it. On macOS or Linux, launch the client from the configured terminal when shell-only variables are not visible to desktop apps.
@@ -165,6 +166,7 @@ The check initializes MCP and requires the current 63-tool full-catalog baseline
 | `mermail-gtm-agent` | Outbound outreach, reply classification, and warm-ack drafts |
 | `mermail-support-agent` | Triage, reply, escalate, and close support email |
 | `mermail-research-agent` | Run an assisted research inbox with owner-verified orders, sourced CMC protocol comparisons/market reports, approved delivery, and same-thread follow-ups |
+| `mermail-invoice-inbox-x402` | Turn an inbound invoice, receipt, or contract into structured JSON by paying a per-document x402 fee with the Agent Wallet, then reply on the same thread with the fields and the payment receipt |
 | `mermail-x402-agent` | Pay a user-selected x402 service with Agent Wallet, then continue the original job |
 | `mermail-xstocks-desk` | Resolve an evidence-backed xStock, then prepare one USDC swap through the standard Mermail Agent Wallet review/signing flow |
 | `mermail-agent-wallet` | Inspect PayBox state, hand off Funding/signing, transfer, swap, prepare an owner-approved native USDC bridge, or pay a user-selected x402 service (same MCP paths as in-app Assistant; full-profile OAuth) |
