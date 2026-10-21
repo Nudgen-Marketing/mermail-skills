@@ -95,10 +95,10 @@ Route a later confirmed payment to `mermail-agent-wallet` on the **full** OAuth 
 
 ## Offline extractor (no MCP)
 
-Prove classification without a live key:
+Run actual offline helper/CLI regressions from the repository root:
 
 ```bash
-python3 extract_recurring.py fixtures
+python3 -B tests/recurring-charge-watch.test.py
 ```
 
-The helper opens no sockets. It is not an MCP tool.
+The helper opens no sockets. It is not an MCP tool. These tests are not live-agent/provider proof. Historical fixture bytes are unchanged: raw fixtures lack completeness flags and yield `unreadable`; tests construct explicitly synthetic known-complete copies. Normalize `scan_status: "clean"`, `content_omitted: false` and `content_truncated: false` only from observed native results and their exact contract, never guesses or missing flags. Stop unknown; do not paste withheld body. The historical bare-dollar Netflix example also needs explicit USD evidence. `fixture-run.txt` is a historical snapshot, not current proof.

@@ -14,6 +14,8 @@ an object. Each email uses:
     "subject": "...",
     "date": "2026-08-26T18:00:00.000Z",
     "scan_status": "clean",
+    "content_omitted": false,
+    "content_truncated": false,
     "body": "plain text"
   }
 
@@ -34,6 +36,9 @@ from urllib.parse import urlparse
 
 SCHEMA = "mermail.recurring_charge_watch.v1"
 SKILL = "mermail-recurring-charge-watch"
+MAX_BODY_CHARS = 12000
+MAX_INPUT_CHARS = 2_000_000
+MAX_EMAILS = 100
 
 # ---------------------------------------------------------------------------
 # Skip / classification signals
@@ -146,22 +151,29 @@ ONESHOT_PATTERNS = (
     r"\bhardware (?:parts|order)\b",
 )
 
+# Consume the entire numeric token before validating it: never match 15.49
+# inside 15.499, malformed grouping or scientific notation.
+MONEY_NUMBER = r"[+-]?\d+(?:,\d+)*(?:\.\d+)?(?:[eE][+-]?\d+)?"
+MONEY_CURRENCY = r"(?:US\$|USD|EUR|GBP|\$|€|£)"
+MONEY_END = r"(?![\d,]|\.\d|[eE][+-]?\d)"
 AMOUNT_PATTERNS = (
     re.compile(
         r"(?P<label>amount(?:\s+due)?|total(?:\s+charged)?|charged|we charged|"
-        r"you (?:were )?charged|paid|payment of|invoice total)\s*[:=\-]?\s*"
-        r"(?P<cur>US\$|USD|EUR|GBP|\$|€|£)?\s*"
-        r"(?P<amt>\d{1,3}(?:,\d{3})*(?:\.\d{2})|\d+\.\d{2})",
+        r"you (?:were )?charged|paid|payment of|invoice total)\s*[:=]?\s*"
+        rf"(?P<sign>[+-]?)\s*(?P<cur>{MONEY_CURRENCY})?\s*"
+        rf"(?P<amt>{MONEY_NUMBER}){MONEY_END}"
+        r"(?:[ \t]*(?P<suffix_cur>USD|EUR|GBP|(?-i:[A-Z]{3}))(?![A-Za-z]))?",
         re.I,
     ),
     re.compile(
-        r"(?P<cur>US\$|USD|EUR|GBP|\$|€|£)\s*"
-        r"(?P<amt>\d{1,3}(?:,\d{3})*(?:\.\d{2})|\d+\.\d{2})",
+        rf"(?<![\w.,+-])(?P<sign>[+-]?)\s*(?P<cur>{MONEY_CURRENCY})\s*"
+        rf"(?P<amt>{MONEY_NUMBER}){MONEY_END}"
+        r"(?:[ \t]*(?P<suffix_cur>USD|EUR|GBP|(?-i:[A-Z]{3}))(?![A-Za-z]))?",
         re.I,
     ),
     re.compile(
-        r"(?P<amt>\d{1,3}(?:,\d{3})*(?:\.\d{2})|\d+\.\d{2})\s+"
-        r"(?P<cur>USD|EUR|GBP)\b",
+        rf"(?<![\w.,+-])(?P<amt>{MONEY_NUMBER}){MONEY_END}\s+"
+        r"(?P<cur>USD|EUR|GBP|(?-i:[A-Z]{3}))(?![A-Za-z])",
         re.I,
     ),
 )
@@ -217,7 +229,6 @@ MONTHS = {
 }
 
 CURRENCY_MAP = {
-    "$": "USD",
     "us$": "USD",
     "usd": "USD",
     "€": "EUR",
@@ -321,7 +332,11 @@ def _safe_https_url(raw: str) -> str | None:
         return None
     if ":" in host and host.count(":") >= 2:
         return None
-    if parsed.port not in (None, 443):
+    try:
+        port = parsed.port
+    except ValueError:
+        return None
+    if port not in (None, 443):
         return None
     if _registrable(host) in SHORTENERS:
         return None
@@ -340,6 +355,8 @@ def _extract_urls(text: str) -> list[tuple[str, re.Match[str]]]:
 
 
 def _normalize_amount(raw: str) -> str:
+    if len(raw) > 80 or not re.fullmatch(r"(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?", raw):
+        raise ValueError("unresolved decimal amount")
     cleaned = raw.replace(",", "")
     if "." not in cleaned:
         cleaned = cleaned + ".00"
@@ -348,20 +365,13 @@ def _normalize_amount(raw: str) -> str:
         raise ValueError("non-decimal amount")
     if len(frac) == 1:
         frac = frac + "0"
-    if len(frac) > 2:
-        # keep exactly two digits only when the source already used cents
-        # with extra zeros; otherwise reject (no float rounding)
-        if set(frac[2:]) <= {"0"}:
-            frac = frac[:2]
-        else:
-            raise ValueError("amount has more than two decimal places")
     return f"{int(whole)}.{frac}"
 
 
-def _currency_from(token: str | None, default: str = "USD") -> str:
+def _currency_from(token: str | None, default: str = "unknown") -> str:
     if not token:
         return default
-    return CURRENCY_MAP.get(token.lower(), token.upper() if token.isalpha() else default)
+    return CURRENCY_MAP.get(token.lower(), default)
 
 
 def _parse_date(raw: str) -> str | None:
@@ -373,7 +383,10 @@ def _parse_date(raw: str) -> str | None:
         return _iso_date(y, mo, d)
     m = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", raw)
     if m:
-        mo, d, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        first, second, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if first <= 12 and second <= 12 and first != second:
+            return None
+        mo, d = (second, first) if first > 12 else (first, second)
         return _iso_date(y, mo, d)
     m = re.fullmatch(r"([A-Za-z]{3,9})\s+(\d{1,2})\s+(\d{4})", raw)
     if m:
@@ -478,26 +491,33 @@ def _merchant(email: dict[str, Any], hay: str) -> tuple[str | None, dict[str, An
 
 
 def _amount(hay: str) -> tuple[str | None, str, dict[str, Any] | None]:
+    found: list[tuple[str, str, dict[str, Any]]] = []
+    unresolved = False
     for cre in AMOUNT_PATTERNS:
-        m = cre.search(hay)
-        if not m:
-            continue
-        try:
-            amount = _normalize_amount(m.group("amt"))
-        except (ValueError, IndexError):
-            continue
-        cur_token = None
-        if "cur" in m.re.groupindex:
-            cur_token = m.group("cur")
-        currency = _currency_from(cur_token)
-        ev = {
-            "field": "amount",
-            "span": m.group(0).strip(),
-            "start": m.start(),
-            "end": m.end(),
-        }
-        return amount, currency, ev
-    return None, "USD", None
+        for m in cre.finditer(hay):
+            groups = m.groupdict()
+            try:
+                amount = _normalize_amount((groups.get("sign") or "") + m.group("amt"))
+            except (ValueError, IndexError):
+                unresolved = True
+                continue
+            tokens = [groups.get("cur"), groups.get("suffix_cur")]
+            # A bare dollar sign does not distinguish USD/CAD/AUD/etc.
+            # Accept it only with an explicit USD token in the same match.
+            if "$" in tokens and any(token and token.lower() in {"usd", "us$"} for token in tokens):
+                tokens = [token for token in tokens if token != "$"]
+            currencies = {_currency_from(token) for token in tokens if token}
+            if len(currencies) != 1 or "unknown" in currencies:
+                unresolved = True
+                continue
+            currency = next(iter(currencies))
+            found.append((amount, currency, {
+                "field": "amount", "span": m.group(0).strip(),
+                "start": m.start(), "end": m.end(),
+            }))
+    if unresolved or len({(amount, currency) for amount, currency, _ in found}) > 1:
+        return None, "unknown", {"field": "unresolved_amount"}
+    return found[0] if found else (None, "unknown", None)
 
 
 def _cadence(hay: str) -> tuple[str, dict[str, Any] | None]:
@@ -563,13 +583,12 @@ def _next_bill(hay: str) -> tuple[str | None, dict[str, Any] | None]:
         if not m:
             continue
         parsed = _parse_date(m.group("date"))
-        if parsed:
-            return parsed, {
-                "field": "next_bill_date",
-                "span": m.group(0).strip(),
-                "start": m.start(),
-                "end": m.end(),
-            }
+        return parsed, {
+            "field": "next_bill_date",
+            "span": m.group(0).strip(),
+            "start": m.start(),
+            "end": m.end(),
+        }
     return None, None
 
 
@@ -644,16 +663,16 @@ def _is_phishing(hay: str, brand: str | None) -> tuple[bool, str | None]:
 
 
 def _skip(reason: str, email: dict[str, Any], extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    # Skip output must not echo an OTP-bearing subject or arbitrary body span.
+    source_id = email.get("id")
+    if not isinstance(source_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", source_id):
+        source_id = None
     out = {
         "schema": SCHEMA,
         "skill": SKILL,
         "source": {
-            "email_id": email.get("id"),
-            "from": email.get("from"),
-            "to": email.get("to"),
-            "subject": email.get("subject"),
-            "date": email.get("date"),
-            "scan_status": email.get("scan_status"),
+            "email_id": source_id,
+            "scan_status": email.get("scan_status") if email.get("scan_status") in ("clean", "flagged", "skipped", "unknown") else "unknown",
         },
         "decision": "skip",
         "skip_reason": reason,
@@ -668,21 +687,27 @@ def _skip(reason: str, email: dict[str, Any], extra: dict[str, Any] | None = Non
             "wallet_gate": "blocked",
         },
     }
-    if extra:
-        out["skip_detail"] = extra
+    signals = extra.get("signals") if isinstance(extra, dict) else None
+    if isinstance(signals, str) and all(part in {"urgency", "lookalike_host", "brand_host_mismatch", "otp_with_lure", "credential_harvest"} for part in signals.split("+")):
+        out["skip_detail"] = {"signals": signals}
     return out
 
 
 def extract_one(email: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(email, dict):
         raise TypeError("email must be a JSON object")
-    body = _norm(str(email.get("body") or ""))
+    # Flags must come from observed native gate results. Never infer missing
+    # omission/truncation flags from a clean scan or the presence of a body.
+    scan = email.get("scan_status")
+    if scan != "clean":
+        return _skip("flagged" if scan == "flagged" else "unreadable", email)
+    if email.get("content_omitted") is not False or email.get("content_truncated") is not False:
+        return _skip("unreadable", email)
+    if not isinstance(email.get("body"), str) or len(email["body"]) > MAX_BODY_CHARS:
+        return _skip("unreadable", email)
+    body = _norm(email["body"])
     email = {**email, "body": body}
     hay = _hay(email)
-
-    scan = str(email.get("scan_status") or "").lower()
-    if scan == "flagged":
-        return _skip("flagged", email)
 
     # Prompt-injection bait is data only; if the body tries to authorize
     # payment or cancel, that is not operator approval.
@@ -704,12 +729,7 @@ def extract_one(email: dict[str, Any]) -> dict[str, Any]:
         return _skip("phishing", email, {"signals": phish_why})
 
     otp = _is_otp(hay)
-    if otp and not _has_recurrence(hay):
-        return _skip("otp", email, {"span": otp.group(0)})
-
-    if otp and re.search(r"\b(verify|sign[-\s]?in|login|authenticate)\b", hay, re.I) and not re.search(
-        r"\b(receipt|invoice|charged|subscription|membership)\b", hay, re.I
-    ):
+    if otp:
         return _skip("otp", email, {"span": otp.group(0)})
 
     oneshot = _search_any(ONESHOT_PATTERNS, hay)
@@ -722,6 +742,8 @@ def extract_one(email: dict[str, Any]) -> dict[str, Any]:
 
     amount, currency, amount_ev = _amount(hay)
     if not amount:
+        if amount_ev:
+            return _skip("unresolved_amount", email)
         if not has_rec:
             return _skip("one_shot_no_recurrence" if oneshot else "no_amount", email)
         return _skip("no_amount", email)
@@ -731,6 +753,8 @@ def extract_one(email: dict[str, Any]) -> dict[str, Any]:
 
     cadence, cadence_ev = _cadence(hay)
     next_bill, next_ev = _next_bill(hay)
+    if next_ev and next_bill is None:
+        return _skip("unresolved_date", email)
     url, url_ev, url_notes = _manage_url(hay, brand_key if brand_key in BRAND_HOSTS else None)
 
     evidence: list[dict[str, Any]] = []
@@ -790,11 +814,15 @@ def extract_one(email: dict[str, Any]) -> dict[str, Any]:
 
 
 def _load_payload(raw: str) -> list[dict[str, Any]]:
+    if len(raw) > MAX_INPUT_CHARS:
+        raise ValueError("input limit")
     raw = raw.strip()
     if not raw:
         return []
     data = json.loads(raw)
     if isinstance(data, list):
+        if len(data) > MAX_EMAILS or any(not isinstance(item, dict) for item in data):
+            raise ValueError("invalid email batch")
         return data
     if isinstance(data, dict):
         return [data]
@@ -804,16 +832,24 @@ def _load_payload(raw: str) -> list[dict[str, Any]]:
 def _read_inputs(argv: list[str]) -> list[dict[str, Any]]:
     emails: list[dict[str, Any]] = []
     if not argv:
-        emails.extend(_load_payload(sys.stdin.read()))
+        emails.extend(_load_payload(sys.stdin.read(MAX_INPUT_CHARS + 1)))
         return emails
+    if len(argv) > MAX_EMAILS:
+        raise ValueError("input limit")
     for arg in argv:
         path = Path(arg)
         if path.is_dir():
             files = sorted(p for p in path.iterdir() if p.suffix.lower() == ".json")
+            if len(files) > MAX_EMAILS:
+                raise ValueError("input limit")
             for f in files:
-                emails.extend(_load_payload(f.read_text(encoding="utf-8")))
+                with f.open(encoding="utf-8") as stream:
+                    emails.extend(_load_payload(stream.read(MAX_INPUT_CHARS + 1)))
         else:
-            emails.extend(_load_payload(path.read_text(encoding="utf-8")))
+            with path.open(encoding="utf-8") as stream:
+                emails.extend(_load_payload(stream.read(MAX_INPUT_CHARS + 1)))
+        if len(emails) > MAX_EMAILS:
+            raise ValueError("input limit")
     return emails
 
 
@@ -828,8 +864,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     try:
         emails = _read_inputs(args)
-    except (OSError, json.JSONDecodeError, TypeError) as exc:
-        sys.stderr.write(f"error: {exc}\n")
+    except (OSError, ValueError, TypeError):
+        sys.stderr.write("error: invalid or oversized email JSON input\n")
         return 2
     if not emails:
         sys.stderr.write("error: no email objects on stdin or in files\n")
