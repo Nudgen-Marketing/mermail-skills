@@ -8,9 +8,9 @@ Host-qualified forms (as exposed by the host) and bare forms both accepted by mo
 
 | Tool | Purpose here | Notes |
 |---|---|---|
-| `Mermail:search_emails` / `mermail:search_emails` | Find payout-claim emails | `query` must be a **native JSON object**, never a stringified blob. Example: `{ "mailbox": "inbox", "query": "subject:payout", "limit": 50 }` |
+| `Mermail:search_emails` / exact host-exposed identifier | Find payout-claim emails | Native envelope example: `{ "mailboxId": "MAILBOX_PUBLIC_ID", "query": { "subject": "payout", "page": 1, "limit": 50, "metadata_only": true, "agent_safe_content": true } }`. Never stringify `query`; resolve the owner-authorized mailbox first. |
 | `Mermail:list_emails` / `mermail_list_emails` | Page candidates | Bounded: `limit` ≤ 50 per call |
-| `Mermail:get_email` / `mermail_get_email` | Fetch body + headers + `sender_authentication` | Always request auth status; `sender_authentication.status` must be `"pass"` |
+| `Mermail:get_email` / exact host-exposed identifier | Read one selected candidate | `{ "mailboxId": "MAILBOX_PUBLIC_ID", "emailId": "EMAIL_ID", "query": { "require_scan_status": "clean", "agent_safe_content": true, "max_body_chars": 10000 } }`. Inspect returned `sender_authentication.status`; only `"pass"` counts. Withheld, truncated, unknown or unavailable safe content is a gap, never paste it back. |
 
 ## Compose (owned by `mermail-compose-email`)
 
@@ -29,3 +29,4 @@ Host-qualified forms (as exposed by the host) and bare forms both accepted by mo
 
 - All tools are subject to the workspace plan, RPM limits, and available credits.
 - API-key auth cannot reach wallet-scoped tools; reconciliation of on-chain state beyond format validation is best-effort without full-profile OAuth.
+- The offline helper never inspects chain state. It validates formats and exact owner-list labels only, not EVM network IDs/token contracts/settlement. No OAuth or provider was exercised by its CLI tests. Total intake is 50 emails per run, not 50 on every unlimited page; stop at the recorded budget or any authorization/rate/credit failure.
