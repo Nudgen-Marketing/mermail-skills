@@ -7,14 +7,20 @@ const record = (value) => value !== null && typeof value === "object" && !Array.
 const text = (value, max) => typeof value === "string" && value.trim().length > 0 && value.length <= max;
 const flag = (value) => value === true || value === false || value === null;
 const fail = (code) => { throw new Error(code); };
+const utcInstant = (value) => {
+  if (typeof value !== "string") return false;
+  const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,3}))?Z$/.exec(value);
+  if (!match || !Number.isFinite(Date.parse(value))) return false;
+  // Date.parse normalizes impossible dates and 24:00; require an exact round trip.
+  return new Date(value).toISOString() === `${match[1]}.${(match[2] ?? "").padEnd(3, "0")}Z`;
+};
 
 // Checks a normalized local packet, not raw MCP output or semantic entailment.
 // Error codes deliberately never interpolate email content or supplied paths.
 export function checkBrief(packet) {
   if (!record(packet) || !text(packet.mailboxId, 200) || !text(packet.threadId, 200)
     || !text(packet.observedAt, 40)
-    || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(packet.observedAt)
-    || !Number.isFinite(Date.parse(packet.observedAt)) || !flag(packet.hasMore)) fail("INVALID_SCOPE");
+    || !utcInstant(packet.observedAt) || !flag(packet.hasMore)) fail("INVALID_SCOPE");
   if (!Array.isArray(packet.messages) || packet.messages.length > 30
     || !Array.isArray(packet.findings) || packet.findings.length > 40) fail("INVALID_BOUNDS");
 

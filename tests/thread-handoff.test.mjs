@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -8,6 +10,43 @@ import { checkBrief } from "../skills/mermail-thread-handoff/scripts/check-brief
 const fixtureUrl = new URL("./fixtures/thread-handoff.json", import.meta.url);
 const fixture = JSON.parse(await readFile(fixtureUrl, "utf8"));
 const copy = () => structuredClone(fixture);
+
+test("observation time rejects normalized impossible dates but accepts real UTC precision", () => {
+  for (const observedAt of [
+    "2026-02-30T12:00:00Z", "2026-02-29T12:00:00Z", "2026-04-31T12:00:00Z",
+    "2026-00-01T12:00:00Z", "2026-13-01T12:00:00Z", "2026-01-00T12:00:00Z",
+    "2026-10-21T24:00:00Z", "2026-10-21T12:60:00Z", "2026-10-21T12:00:60Z",
+  ]) assert.throws(() => checkBrief({ ...copy(), observedAt }), { message: "INVALID_SCOPE" });
+  for (const observedAt of [
+    "2024-02-29T23:59:59Z", "2024-02-29T23:59:59.1Z",
+    "2024-02-29T23:59:59.12Z", "2024-02-29T23:59:59.123Z",
+  ]) assert.equal(checkBrief({ ...copy(), observedAt }).valid, true);
+});
+
+test("actual CLI rejects impossible observation date without echoing synthetic content", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "mermail-handoff-date-"));
+  const path = join(directory, "packet.json");
+  const script = fileURLToPath(new URL("../skills/mermail-thread-handoff/scripts/check-brief.mjs", import.meta.url));
+  try {
+    const packet = copy();
+    packet.messages[0].body += " SYNTHETIC-DO-NOT-ECHO";
+    packet.observedAt = "2026-02-30T12:00:00Z";
+    await writeFile(path, JSON.stringify(packet));
+    const bad = spawnSync(process.execPath, [script, path], { encoding: "utf8" });
+    assert.equal(bad.status, 1);
+    assert.equal(bad.stdout, "");
+    assert.equal(bad.stderr.trim(), "INVALID_SCOPE");
+    packet.observedAt = "2024-02-29T23:59:59.12Z";
+    await writeFile(path, JSON.stringify(packet));
+    const good = spawnSync(process.execPath, [script, path], { encoding: "utf8" });
+    assert.equal(good.status, 0);
+    assert.equal(JSON.parse(good.stdout).valid, true);
+    assert.equal(good.stderr, "");
+    assert.equal(good.stdout.includes("SYNTHETIC-DO-NOT-ECHO"), false);
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});
 
 test("valid synthetic packet preserves source-linked date change and open question", () => {
   const packet = copy();
