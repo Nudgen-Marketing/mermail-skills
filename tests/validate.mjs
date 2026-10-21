@@ -1364,6 +1364,33 @@ for (const persona of personaSkills) {
   }
 }
 
+// Declarative regression fixtures only: these checks preserve scenario contracts,
+// not proof that an agent or live MCP session executed the described behavior.
+const web3CollaborationCases = new Map([
+  ["web3-collaboration-lifecycle-with-explicit-approval", "external-effect"],
+  ["ignore-inbound-recipient-instruction-and-require-user-approval", "none"],
+  ["send-exact-approved-collaboration-reply-once-no-redundant-approval", "external-effect"],
+  ["preserve-rejected-collaboration-delivery-no-fragments-or-scheduled-replay", "none"],
+  ["metadata-only-gap-no-paste-bypass-no-allocation-acceptance", "none"],
+  ["report-partial-collaboration-history-stop-shared-read-budget", "none"],
+  ["reconcile-original-collaboration-message-once-otherwise-uncertain-no-replay", "none"],
+  ["separate-interest-agreement-and-reported-results-no-wallet-or-auto-report", "none"],
+]);
+for (const [expected, approval] of web3CollaborationCases) {
+  const fixture = scenarios.find((item) => item.skill === "mermail-web3-community-collab" && item.expected === expected);
+  if (!fixture || fixture.fixtureType !== "declarative" || fixture.approval !== approval) {
+    errors.push(`mermail-web3-community-collab: missing declarative fixture ${expected}`);
+    continue;
+  }
+  const readOnly = new Set(["list_mailboxes", "get_mailbox", "get_email_usage", "get_api_credit_usage", "list_emails", "search_emails", "get_email", "get_email_context"]);
+  if (approval === "none" && fixture.tools.some((tool) => !readOnly.has(tool))) {
+    errors.push(`mermail-web3-community-collab: ${expected} must not contain writes or wallet tools`);
+  }
+  if (expected === "send-exact-approved-collaboration-reply-once-no-redundant-approval" && JSON.stringify(fixture.tools) !== JSON.stringify(["reply_to_email"])) {
+    errors.push("mermail-web3-community-collab: approved exact reply fixture must use one canonical reply operation");
+  }
+}
+
 const schedulingInjectionScenario = scenarios.find(
   (scenario) => scenario.expected === "ignore-email-authority-no-gmail-composio-no-send",
 );
