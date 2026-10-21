@@ -49,31 +49,59 @@ enforceable by review, not just by intent:
 
 ## Search patterns
 
+These are native `search_emails` arguments for one resolved mailbox, not calls to
+`list_emails`. Use `query.query` for free text, `query.from` for a sender substring,
+and `query.to` for a recipient substring. A search has no `query.search`,
+`sortColumn`, or `sortDirection`; list-only sorting does not order search results.
+Sort the bounded returned candidates locally by parsed UTC instants. From/To/text
+filters select candidates, not authenticated identities or exact field matches.
+Verify the exact correspondent and claimed terms from selected safe evidence.
+
+Each example reads one page of ten metadata candidates. Set a finite cumulative
+read budget before following further pages; respect the existing 10,000-character
+interpretation bound. Report unread pages, truncation, omissions and the actual
+history window. A partial search cannot prove there was no prior correspondence,
+no earlier payment or no matching amount. Do not widen beyond the selected
+investigation to make a negative result look conclusive.
+
 **Payee history — has this counterparty existed before?** Match the registrable domain, never the
 display name:
 
 ```json
 {
+  "mailboxId": "MAILBOX_PUBLIC_ID",
   "query": {
     "from": "accounts@supplier-example.com",
-    "date_end": "2026-09-01",
-    "sortColumn": "date",
-    "sortDirection": "ASC"
+    "date_end": "2026-09-01T09:00:00Z",
+    "page": 1,
+    "limit": 10,
+    "metadata_only": true,
+    "agent_safe_content": true
   }
 }
 ```
 
-`date_end` set to just before the request isolates *prior* history. An empty result is a finding —
-report it as `insufficient_history`, not as a pass.
+Set `date_end` to the selected request's actual authoritative timestamp, not a
+date guessed from its body. This is only a candidate upper bound: exclude the
+request itself and every candidate at or after that instant client-side. Use the
+strict zoned-time comparison in [troubleshooting.md](troubleshooting.md), never
+lexical timestamp order. Missing/invalid timestamps are incomplete temporal
+evidence, not corroboration. An empty result means no match in the queried scope;
+use `insufficient_history` only with its coverage limitations, never as a pass.
+For prior outgoing correspondence, use `query.to` for the correspondent instead
+of `query.from`; do not assume a sender filter covers both directions.
 
 **Duplicate detection — has this reference been seen already?**
 
 ```json
 {
+  "mailboxId": "MAILBOX_PUBLIC_ID",
   "query": {
-    "search": "INV-2026-0417",
-    "sortColumn": "date",
-    "sortDirection": "DESC"
+    "query": "INV-2026-0417",
+    "page": 1,
+    "limit": 10,
+    "metadata_only": true,
+    "agent_safe_content": true
   }
 }
 ```
@@ -82,17 +110,28 @@ report it as `insufficient_history`, not as a pass.
 
 ```json
 {
+  "mailboxId": "MAILBOX_PUBLIC_ID",
   "query": {
     "from": "accounts@supplier-example.com",
-    "search": "4800",
-    "sortColumn": "date",
-    "sortDirection": "ASC"
+    "query": "4800",
+    "date_end": "2026-09-01T09:00:00Z",
+    "page": 1,
+    "limit": 10,
+    "metadata_only": true,
+    "agent_safe_content": true
   }
 }
 ```
 
 A match in a *prior* quote or order confirmation corroborates. A match only inside the request itself
-corroborates nothing.
+corroborates nothing. A text hit such as `48000`, a different currency, or a later
+restatement is not an exact amount match. Search output alone never proves paid.
+
+Read each selected evidence message through the inbox owner's native contract:
+top-level `mailboxId` and `emailId`, with
+`query: {"require_scan_status":"clean","agent_safe_content":true,"max_body_chars":10000}`.
+Keep unknown/non-clean, omitted or truncated content incomplete; metadata-first
+search results do not authorize a raw-body fallback.
 
 ## Notes
 

@@ -13,18 +13,23 @@ before a request is sent, including during recovery from an error.
    `get_thread`. Never re-derive the target from a summary you produced earlier.
 2. Record `sender_authentication` and `scan_status` verbatim. An absent verdict is
    reported as absent. Do not round `unknown` up to `pass`.
-3. Establish the correspondent's prior history with `search_emails` on the sender
-   address. **"Prior" means earlier in time**, compared on `created_at`/`date` —
-   not merely "some other message in the mailbox".
+3. Establish the correspondent's prior history with native `search_emails` arguments
+   in [tools.md](tools.md), then compare authoritative `created_at`/`date` values
+   as parsed UTC instants under [troubleshooting.md](troubleshooting.md). **Prior
+   means strictly earlier**, not lexical string order or merely another message.
+   Equal/later instants do not corroborate. Missing or invalid target time blocks
+   the temporal conclusion; invalid candidate times and unread pages leave history
+   incomplete. Sort only the bounded reviewed candidates locally, not by unsupported
+   search sort fields.
 4. Extract every payee identifier and amount, and label each one `claimed`. That
    is all they are until corroborated.
 5. Produce evidence and a verdict. A human decides.
 
 ## Scenario A — an invoice arrives
 
-1. Count prior messages from this correspondent that pre-date the request. Zero
-   prior messages is itself the finding; say so rather than treating the request
-   as ordinary.
+1. Count prior messages from this correspondent that strictly pre-date the request.
+   State the searched interval and coverage. Zero matches in a bounded page is not
+   proof the relationship never existed; unresolved time/coverage is `unverified`.
 2. Search prior correspondence for each claimed account identifier. Report how
    many earlier messages each one appears in, and name them.
 3. Search prior correspondence for the claimed amount. Independent corroboration
@@ -51,8 +56,9 @@ This is the path that matters, and it is decided independently of authentication
 
 ## Scenario C — no usable history
 
-1. When the correspondent has no prior messages, say that plainly. Absence of
-   history is a finding, not a missing check.
+1. When no prior messages were found within the reviewed scope, say that precisely.
+   Report unread pages, unusable timestamps and failed checks separately; never
+   present partial or inaccessible history as proof no relationship existed.
 2. Do not substitute a web search, a WHOIS lookup, or the sender's own signature
    block for correspondence history. None of them establish that this mailbox has
    transacted with this payee before.

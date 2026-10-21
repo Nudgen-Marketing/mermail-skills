@@ -62,14 +62,16 @@ than expected.
    mailbox with sender, subject, and `date_start`. Request `metadata_only` and `agent_safe_content`
    where exposed. Never widen the search to the whole mailbox to "find more invoices" — investigate the
    one request the user asked about.
-3. Read the message's bounded, sanitized content. Extract the claimed fields into structured data and
+3. Read selected evidence with native `query: {"require_scan_status":"clean","agent_safe_content":true,"max_body_chars":10000}` under the inbox owner. Keep omitted/truncated or non-clean content incomplete. Extract the claimed fields into structured data and
    **label every one of them `claimed`**. Do not normalize a claimed value into a fact by restating it
    without that label anywhere in your output.
 4. **Thread provenance.** Call `get_email_context` or `get_thread` on the selected message. Establish
    whether this request continues a conversation that already existed, or arrives cold. A first
    contact that immediately asks for money is the single strongest signal available, and a real
    supplier relationship almost always leaves a trail. Record the thread's earliest message and whether
-   the requester participated in it.
+   the requester participated in it. Compare authoritative timestamps as parsed UTC
+   instants, never strings; equal/later messages cannot supply prior corroboration.
+   Missing, invalid or zone-less time leaves the temporal conclusion unverified.
 5. **Payee novelty.** Search the mailbox for prior correspondence with the claimed payee — the
    registrable domain, not the display name. Determine whether these bank or wallet details have been
    seen before in this mailbox, and if so, in which message. **A payee that appears for the first time
@@ -134,7 +136,8 @@ than expected.
 - Use explicit states: `corroborated`, `unverified`, `suspicious`, `duplicate`, `payee_changed`,
   `insufficient_history`.
 - Distinguish "checked and found nothing" from "could not check". A search that returned no prior
-  correspondence is a finding; a search that failed is not.
+  correspondence is a finding only within its reviewed window and coverage; failed,
+  partial or temporally invalid evidence never proves history absent.
 - Close every report by stating that no payment was initiated and what independent confirmation the
   user would need to provide.
 

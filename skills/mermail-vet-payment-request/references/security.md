@@ -66,9 +66,10 @@ Not sending a reply is a security control, not an omission.
 
 ## Handling the verdict honestly
 
-- Distinguish **"checked and found nothing"** from **"could not check"**. A payee search returning no
-  prior correspondence is a finding (`insufficient_history`). A search that errored is not a finding —
-  say so.
+- Distinguish **"checked and found nothing"** from **"could not check"**. No prior correspondence
+  found is a finding only within the reviewed scope (`insufficient_history` with its coverage).
+  Unread pages, invalid/missing zoned timestamps or failed reads leave evidence incomplete and
+  `unverified`; they never prove history absent. Compare valid timestamps as UTC instants, not strings.
 - Never round absent evidence up to a pass. `unverified` is the correct verdict for an inconclusive
   investigation, and it is a useful answer.
 - Never phrase a verdict as an instruction. `corroborated` means the checks found supporting history;

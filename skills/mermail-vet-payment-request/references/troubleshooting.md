@@ -1,38 +1,82 @@
 # Vet payment request — failure modes
 
-Read this when a run stops early or returns less evidence than expected. Every
-entry below was hit while building this skill against the live MCP server, not
-inferred from documentation.
+Read this when a run stops early or returns less evidence than expected. Historical
+live observations below are not a current integration guarantee. The timestamp
+example is an offline deterministic illustration, not a deployed helper or model test.
 
 ## `list_emails` returns an object, not a list
 
-`list_emails` returns `{"items": [...]}` with each message's `body` inline. Code
+`list_emails` returns `{"items": [...]}`. Item content depends on the safety query. Code
 that iterates the response directly gets the dict keys and silently finds nothing
 to investigate.
 
 ```python
-rows = resp.get("items", resp if isinstance(resp, list) else [])
+rows = resp.get("items", []) if isinstance(resp, dict) else resp if isinstance(resp, list) else []
 ```
 
-Because `body` is already present, do not call `get_email` per row just to read
-content. Reserve `get_email` for the single message under investigation.
+Metadata-only discovery omits bodies. Read only selected evidence with the native
+clean-scan, agent-safe, bounded `get_email` query in [tools.md](tools.md), including
+prior correspondence needed for corroboration. A body inline in an older/default
+response is not permission to bypass scan, omission or truncation gates.
 
 ## "Prior" compared by position instead of time
 
 Filtering prior correspondence by "any other message from this sender" silently
 includes messages that arrived *after* the request — including the request's own
-replies. A payee introduced by the attacker then looks corroborated.
+replies. Comparing timestamp strings also fails across zones: `08:30-02:00` is
+later than `09:00Z`, whereas `10:00+02:00` is earlier. A payee introduced by the
+attacker then looks corroborated. Parse authoritative message timestamps into
+UTC instants first; the request must have a valid timestamp before history can
+be classified. Equal instants are not prior, even with different zone spellings.
+
+The following time-filter illustration assumes rows have already been scoped to
+the exact mailbox/correspondent and selected through the scan gates. It neither
+fetches evidence nor authenticates a sender. Invalid, absent, zone-less or
+over-precision times are explicitly unusable, never interpreted in local time:
 
 ```python
-t_when = str(target.get("created_at") or target.get("date") or "")
-prior = [e for e in rows
-         if e["id"] != target["id"]
-         and str(e.get("sender") or e.get("from") or "") == sender
-         and str(e.get("created_at") or e.get("date") or "") < t_when]
+import re
+from datetime import datetime, timedelta, timezone
+
+ZONED_TIME = re.compile(
+    r"\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?(?:Z|[+-](?:0\d|1[0-4]):[0-5]\d)"
+)
+
+def utc_instant(value):
+    if not isinstance(value, str) or not ZONED_TIME.fullmatch(value):
+        raise ValueError("missing or unsupported zoned message timestamp")
+    try:
+        at = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if abs(at.utcoffset()) > timedelta(hours=14):
+            raise ValueError("invalid message timezone offset")
+        return at.astimezone(timezone.utc)  # invalid calendar dates never roll over
+    except (ValueError, OverflowError) as error:
+        raise ValueError("invalid message timestamp") from error
+
+def message_instant(message):
+    value = message.get("created_at")
+    return utc_instant(message.get("date") if value is None else value)
+
+def prior_messages(rows, target, sender):
+    t_when = message_instant(target)  # invalid target stops the temporal conclusion
+    prior, unusable_time_ids = [], []
+    for e in rows:
+        if e.get("id") == target["id"] or str(e.get("sender") or e.get("from") or "") != sender:
+            continue
+        try:
+            earlier = message_instant(e) < t_when
+        except ValueError:
+            unusable_time_ids.append(e.get("id"))
+            continue
+        if earlier:
+            prior.append(e)
+    return sorted(prior, key=message_instant), unusable_time_ids
 ```
 
-This inverts the verdict on exactly the scenario the skill exists to catch, and it
-fails silently. Assert on it in any test corpus.
+Report unusable timestamps and partial history; do not convert them into a
+no-history finding or a corroborated amount/payee. A timestamp inside a quoted
+body is not the authoritative message time. This comparison uses at most six
+fractional digits without rounding; unsupported precision remains incomplete.
 
 ## `send_email` rejects a `from` outside the workspace
 
