@@ -30,7 +30,7 @@ asks for a new lane.
 | `subjectSet` | Normalized expected subject, or a bounded subject set. |
 | `startedAt` | Timestamp of the moment external mail was requested. Messages older than it are baseline. |
 | `baselineIds` | Message IDs already present in the mailbox before `startedAt`. |
-| `state` | `pending`, `validated`, `ambiguous`, `quarantined`, `timed_out`, `completed`. |
+| `state` | `pending`, `validated`, `ambiguous`, `quarantined`, `timed_out`, `completed`; include incomplete coverage beside `ambiguous` when uniqueness cannot be established. |
 
 ## Provisioning across lanes
 
@@ -51,7 +51,9 @@ asks for a new lane.
 - Poll each lane independently with metadata-only reads: `search_emails` with `sender`, `recipient`,
   `subject`, and `date_start` first, then newest-first `list_emails` scoped to that mailbox only.
 - A lane that returns `401`, `402`, `403`, or `429` stops immediately and does not consume another lane's
-  attempts. Report the provider state instead of retrying.
+  attempts. This includes payload-level `rate_limit_exceeded`. Report the provider state and any
+  `Retry-After` delay; it is not permission to sleep, retry, or restart polling automatically. Only a new
+  explicit user continuation after the indicated delay can begin another bounded read budget.
 - Aggregate the per-lane states into one report. Never let one lane's failure downgrade another lane's
   `validated` evidence.
 
@@ -60,9 +62,17 @@ asks for a new lane.
 1. Fetch bounded candidates with metadata-only `get_email`. Post-validate mailbox, sender, recipient,
    timestamp, normalized subject, and non-baseline message ID. Domain checks use
    `host === allowed` or `host.endsWith("." + allowed)` — never a substring.
-2. Exactly one candidate validates → read its bounded clean content with `get_email`, check `scan_status`,
-   and extract only the task-required OTP, HTTPS link, expiry, and service context.
-3. Zero candidates → keep the lane `pending` inside its deadline. Do not widen the subject set, add sender
+2. Establish coverage of the relevant metadata search before claiming uniqueness. A successful page with
+   one match does not prove a single match overall. Inspect returned totals/continuations and read only
+   remaining relevant pages inside the same lane deadline and attempt budget; every page read counts
+   against that budget. Preserve the original scope and returned pagination fields, deduplicate identical
+   stable IDs, and stop on a repeated continuation, conflicting duplicate, or inconsistent totals. Missing
+   pagination evidence or unread pages after the budget ends means `ambiguous` with incomplete coverage:
+   report the gap and stop before body extraction, not another polling loop or a budget reset.
+   Only when coverage is established, exactly one candidate validates, and read budget remains, read its
+   bounded clean content with `get_email`, check `scan_status`, and extract only the task-required OTP,
+   HTTPS link, expiry, and service context. Exhausted read budget stops before extraction.
+3. Coverage established with zero candidates → keep the lane `pending` inside its deadline. Do not widen the subject set, add sender
    domains, or search another mailbox to force a match.
 4. More than one candidate → `ambiguous`. Show the smallest non-secret distinguishing metadata and ask the
    human to choose. Never select by recency, unread state, or lane order.
@@ -94,7 +104,7 @@ context for lane X, then name the fresh approval still required.
 - `create_mailbox` takes a nested `body` object: `{"body": {"email": "<name>@mermail.app", "name": "<display>", "settings": {"agentInbox": {"mode": "verification", "automationsEnabled": false}}}}`. The address must sit on an allowed hosted or fully verified custom domain.
 - Some usernames are reserved by the provider (`That mailbox username is reserved by Mermail.`): derive the address from the service and flow, not from generic words, and treat the rejection as a naming problem rather than a transport failure.
 - On a plan with a mailbox quota, provisioning a second lane returns `mailbox_limit_reached`. Report the lane as blocked at the plan boundary; never retry provisioning and never move the second flow into the first lane's mailbox.
-- Free-tier pacing is 10 API RPM: a burst returns `rate_limit_exceeded`. Pace the lane calls, allow exactly one bounded retry inside the same lane deadline, and never spend another lane's attempts on it.
+- A burst may return `rate_limit_exceeded`. Pace calls using the current plan's live limits rather than assuming a universal RPM. On this error or HTTP `429`, stop the lane under the rule above, report any `Retry-After`, and never automatically retry or spend another lane's attempts on it.
 - Payload-level provider errors arrive as `{"error": ..., "code": ...}` inside a successful JSON-RPC response, not as a JSON-RPC `error`. Check both shapes before trusting a result.
 - `welcome_onboarding_status: pending` appears on a freshly created mailbox and does not block receipt: the first real message was found and validated while the field was still `pending`.
 
