@@ -68,6 +68,8 @@ Actual fields are `followUpCount`, `lastFollowUpDate`, `followupEligible`, `foll
 
 ## 5. Fulfillment verification
 
+New records retain immutable `sourceEmailId` (and original `evidenceEmailId`) for the promise anchor. `complete` writes a separate `fulfillmentEvidenceEmailId`; closing never replaces either fact. Views expose both. Legacy records without `sourceEmailId` report `sourceEvidenceStatus: legacy_unverified`; earlier completion may already have replaced their original evidence ID. Ask the owner to recover/verify the source rather than treating a fulfillment message as the original thread or inventing missing provenance.
+
 For each due/overdue item:
 
 1. `search_emails` after the promise date (window: promise date → today) filtered by the debtor's address and fulfillment keywords (shipped, delivered, completed, signed, refunded). Then `get_email` the top candidates.

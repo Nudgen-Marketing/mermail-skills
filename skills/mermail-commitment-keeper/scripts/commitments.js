@@ -141,6 +141,8 @@ function load(file, allowNew = false) {
     if (!c || typeof c !== "object" ||
         ["id", "key", "mailboxId", "creditor", "debtor", "promise", "evidenceEmailId"].some(k => typeof c[k] !== "string" || !c[k].trim() || c[k].length > 10000) ||
         !validISODate(c.dueDate) || !["open", "fulfilled", "closed", "cancelled"].includes(c.status) ||
+        (c.sourceEmailId !== undefined && (typeof c.sourceEmailId !== "string" || !c.sourceEmailId.trim() || c.sourceEmailId !== c.evidenceEmailId)) ||
+        (c.fulfillmentEvidenceEmailId != null && (typeof c.fulfillmentEvidenceEmailId !== "string" || !c.fulfillmentEvidenceEmailId.trim())) ||
         !Array.isArray(c.followUps) || c.followUps.length > 10000 ||
         c.followUps.some(f => !f || typeof f !== "object" || !validISODate(f.date)) ||
         c.followUps.some((f, i) => i > 0 && f.date < c.followUps[i - 1].date) ||
@@ -220,6 +222,9 @@ function entryView(c, today, args = {}) {
     dueDate: c.dueDate,
     status: c.status,
     evidenceEmailId: c.evidenceEmailId,
+    sourceEmailId: c.sourceEmailId ?? null,
+    sourceEvidenceStatus: c.sourceEmailId ? "recorded" : "legacy_unverified",
+    fulfillmentEvidenceEmailId: c.fulfillmentEvidenceEmailId ?? null,
     mailboxId: c.mailboxId,
     followUpCount: c.followUps.length,
     lastFollowUpDate: last ? last.date : null,
@@ -253,6 +258,8 @@ function cmdAdd(args, file) {
     dueDate: reqDate(args, "due"),
     status: "open",
     evidenceEmailId: reqStr(args, "evidence-email-id"),
+    sourceEmailId: reqStr(args, "evidence-email-id"),
+    fulfillmentEvidenceEmailId: null,
     createdAt: `${today}T00:00:00Z`,
     fulfilledAt: null,
     closedAt: null,
@@ -372,7 +379,8 @@ function cmdComplete(args, file) {
   }
   const evidence = reqStr(args, "evidence-email-id"); // refuses with evidence_required
   entry.status = "fulfilled";
-  entry.evidenceEmailId = evidence;
+  // Preserve the original promise/thread anchor. Completion is a distinct fact.
+  entry.fulfillmentEvidenceEmailId = evidence;
   entry.fulfilledAt = `${today}T00:00:00Z`;
   entry.evidenceQuote = optStr(args, "quote");
   save(file, data);

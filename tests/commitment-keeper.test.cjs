@@ -149,6 +149,24 @@ test('fulfillment and close preserve immutable add binding; legacy unverifiable 
   refused(add(ledger), 'idempotency_unverified');
 });
 
+test('completion and close retain the original promise anchor separately from fulfillment evidence', () => {
+  const ledger = file(), first = ok(add(ledger)).commitment;
+  assert.equal(first.sourceEmailId, 'source-1');
+  const completed = ok(cli(ledger, 'complete', ['--id', first.id, '--evidence-email-id', 'fulfillment-99', '--today', '2026-09-03'])).commitment;
+  assert.equal(completed.sourceEmailId, 'source-1');
+  assert.equal(completed.evidenceEmailId, 'source-1');
+  assert.equal(completed.fulfillmentEvidenceEmailId, 'fulfillment-99');
+  const closed = ok(cli(ledger, 'close', ['--id', first.id, '--reason', 'fulfilled', '--today', '2026-09-03'])).commitment;
+  assert.equal(closed.sourceEmailId, 'source-1');
+  assert.equal(closed.fulfillmentEvidenceEmailId, 'fulfillment-99');
+  const data = JSON.parse(fs.readFileSync(ledger));
+  delete data.commitments[0].sourceEmailId;
+  fs.writeFileSync(ledger, JSON.stringify(data));
+  const legacy = ok(cli(ledger, 'list')).commitments[0];
+  assert.equal(legacy.sourceEmailId, null);
+  assert.equal(legacy.sourceEvidenceStatus, 'legacy_unverified');
+});
+
 test('corrupt or duplicate followup bindings stop reads; legacy history is not invented into verified keys', () => {
   const ledger = file(), id = ok(add(ledger)).commitment.id;
   ok(record(ledger, id, 1, '2026-09-01'));
