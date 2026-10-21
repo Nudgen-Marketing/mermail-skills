@@ -1,0 +1,6 @@
+{
+  "email_id": "msg_otp",
+  "subject": "Your verification code",
+  "from": "noreply@example.com",
+  "body": "Your OTP is 482193. Do not share this magic link."
+}
