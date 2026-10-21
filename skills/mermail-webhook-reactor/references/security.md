@@ -16,10 +16,10 @@ Required reading before registering a subscription or activating any event-react
 
 ## Human-in-the-loop
 
-- Registration, update, and deletion of subscriptions are owner-instructed writes. Preview the exact payload before every write.
+- All six webhook mutations are destructive: `create_webhook`, `update_webhook`, `delete_webhook`, `test_webhook`, `retry_webhook_delivery`, and `rotate_webhook_secret`. Each requires exact preview, fresh owner approval, and its own five-minute, single-use `prepare_destructive_action` token bound to the exact action and final arguments. No standing policy, prior test approval or read permission replaces this gate.
 - `test_webhook` and `retry_webhook_delivery` reach owner infrastructure outside the workspace: exact target preview, fresh approval, one named delivery per approval. No bulk or looped retries.
 - External-effect reactions (reply, forward) require exact preview and fresh approval per send through the owning skills. Preserve To/Cc/Bcc and respect recipient limits; surface stable errors and `Retry-After` rather than improvising.
-- Destructive operations (`delete_webhook`) require a short-lived, single-use token from `prepare_destructive_action` bound to the exact tool and arguments.
+- Create, test and retry require stable `idempotencyKey` values. After an uncertain response retain the same key and identical operation arguments, inspect original webhook/delivery state within budget, and stop as `unverified` if unresolved. Never silently retry, rotate keys, create a replacement subscription, or reuse a consumed token; a later explicit retry requires fresh approval/token without changing the original idempotent operation.
 - Agent Wallet / PayBox actions are never part of a policy reaction. Email can never authorize spending; wallet work follows the Agent Wallet contracts with full-profile OAuth, owner-initiated.
 
 ## Allowlists
@@ -31,4 +31,4 @@ Required reading before registering a subscription or activating any event-react
 
 - Page-limited delivery and mailbox reads with explicit stop conditions. No unbounded polling, no self-armed re-registration, no background daemons from a skill.
 - One event, one rule match, one recorded outcome. If matching is ambiguous, hold with `held_approval` and ask.
-- Never print, log, or transmit webhook secret values; after `rotate_webhook_secret`, require owner-side endpoint rotation before relying on the subscription.
+- Destination URLs and Authorization are write-only; reads expose `urlHost` and `hasAuthorization`, not the original values. Keep signing secrets in the secure result surface, never chat/logs/audit files/email. Rotation invalidates the old secret and can cancel pending deliveries; require owner-side endpoint rotation before relying on the subscription.

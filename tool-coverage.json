@@ -154,8 +154,7 @@
     "delete_custom_label",
     "delete_agent_conversation",
     "delete_task_triager",
-    "disconnect_composio_toolkit",
-    "delete_webhook"
+    "disconnect_composio_toolkit"
   ],
   "walletDestructiveTools": [
     "submit_agent_wallet_transfer",
