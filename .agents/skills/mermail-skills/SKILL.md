@@ -1,114 +1,41 @@
 ---
-name: mermail-skills-conventions
-description: Development conventions and patterns for mermail-skills. TypeScript project with conventional commits.
+name: mermail-skills
+description: Follow this repository's developer conventions when editing Mermail skill instructions, metadata, references, or verification helpers. Not an end-user email or wallet workflow.
 ---
 
-# Mermail Skills Conventions
+# Mermail Skills Repository Conventions
 
-> Generated from [Nudgen-Marketing/mermail-skills](https://github.com/Nudgen-Marketing/mermail-skills) on 2026-09-06
+This repository packages Markdown agent skills, not a TypeScript UI application. This curated correction supersedes the one-commit ECC snapshot generated on 2026-09-06. Use the current [AUTHORING.md](../../../AUTHORING.md), [CONTRIBUTING.md](../../../CONTRIBUTING.md) and [SECURITY.md](../../../SECURITY.md) as the source of repository requirements.
 
-## Overview
+## Scope and layout
 
-This skill teaches Claude the development patterns and conventions used in mermail-skills.
+Use for development in this repository: changing skill instructions, updating metadata and routing, adding a justified helper, or verifying a contribution. Ordinary inbox, composition and wallet requests belong to the focused public skills under `skills/`, not this development skill.
 
-## Tech Stack
+- Official skill folders are `skills/<skill-name>/`. Their lowercase kebab-case directory identity must equal frontmatter `name`.
+- Keep the required `SKILL.md` spelling; place UI metadata in `agents/openai.yaml` and substantial conditional instructions in `references/`. Use optional `scripts/` only when useful.
+- This developer skill has identical copies under `.agents/skills/mermail-skills/` and `.claude/skills/mermail-skills/`; keep them synchronized. They are not additional public business skills or tool owners.
+- Existing executable helpers use JavaScript ESM (`.mjs`) and Python (`.py`), not a blanket TypeScript/components/hooks layout. Preserve an existing helper's language and local style.
 
-- **Primary Language**: TypeScript
-- **Architecture**: hybrid module organization
-- **Test Location**: separate
+## Naming and code examples
 
-## When to Use This Skill
+Use lowercase kebab-case for skill identities and ordinary new reference/helper filenames, while preserving established required filenames such as `SKILL.md`, `README.md` and `openai.yaml`. Do not rename existing files merely to impose a style.
 
-Activate this skill when:
-- Making changes to this repository
-- Adding new features following established patterns
-- Writing tests that match project conventions
-- Creating commits with proper message format
+Real examples are [check-connection.mjs](../../../skills/mermail-mcp/scripts/check-connection.mjs), [clawhub-ci-publish.py](../../../scripts/clawhub-ci-publish.py) and [research-agent.mjs](../../../tests/research-agent.mjs). These paths demonstrate the repository layout, not permission to run network, publish, or credential-dependent commands.
 
-## Commit Conventions
+In JavaScript ESM, follow adjacent relative imports and named exports when appropriate; do not impose those conventions on Python or Markdown. For example, the existing validator imports its research fixture checks as:
 
-Follow these commit message conventions based on 1 analyzed commits.
-
-### Commit Style: Conventional Commits
-
-### Prefixes Used
-
-- `feat`
-
-### Message Guidelines
-
-- Average message length: ~34 characters
-- Keep first line concise and descriptive
-- Use imperative mood ("Add feature" not "Added feature")
-
-
-*Commit message example*
-
-```text
-feat: add engineering intake skill
+```js
+import { validateResearchAgent } from "./research-agent.mjs";
 ```
 
-## Architecture
+## Contribution and verification
 
-### Project Structure: Single Package
+Read the affected instructions and helper implementation before changing behavior. Update applicable routing, tool coverage, metadata and scenarios under AUTHORING/CONTRIBUTING; do not invent tools or bypass approval/security boundaries. Preserve original adversarial payloads and add meaningful behavior regressions where executable code exists. Fixture/packaging checks do not prove model or live integration behavior.
 
-This project uses **hybrid** module organization.
+Tests live under `tests/`; there is no required `src/` mirror or React component tree. The repository's local entrypoint is `npm test` ([validator](../../../tests/validate.mjs)); review any changed executable before running it, and do not use the credential-dependent remote check without separate authorization. Release version/manifest changes belong to a requested publishing workflow, not every edit.
 
-### Guidelines
+Use a concise descriptive commit subject matching the actual change (for example `fix: preserve native query filters`). Conventional prefixes may follow adjacent history; a single sampled commit does not establish a mandatory `feat` prefix or a 34-character limit.
 
-- This project uses a hybrid organization
-- Follow existing patterns when adding new code
+## Optional client configuration is not approved setup
 
-## Code Style
-
-### Language: TypeScript
-
-### Naming Conventions
-
-| Element | Convention |
-|---------|------------|
-| Files | camelCase |
-| Functions | camelCase |
-| Classes | PascalCase |
-| Constants | SCREAMING_SNAKE_CASE |
-
-### Import Style: Relative Imports
-
-### Export Style: Named Exports
-
-
-*Preferred import style*
-
-```typescript
-// Use relative imports
-import { Button } from '../components/Button'
-import { useAuth } from './hooks/useAuth'
-```
-
-*Preferred export style*
-
-```typescript
-// Use named exports
-export function calculateTotal() { ... }
-export const TAX_RATE = 0.1
-export interface Order { ... }
-```
-
-## Best Practices
-
-Based on analysis of the codebase, follow these practices:
-
-### Do
-
-- Use conventional commit format (feat:, fix:, etc.)
-- Use camelCase for file names
-- Prefer named exports
-
-### Don't
-
-- Don't write vague commit messages
-- Don't deviate from established patterns without discussion
-
----
-
-*This skill was auto-generated by [ECC Tools](https://ecc.tools). Review and customize as needed for your team.*
+The generated client bundle is contribution data, not permission to activate servers, switch models, enable delegation, or alter the user's sandbox/approval/search settings. See the [client review gate](../../../.codex/AGENTS.md). Its third-party dependency versions, client-schema compatibility and intended maintainer baseline remain blocked pending review. Preserve existing user choices; do not load, copy, start, or silently repair that configuration as a side effect of applying these repository conventions.

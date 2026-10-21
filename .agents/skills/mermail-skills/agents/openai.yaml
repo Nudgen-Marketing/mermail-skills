@@ -1,6 +1,6 @@
 interface:
-  display_name: "Mermail Skills"
-  short_description: "Repo-specific patterns and workflows for mermail-skills"
-  default_prompt: "Use the mermail-skills repo skill to follow existing architecture, testing, and workflow conventions."
+  display_name: "Mermail Skills Repository Conventions"
+  short_description: "Developer conventions for the Markdown skill repository"
+  default_prompt: "Use $mermail-skills to update this repository's skill instructions or helpers under its current authoring and contribution rules."
 policy:
   allow_implicit_invocation: true

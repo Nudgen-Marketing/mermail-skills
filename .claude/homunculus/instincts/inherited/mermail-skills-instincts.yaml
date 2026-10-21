@@ -1,127 +1,93 @@
-# Instincts generated from https://github.com/Nudgen-Marketing/mermail-skills
-# Generated: 2026-09-06T03:19:15.774Z
-# Version: 2.0
-# NOTE: This file supplements (does not replace) any existing curated instincts.
-# High-confidence manually curated instincts should be preserved alongside these.
+# Curated correction of the 2026-09-06 one-commit ECC snapshot.
+# These optional repository-development hints supplement current AUTHORING.md,
+# CONTRIBUTING.md and SECURITY.md; they are not client or user policy.
+# Preserve independently curated instincts alongside them.
 
 ---
 id: mermail-skills-commit-conventional
-trigger: "when writing a commit message"
+trigger: "when writing a commit message for this repository"
 confidence: 0.85
 domain: git
-source: repo-analysis
+source: repository-authoring-review
 source_repo: https://github.com/Nudgen-Marketing/mermail-skills
 ---
 
-# Mermail Skills Commit Conventional
+# Commit style
 
-## Action
+Use a concise, descriptive subject matching the actual change. Conventional prefixes such as feat, fix, docs or test may follow adjacent history; do not infer a mandatory feat prefix from one sampled commit.
 
-Use conventional commit format with prefixes: feat
-
-## Evidence
-
-- 1 commits analyzed
-- Detected conventional commit pattern
-- Examples: feat: add engineering intake skill
+Evidence: current contribution workflow requests meaningful changes and tests; the old snapshot analyzed only one commit and cannot establish a universal prefix rule.
 
 ---
 id: mermail-skills-commit-length
-trigger: "when writing a commit message"
+trigger: "when writing a commit message for this repository"
 confidence: 0.6
 domain: git
-source: repo-analysis
+source: repository-authoring-review
 source_repo: https://github.com/Nudgen-Marketing/mermail-skills
 ---
 
-# Mermail Skills Commit Length
+# Commit length
 
-## Action
-
-Keep commit messages concise (~34 characters)
-
-## Evidence
-
-- Average commit message length: 34 chars
-- Based on 1 commits
+Keep the first line clear and concise without an arbitrary 34-character requirement. A one-commit average is historical evidence, not a team policy.
 
 ---
 id: mermail-skills-naming-files
-trigger: "when creating a new file"
+trigger: "when creating a file or skill identity in this repository"
 confidence: 0.8
 domain: code-style
-source: repo-analysis
+source: repository-authoring-review
 source_repo: https://github.com/Nudgen-Marketing/mermail-skills
 ---
 
-# Mermail Skills Naming Files
+# Repository naming
 
-## Action
+Official skill identities are lowercase kebab-case and must match the skill directory and frontmatter name. Use kebab-case for ordinary new reference/helper filenames; preserve required names such as SKILL.md, README.md and agents/openai.yaml and existing filenames. Never apply a blanket camelCase filename rule.
 
-Use camelCase naming convention
-
-## Evidence
-
-- Analyzed file naming patterns in repository
-- Dominant pattern: camelCase
+Evidence: AUTHORING.md layout/frontmatter requirements; skills/mermail-mcp/scripts/check-connection.mjs and scripts/clawhub-ci-publish.py. This repository packages Markdown instructions with JavaScript ESM/Python helpers, not a TypeScript components/hooks application.
 
 ---
 id: mermail-skills-import-relative
-trigger: "when importing modules"
+trigger: "when importing local JavaScript ESM modules"
 confidence: 0.75
 domain: code-style
-source: repo-analysis
+source: repository-authoring-review
 source_repo: https://github.com/Nudgen-Marketing/mermail-skills
 ---
 
-# Mermail Skills Import Relative
+# Local imports
 
-## Action
+Follow adjacent helper style, including relative imports for local JavaScript ESM files. Do not impose JavaScript import syntax on Python or Markdown.
 
-Use relative imports for project files
-
-## Evidence
-
-- Import analysis shows relative import pattern
-- Example: import { x } from '../lib/x'
+Evidence: tests/validate.mjs imports validateResearchAgent from ./research-agent.mjs.
 
 ---
 id: mermail-skills-export-style
-trigger: "when exporting from a module"
+trigger: "when exporting from a JavaScript ESM helper"
 confidence: 0.7
 domain: code-style
-source: repo-analysis
+source: repository-authoring-review
 source_repo: https://github.com/Nudgen-Marketing/mermail-skills
 ---
 
-# Mermail Skills Export Style
+# Helper exports
 
-## Action
+Follow adjacent code's named exports where appropriate; this is not a requirement to rewrite other languages or add helpers for prose-only workflows.
 
-Prefer named exports
-
-## Evidence
-
-- Export pattern analysis
-- Dominant style: named
+Evidence: tests/research-agent.mjs exports validateResearchAgent.
 
 ---
 id: mermail-skills-test-separate
-trigger: "when writing tests"
+trigger: "when adding a regression test in this repository"
 confidence: 0.8
 domain: testing
-source: repo-analysis
+source: repository-authoring-review
 source_repo: https://github.com/Nudgen-Marketing/mermail-skills
 ---
 
-# Mermail Skills Test Separate
+# Verification
 
-## Action
+Place repository checks in tests/ and wire justified executable regressions into npm test. There is no required src/ mirror or __tests__/ structure. Preserve adversarial payloads, test actual helper behavior where executable code exists, and distinguish packaging fixtures from model/live integration proof.
 
-Place tests in the tests/ or __tests__/ directory, mirroring src structure
-
-## Evidence
-
-- Separate test directory pattern detected
-- Tests live in dedicated test folders
+Evidence: package.json invokes tests/validate.mjs; tests/research-agent.mjs checks declarative scenarios; CONTRIBUTING.md requests local validation and security observations.
 
