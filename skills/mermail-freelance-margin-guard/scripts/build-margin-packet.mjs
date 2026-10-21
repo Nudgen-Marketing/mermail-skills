@@ -235,6 +235,21 @@ function validateSourceRef(ref, label, sourceMap) {
 
 // Supply these receipts from the host's selected live reads, outside model
 // control. Packet checksums alone cannot establish that an email was read.
+export function verifySelectedEmailCompleteness(email) {
+  object(email, "selected email");
+  for (const field of ["content_omitted", "content_truncated", "body_truncated"]) {
+    invariant(email[field] === undefined || email[field] === false, `selected email has omitted or truncated content: ${field}`);
+  }
+  invariant(email.content_omission_reason === undefined, "selected email has an omission reason");
+  invariant(email.body_storage_status === undefined || email.body_storage_status === "available",
+    "selected email body storage is unavailable or unknown");
+  if (email.body_original_char_count !== undefined) {
+    invariant(Number.isSafeInteger(email.body_original_char_count) && email.body_original_char_count >= 0 &&
+      typeof email.body === "string" && email.body_original_char_count <= email.body.length,
+    "selected email has conflicting body completeness metadata");
+  }
+}
+
 export function verifySelectedEmailEvidence(rawInput, observedEmails) {
   object(rawInput, "packet input");
   const sources = array(rawInput.sources, "sources").map(validateSource);
@@ -256,7 +271,7 @@ export function verifySelectedEmailEvidence(rawInput, observedEmails) {
     invariant(receipt, `email source ${source.id} has no selected live content read`);
     const {email, tool} = receipt;
     invariant(email.agent_safe_content === true, `email source ${source.id} lacks the server safe projection`);
-    invariant(!email.content_omitted && !email.content_truncated, `email source ${source.id} has omitted or truncated content`);
+    verifySelectedEmailCompleteness(email);
     const sent = String(email.folder_name || email.folder_id || "").toLowerCase() === "sent";
     invariant(email.scan_status === "clean" || tool === "get_email_context" && sent && email.is_incoming !== true && email.scan_status === null,
       `email source ${source.id} is not eligible under the selected scan gate`);

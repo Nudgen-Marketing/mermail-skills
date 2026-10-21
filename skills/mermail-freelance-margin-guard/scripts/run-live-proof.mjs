@@ -7,6 +7,7 @@ import {
   buildMarginPacket,
   verifyMarginPacket,
   verifySelectedEmailEvidence,
+  verifySelectedEmailCompleteness,
 } from "./build-margin-packet.mjs";
 
 const MCP_ENDPOINT = "https://console.mermail.app/mcp";
@@ -37,9 +38,13 @@ export const LIVE_PROBE_BODY =
   "Expected result: sent, discovered, selected, and read successfully.";
 
 export class SafeError extends Error {
-  constructor(stage) {
+  constructor(stage, { retryable = false, status = null, retryAfter = null } = {}) {
     super(`live proof stopped at ${stage}`);
     this.name = "SafeError";
+    this.stage = stage;
+    this.retryable = retryable;
+    this.status = status;
+    this.retryAfter = typeof retryAfter === "string" && /^\d{1,10}$/.test(retryAfter) ? retryAfter : null;
   }
 }
 
@@ -72,7 +77,8 @@ export async function retryReadOperation(
     try {
       return await operation();
     } catch (error) {
-      if (!(error instanceof SafeError) || attempt === attempts - 1) throw error;
+      if (!(error instanceof SafeError) || !error.retryable || [401,402,403,429].includes(error.status) ||
+          attempt === attempts - 1) throw error;
       const delayMs = Math.min(baseDelayMs * (2 ** attempt), READ_RETRY_MAX_MS);
       await sleepFn(delayMs);
     }
@@ -139,9 +145,13 @@ async function mcpRequest(apiKey, id, method, params, stage) {
       body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
     });
   } catch {
-    throw new SafeError(`${stage}:network`);
+    throw new SafeError(`${stage}:network`, { retryable: true });
   }
-  invariant(response.ok, `${stage}:http-${response.status}`);
+  if (!response.ok) throw new SafeError(`${stage}:http-${response.status}`, {
+    status: response.status,
+    retryable: [500,502,503,504].includes(response.status),
+    retryAfter: response.headers?.get?.("retry-after"),
+  });
   let rpc;
   try {
     rpc = await response.json();
@@ -204,7 +214,7 @@ function resolveMailbox(payloads, selectedId) {
   return unique[0];
 }
 
-export function resolveEmailMetadata(payloads, subject) {
+export function resolveEmailMetadata(payloads, subject, { coverageComplete = false } = {}) {
   const expected = normalize(subject);
   const candidates = [];
   for (const object of walkObjects(payloads)) {
@@ -228,6 +238,18 @@ export function resolveEmailMetadata(payloads, subject) {
     candidates.push({ id, rawDate, folder });
   }
   const unique = [...new Map(candidates.map((candidate) => [candidate.id, candidate])).values()];
+  if (!coverageComplete) {
+    for (const object of walkObjects(payloads)) {
+      invariant(object.has_more !== true && object.hasMore !== true && !object.next_cursor && !object.nextCursor,
+        "message-discovery-incomplete");
+      const count = object.totalCount ?? object.total_count;
+      const items = object.emails ?? object.items;
+      if (count !== undefined && Array.isArray(items)) {
+        invariant(Number.isSafeInteger(count) && count >= 0 && count <= items.length, "message-discovery-incomplete");
+      }
+    }
+  }
+  invariant(unique.length > 0, "message-not-found");
   const inbox = unique.filter((candidate) => normalize(candidate.folder) === "inbox");
   if (inbox.length === 1) return inbox[0];
   invariant(inbox.length === 0, "message-selection");
@@ -254,12 +276,18 @@ export function resolveSelectedEmailEvidence(payloads, emailId, requiredPhrases,
   const candidates = payloads.flatMap((value) => selectedProjections(value));
   invariant(candidates.every((value) => value.id === emailId && Object.hasOwn(value, "body")),
     "selected-message-identity");
+  // Validate every copy before deduplication; a safe-looking duplicate cannot
+  // overwrite a native storage/omission/truncation failure in another copy.
+  try { for (const value of candidates) verifySelectedEmailCompleteness(value); }
+  catch { throw new SafeError("selected-message-security"); }
   // MCP may duplicate one projection in structuredContent and text content.
   // Conflicting copies must never let the proof select whichever looks safe.
   const projectionKey = (value) => JSON.stringify([
     value.id, value.body, value.date, value.folder_name, value.folder_id,
     value.is_incoming, value.scan_status, value.agent_safe_content,
     value.content_omitted ?? false, value.content_truncated ?? false,
+    value.body_truncated ?? false, value.body_storage_status, value.content_omission_reason,
+    value.body_original_char_count,
   ]);
   const unique = [...new Map(candidates.map((value) => [projectionKey(value), value])).values()];
   invariant(unique.length === 1, "selected-message-identity");
@@ -318,36 +346,57 @@ export function buildDiscoveryPlan(mailboxId, subject, { resumeOnly = false } = 
   return resumeOnly ? [...lists, search] : [search, ...lists];
 }
 
-async function findMessage(apiKey, counter, mailboxId, subject, { resumeOnly = false } = {}) {
+export async function findMessage(apiKey, counter, mailboxId, subject,
+  { resumeOnly = false, callToolFn = callTool, sleepFn = sleep } = {}) {
   const attempts = resumeOnly ? RESUME_DISCOVERY_ATTEMPTS : WAIT_ATTEMPTS;
-  let lastPayloads = null;
   let lastError = new SafeError("message-selection");
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const unavailable = new Set();
-    for (const step of buildDiscoveryPlan(mailboxId, subject, { resumeOnly })) {
-      if (unavailable.has(step.name)) continue;
-      try {
-        lastPayloads = await callTool(
-          apiKey,
-          counter,
-          step.name,
-          step.args,
-          step.stage,
-        );
-      } catch (error) {
-        if (!(error instanceof SafeError)) throw error;
-        lastError = error;
-        unavailable.add(step.name);
-        continue;
+    const plan = buildDiscoveryPlan(mailboxId, subject, { resumeOnly });
+    let readsRemaining = plan.length;
+    for (const name of [...new Set(plan.map(step => step.name))]) {
+      const step = plan.find(candidate => candidate.name === name);
+      const collected = [], seenIds = new Set();
+      let expectedTotal = null, complete = false;
+      for (let page = 1; page <= LIST_MAX_PAGES && readsRemaining > 0; page += 1) {
+        readsRemaining -= 1;
+        // Permission/credit/rate failures and exhausted transient retries stop
+        // here. Never switch tools or start another poll after those failures.
+        const payloads = await callToolFn(apiKey, counter, name,
+          { ...step.args, query: { ...step.args.query, page } }, step.stage);
+        const containers = walkObjects(payloads).filter(value => Array.isArray(value.emails ?? value.items));
+        invariant(containers.length > 0, "message-discovery-incomplete");
+        const pageIds = new Set();
+        let total = null;
+        for (const container of containers) {
+          const count = container.totalCount ?? container.total_count;
+          invariant(Number.isSafeInteger(count) && count >= 0 && (total === null || total === count),
+            "message-discovery-incomplete");
+          total = count;
+          for (const item of container.emails ?? container.items) {
+            const id = firstString(item, ["id", "email_id", "emailId"]);
+            invariant(id, "message-discovery-incomplete");
+            pageIds.add(id);
+          }
+        }
+        invariant(expectedTotal === null || expectedTotal === total, "message-discovery-changed");
+        expectedTotal = total;
+        invariant([...pageIds].every(id => !seenIds.has(id)), "message-discovery-incomplete");
+        for (const id of pageIds) seenIds.add(id);
+        invariant(seenIds.size <= total, "message-discovery-incomplete");
+        collected.push(...payloads);
+        const pendingCursor = containers.some(value => value.next_cursor || value.nextCursor);
+        const hasMore = containers.some(value => value.has_more === true || value.hasMore === true);
+        if (seenIds.size === total && !pendingCursor && !hasMore) { complete = true; break; }
+        invariant(pageIds.size > 0 && !pendingCursor, "message-discovery-incomplete");
       }
-      try {
-        return resolveEmailMetadata(lastPayloads, subject);
-      } catch (error) {
-        if (!(error instanceof SafeError)) throw error;
+      invariant(complete, "message-discovery-incomplete");
+      try { return resolveEmailMetadata(collected, subject, { coverageComplete: true }); }
+      catch (error) {
+        if (!(error instanceof SafeError) || error.stage !== "message-not-found") throw error;
         lastError = error;
       }
     }
-    if (attempt < attempts - 1) await sleep(WAIT_MS);
+    if (attempt < attempts - 1) await sleepFn(WAIT_MS);
   }
   throw lastError;
 }
@@ -676,6 +725,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   main().catch((error) => {
     const safeMessage = error instanceof SafeError ? error.message : "live proof stopped unexpectedly";
     process.stderr.write(`Freelance Margin Guard: ${safeMessage}. Sensitive details were not printed.\n`);
+    if (error instanceof SafeError && error.retryAfter) process.stderr.write(`Retry-After: ${error.retryAfter}\n`);
     process.exitCode = 1;
   });
 }

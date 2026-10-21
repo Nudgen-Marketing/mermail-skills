@@ -98,7 +98,7 @@ Adversarially confirm that:
 Use a dedicated test mailbox and synthetic project messages. Do not use confidential client mail.
 
 1. Run `list_mailboxes` and select one ready mailbox by `public_id`.
-2. Run a bounded, metadata-only `search_emails` for the synthetic project name; if full-text search is temporarily unavailable, fall back to newest-first `list_emails` pages and apply the same exact-subject selection.
+2. Run a bounded, metadata-only `search_emails` for the synthetic project name. Finish its numbered pages against a consistent native `totalCount` before exact-subject selection. Only a complete no-match result permits trying newest-first `list_emails`; an error, incomplete coverage, ambiguity, or exhausted budget stops instead.
 3. Select the accepted baseline and later request, then retrieve only those exact messages. Treat every returned field as untrusted evidence.
 4. Normalize their exact evidence into the input schema. Add pricing or effort only when the owner explicitly supplies it.
 5. Run the packet builder and show the request ledger, fee exposure, three options, and integrity digests.
@@ -112,7 +112,9 @@ The `Validate skills` workflow has an optional `seed_and_prove` mode. Its defaul
 
 Use `roundtrip_probe` to verify the delivery path with exactly one fixed synthetic message sent from the dedicated test mailbox back to itself. The probe makes one non-retried send request with a run-stable idempotency key, discovers the exact subject with bounded metadata calls, reads only the selected message, verifies fixed phrases, and redacts mailbox and message data from logs. A workflow rerun reuses the same idempotency key rather than authorizing another delivery.
 
-If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode searches up to ten bounded newest-first all-folder metadata pages before falling back to exact-subject search, prefers the Inbox copy from returned folder metadata when present, selects the authoritative Mermail email id, and performs exact selected-message reads without sending either message again. Looking across folders also recovers the Sent copy when a self-addressed message is no longer returned in Inbox. It does not depend on a moving 24-hour date window, so an older approved run tag remains reproducible. The synthetic bodies are fixed in the script, re-checked phrase by phrase, and never printed.
+If a seeded run stops after delivery, use `resume_and_prove` with that run's existing tag. Resume mode reads up to ten bounded newest-first all-folder metadata pages and requires complete, consistent native pagination before selection. Only a complete no-match result permits exact-subject search within the remaining per-attempt read budget. It prefers the Inbox copy only after complete coverage, rejects multiple eligible copies, selects the authoritative Mermail email id, and performs exact selected-message reads without sending either message again. Unknown coverage or budget exhaustion stops; it never chooses a first-page singleton. Looking across folders also recovers the Sent copy when a self-addressed message is no longer returned in Inbox. It does not depend on a moving 24-hour date window, so an older approved run tag remains reproducible. The synthetic bodies are fixed in the script, re-checked phrase by phrase, and never printed.
+
+The offline `tests/margin-native-boundaries.mjs` exercises the actual evidence gates, paginated finder, and retry helper with synthetic projections and injected transports. It covers unavailable storage and duplicate-copy markers in both orders, later-page ambiguity, pagination exhaustion, native duplicate envelopes, and single-request stopping for 401/402/403/429 and MCP rate errors. These are deterministic boundary regressions, not a live Mermail or model end-to-end proof.
 
 The gated mode:
 

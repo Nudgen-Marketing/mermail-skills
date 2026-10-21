@@ -90,7 +90,7 @@ await checkAsync("retries bounded read failures with deterministic backoff", asy
   const result = await retryReadOperation(
     async () => {
       attempts += 1;
-      if (attempts < 3) throw new SafeError("bounded-search:tool-result");
+      if (attempts < 3) throw new SafeError("bounded-search:tool-result", { retryable: true });
       return "recovered";
     },
     {

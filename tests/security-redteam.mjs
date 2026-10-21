@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import "./margin-native-boundaries.mjs";
 
 import { buildMarginPacket, verifyMarginPacket } from "../skills/mermail-freelance-margin-guard/scripts/build-margin-packet.mjs";
 import { buildFundingCovenant, observePublicSettlement, verifyFundingGate, verifyPublicFundingReceiptLive } from "../skills/mermail-freelance-margin-guard/scripts/funding-gate.mjs";
@@ -334,7 +335,7 @@ globalThis.fetch = async (url, options) => {
   else if (rpc.method === "tools/call") {
     const {name, arguments:args} = rpc.params;
     if (name === "list_mailboxes") result = {structuredContent:{items:[{public_id:"synthetic-mailbox",email:"fixture@example.test",status:"ready"}]}};
-    else if (["list_emails","search_emails"].includes(name)) result = {structuredContent:{items:metadata}};
+    else if (["list_emails","search_emails"].includes(name)) result = {structuredContent:{items:metadata,totalCount:metadata.length}};
     else if (["get_email","get_email_context"].includes(name)) {
       const body = args.emailId === "synthetic-baseline" ? baseline : change;
       const email = {id:args.emailId,date:"2026-09-29T12:00:00Z",body,folder_id:"Inbox",scan_status:"clean",agent_safe_content:true,content_omitted:false,content_truncated:false};
