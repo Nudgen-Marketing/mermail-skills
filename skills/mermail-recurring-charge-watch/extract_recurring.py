@@ -578,18 +578,18 @@ def _has_strong_recurrence(hay: str) -> bool:
 
 
 def _next_bill(hay: str) -> tuple[str | None, dict[str, Any] | None]:
+    candidates = []
     for cre in NEXT_BILL_PATTERNS:
-        m = cre.search(hay)
-        if not m:
-            continue
-        parsed = _parse_date(m.group("date"))
-        return parsed, {
-            "field": "next_bill_date",
-            "span": m.group(0).strip(),
-            "start": m.start(),
-            "end": m.end(),
-        }
-    return None, None
+        for m in cre.finditer(hay):
+            candidates.append((_parse_date(m.group("date")), {
+                "field": "next_bill_date", "span": m.group(0).strip(),
+                "start": m.start(), "end": m.end(),
+            }))
+    if not candidates:
+        return None, None
+    if any(parsed is None for parsed, _ in candidates) or len({parsed for parsed, _ in candidates}) != 1:
+        return None, {"field": "unresolved_date"}
+    return candidates[0]
 
 
 def _manage_url(hay: str, brand: str | None) -> tuple[str | None, dict[str, Any] | None, list[str]]:

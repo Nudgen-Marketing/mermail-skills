@@ -100,6 +100,10 @@ class RecurringTests(unittest.TestCase):
             with self.subTest(token=token):
                 result = helper.extract_one(synthetic(f"Amount: US$15.49. Monthly subscription. Renews on {token}."))
                 self.assertEqual(result["packet"]["next_bill_date"], expected)
+        conflicting = helper.extract_one(synthetic("Amount: US$15.49. Monthly subscription. Renews on 2027-04-25. Next billing date: 2027-05-25."))
+        self.assertEqual(conflicting["skip_reason"], "unresolved_date")
+        repeated = helper.extract_one(synthetic("Amount: US$15.49. Monthly subscription. Renews on 2027-04-25. Next billing date: 2027-04-25."))
+        self.assertEqual(repeated["packet"]["next_bill_date"], "2027-04-25")
 
     def test_urls_fail_closed_without_fetching(self):
         for url in ["https://example.test:bad/manage", "https://example.test:70000/manage",
