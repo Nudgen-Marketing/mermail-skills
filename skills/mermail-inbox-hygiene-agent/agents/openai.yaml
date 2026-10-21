@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbox Hygiene Agent"
+  short_description: "Audit noisy senders and clean up a Mermail mailbox safely"
+  default_prompt: "Use $mermail-inbox-hygiene-agent when the job is a sender audit, an exact-count cleanup plan, approved reversible folder or bulk-move changes, or a review-only unsubscribe queue."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
