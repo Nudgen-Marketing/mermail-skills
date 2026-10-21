@@ -1,6 +1,11 @@
 """Offline executable tests. No inbox, payment, or email effect."""
 import importlib.util
+import csv
+import io
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -149,6 +154,100 @@ class FinanceLedgerTests(unittest.TestCase):
             self.assertEqual('', templates[0]['to'])
             self.assertIn('10.10', templates[0]['body'])
             self.assertEqual('local_unaddressed_template_not_saved_or_sent', templates[0]['state'])
+
+
+class FinanceOutputBoundaryTests(unittest.TestCase):
+    def cli(self, *args):
+        return subprocess.run([sys.executable, '-B', str(SOURCE), *map(str, args)],
+                              capture_output=True, text=True,
+                              env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'})
+
+    def test_full_300_by_300_ambiguity_cli_reopens_and_drafts(self):
+        evidence = [row(email_id=f'email-{i}', document_id=f'document-{i}', reference='')
+                    for i in range(ledger.MAX_ROWS)]
+        transactions = [tx(reference=f'statement-{i}') for i in range(ledger.MAX_ROWS)]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            source, baseline, report_path, draft_path = [root / name for name in
+                                                        ('ledger.csv', 'transactions.csv', 'report.json', 'drafts.json')]
+            source.write_bytes(ledger.csv_bytes(evidence))
+            buf = io.StringIO(newline='')
+            writer = csv.DictWriter(buf, fieldnames=list(transactions[0]))
+            writer.writeheader()
+            writer.writerows(transactions)
+            baseline.write_text(buf.getvalue())
+            result = self.cli('reconcile', 'w', 'm', source, baseline, report_path)
+            self.assertEqual(0, result.returncode, result.stderr)
+            content = ledger.read_bytes(report_path)
+            self.assertLessEqual(len(content), ledger.MAX_BYTES)
+            report = json.loads(content)
+            self.assertEqual([], report['matched'])
+            self.assertEqual({}, report['totals'])
+            self.assertEqual(300, len(report['receipt_without_transaction']))
+            self.assertEqual(300, len(report['transaction_without_receipt']))
+            self.assertEqual(300, len(report['transactions']))
+            self.assertEqual(300, len(report['conflicts']))
+            self.assertEqual(90000, sum(c['candidate_count'] for c in report['conflicts']))
+            for conflict in report['conflicts']:
+                self.assertEqual(list(range(300)), conflict['candidate_transaction_indices'])
+                self.assertEqual(set(t['reference'] for t in transactions),
+                                 {report['transactions'][i]['reference']
+                                  for i in conflict['candidate_transaction_indices']})
+                self.assertNotIn('candidates', conflict)
+            result = self.cli('drafts', 'w', 'm', report_path, draft_path)
+            self.assertEqual(0, result.returncode, result.stderr)
+            templates = json.loads(ledger.read_bytes(draft_path))
+            self.assertEqual(50, len(templates))
+            for template in templates[25:]:
+                self.assertEqual(300, len(template['evidence']['candidate_references']))
+                self.assertNotIn('candidate_transaction_indices', template['evidence'])
+                self.assertEqual('', template['to'])
+
+    def test_oversized_serialization_and_direct_write_preserve_existing_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            existing = root / 'drafts.json'
+            original = b'{"operator_edit":"preserve me"}'
+            existing.write_bytes(original)
+            with self.assertRaisesRegex(ValueError, 'Output exceeds'):
+                ledger.write_atomic(existing, b'x' * (ledger.MAX_BYTES + 1), original)
+            self.assertEqual(original, existing.read_bytes())
+            # A legacy inline-candidate report fits the reader in UTF-8, while
+            # expanded ASCII-escaped JSON templates would exceed the same limit.
+            transactions = [tx(reference=f'{i}-' + '\U0001f642' * 150,
+                               merchant='\U0001f642' * 160) for i in range(300)]
+            report = {'workspace_id': 'w', 'mailbox_id': 'm',
+                      'transaction_without_receipt': [],
+                      'conflicts': [{'kind': 'possible_counterpart_not_confirmed',
+                                     'evidence': row(email_id=f'e-{i}'),
+                                     'candidates': transactions} for i in range(10)]}
+            source = root / 'legacy-report.json'
+            source.write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
+            self.assertLess(len(ledger.read_bytes(source)), ledger.MAX_BYTES)
+            result = self.cli('drafts', 'w', 'm', source, existing)
+            self.assertEqual(1, result.returncode)
+            self.assertIn('Output exceeds 8 MiB', result.stderr)
+            self.assertEqual(original, existing.read_bytes())
+            self.assertFalse(existing.with_name(existing.name + '.lock').exists())
+            self.assertEqual({'legacy-report.json', 'drafts.json'}, {p.name for p in root.iterdir()})
+
+    def test_cumulative_link_budget_fails_without_partial_result(self):
+        before = ledger.MAX_CANDIDATE_LINKS
+        try:
+            ledger.MAX_CANDIDATE_LINKS = 3
+            with self.assertRaisesRegex(ValueError, 'Candidate link budget'):
+                reconcile([row(reference=''), row(email_id='e2', reference='')],
+                          [tx(reference='one'), tx(reference='two')])
+        finally:
+            ledger.MAX_CANDIDATE_LINKS = before
+
+    def test_dangling_or_invalid_candidate_indices_are_not_drafted(self):
+        for indices in [[300], [-1], [True], ['0'], list(range(301))]:
+            with self.subTest(indices=indices[:2]):
+                with self.assertRaisesRegex(ValueError, 'Invalid candidate'):
+                    drafts({'transactions': [tx()], 'transaction_without_receipt': [],
+                            'conflicts': [{'kind': 'possible_counterpart_not_confirmed',
+                                           'evidence': row(), 'candidate_transaction_indices': indices}]})
 
 
 if __name__ == '__main__':

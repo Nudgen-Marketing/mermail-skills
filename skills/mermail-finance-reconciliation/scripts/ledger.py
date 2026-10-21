@@ -21,6 +21,7 @@ from pathlib import Path
 
 MAX_BYTES = 8 * 1024 * 1024
 MAX_ROWS = 300
+MAX_CANDIDATE_LINKS = MAX_ROWS * MAX_ROWS
 FIELDS = ['workspace_id', 'mailbox_id', 'email_id', 'document_id', 'date', 'merchant', 'currency',
           'amount', 'direction', 'reference', 'auth_status', 'status']
 AMOUNT = re.compile(r'-?(?:0|[1-9]\d{0,127})(?:\.\d{1,18})?\Z')
@@ -151,9 +152,11 @@ def reconcile(ledger, transactions, scope):
         txs.append(tx)
     result = {'matched': [], 'receipt_without_transaction': [], 'transaction_without_receipt': [],
               'conflicts': [], 'needs_review': [], 'totals': {},
+              'transactions': txs,
               'workspace_id': selected_scope[0], 'mailbox_id': selected_scope[1],
               'scope': 'reviewed local artifacts only'}
     used = set()
+    candidate_links = 0
     claims = {}
     for row in ledger:
         if row['reference']:
@@ -181,11 +184,18 @@ def reconcile(ledger, transactions, scope):
                     result['conflicts'].append({'kind': 'stable_reference_mismatch', 'evidence': row, 'transaction': tx})
             else:
                 result['receipt_without_transaction'].append(row)
-                near = [t for t in txs if row['merchant'].casefold() == t['merchant'].casefold()
+                near = [i for i, t in enumerate(txs) if row['merchant'].casefold() == t['merchant'].casefold()
                         and row['currency'] == t['currency'] and row['direction'] == t['direction']
                         and abs((day(row['date']) - day(t['date'])).days) <= 3]
                 if near:
-                    result['conflicts'].append({'kind': 'possible_counterpart_not_confirmed', 'evidence': row, 'candidates': near})
+                    candidate_links += len(near)
+                    if candidate_links > MAX_CANDIDATE_LINKS:
+                        raise ValueError('Candidate link budget exceeded; choose narrower artifacts')
+                    # Store each transaction once. Preserve every ambiguous link,
+                    # rather than copying up to 300 full rows into every conflict.
+                    result['conflicts'].append({'kind': 'possible_counterpart_not_confirmed', 'evidence': row,
+                                                'candidate_transaction_indices': near,
+                                                'candidate_count': len(near)})
         result['transaction_without_receipt'] = [t for t in txs if t['reference'] not in used]
     return result
 
@@ -206,10 +216,21 @@ def drafts(report, scope):
                        'evidence': tx, 'state': 'local_unaddressed_template_not_saved_or_sent'})
     for conflict in rows(report.get('conflicts', []))[:25]:
         assert_scope(conflict.get('evidence', {}), scope)
+        evidence = conflict
+        if 'candidate_transaction_indices' in conflict:
+            indices = conflict['candidate_transaction_indices']
+            transactions = rows(report.get('transactions', []))
+            if (not isinstance(indices, list) or len(indices) > MAX_ROWS or
+                    any(type(i) is not int or not 0 <= i < len(transactions) for i in indices)):
+                raise ValueError('Invalid candidate transaction indices')
+            # Templates remain standalone: stable references, not dangling indices
+            # into a report that is no longer included in this output artifact.
+            evidence = {k: v for k, v in conflict.items() if k != 'candidate_transaction_indices'}
+            evidence['candidate_references'] = [text(transactions[i].get('reference', '')) for i in indices]
         output.append({'kind': 'discrepancy', 'to': '', 'subject': 'Reconciliation question for review',
                        'body': 'My reviewed records have a possible discrepancy. Please review the attached evidence before contacting a vendor.',
                        'workspace_id': scope[0], 'mailbox_id': scope[1],
-                       'evidence': conflict, 'state': 'local_unaddressed_template_not_saved_or_sent'})
+                       'evidence': evidence, 'state': 'local_unaddressed_template_not_saved_or_sent'})
     return output
 
 
@@ -249,7 +270,21 @@ def csv_bytes(records):
     return buf.getvalue().encode('utf-8')
 
 
+def json_bytes(value):
+    """Bound encoded bytes while serializing, before creating/replacing any file."""
+    chunks, size = [], 0
+    for chunk in json.JSONEncoder(indent=2).iterencode(value):
+        encoded = chunk.encode('utf-8')
+        size += len(encoded)
+        if size > MAX_BYTES:
+            raise ValueError('Output exceeds 8 MiB; choose narrower artifacts')
+        chunks.append(encoded)
+    return b''.join(chunks)
+
+
 def write_atomic(path, content, expected):
+    if not isinstance(content, bytes) or len(content) > MAX_BYTES:
+        raise ValueError('Output exceeds 8 MiB or is not encoded bytes; no overwrite')
     path = Path(path).absolute()
     if any(p.is_symlink() for p in (path, *path.parents)):
         raise ValueError('Symlink output paths are not supported')
@@ -293,9 +328,9 @@ def main(args):
         data = csv_bytes(upsert(decode_csv(before, ledger=True), incoming, scope))
         print(json.dumps({'skipped_evidence_ids': skipped, 'local_only': True}))
     elif command == 'reconcile':
-        data = json.dumps(reconcile(decode_csv(read_bytes(paths[0]), ledger=True), decode_csv(read_bytes(paths[1])), scope), indent=2).encode()
+        data = json_bytes(reconcile(decode_csv(read_bytes(paths[0]), ledger=True), decode_csv(read_bytes(paths[1])), scope))
     else:
-        data = json.dumps(drafts(json.loads(read_bytes(paths[0])), scope), indent=2).encode()
+        data = json_bytes(drafts(json.loads(read_bytes(paths[0])), scope))
     write_atomic(output, data, before)
 
 
