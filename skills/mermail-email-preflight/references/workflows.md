@@ -62,9 +62,9 @@ Compute weekdays deterministically. Use a code tool if the host has one; otherwi
 | --- | --- | --- |
 | RCPT-1 | Malformed address (missing `@`, spaces, double dots, trailing comma) | FAIL |
 | RCPT-2 | Duplicate addresses (case-insensitive) | WARN; safe fix: dedupe |
-| RCPT-3 | Batch recipients visible to each other (more than 1 in To/Cc for a personal or bulk message) | FAIL |
-| RCPT-4 | More than 10 recipients in one request, or batch exceeds 100/day per inbox or remaining monthly quota | FAIL |
-| RCPT-5 | Batch would exceed 10 recipient units/min, 50/hour, 200/day without pacing or splitting | FAIL until a paced plan is approved |
+| RCPT-3 | Shared To/Cc visibility conflicts with intended personal/bulk privacy, or the user has not resolved that visibility choice | FAIL until explicitly reviewed; intentionally approved shared-group messages preserve exact To/Cc |
+| RCPT-4 | Delivery exceeds the live per-request recipient cap or remaining daily/monthly quota | FAIL; preserve payload, no fragmentation workaround |
+| RCPT-5 | Planned external To+Cc+Bcc units exceed current window limits, including test copies | FAIL; report live reset/Retry-After; pacing or scheduling fragments is not an exemption |
 | RCPT-6 | Role or test addresses (`test@`, `noreply@`, `example.com`) in a real send | WARN |
 | RCPT-7 | Recipient is the sending mailbox itself in a real send | WARN |
 
@@ -84,12 +84,12 @@ Compute weekdays deterministically. Use a code tool if the host has one; otherwi
 7. `save_draft` the report to the mailbox's own address (`[Preflight PASS] …`). Never send it.
 8. Test preview, then approval, then `send_email` to the user's own address with the `[TEST] ` subject prefix and the first sample recipient's rendering. Then `search_emails` (Sent, subject) + `get_email` to confirm it matches. Ask the user to check it in their real inbox.
 9. Wait for an explicit "send it". If anything changed, go back to step 4.
-10. Real send: confirm the fingerprint, strip `[TEST]`, then one `send_email` per recipient with its rendered merge values and its own idempotency key, paced about 8 seconds apart. Stop on `429` or `503`.
+10. Real send: confirm the fingerprint, strip `[TEST]`, execute the exact approved delivery plan, preserving shared To/Cc/Bcc grouping. Distinct personalized messages must have been chosen before checks, not introduced after a limit error. Stop on recipient-limit error, `429` or `503`; no new key or alternate surface retry.
 11. `search_emails` in Sent for the subject (limit 10). Report per-recipient status and credits used.
 
-## Splitting a large batch
+## Limit failure is not permission to fragment
 
-When RCPT-4 or RCPT-5 fails, propose either today's portion (≤ remaining daily quota, paced) plus `schedule_email_send` items for later windows, or a smaller list. Each schedule is an external effect that needs its own approval, at ≤ 10 recipients per request. Never promise future capacity, since quota is consumed at delivery.
+When RCPT-4 or RCPT-5 fails, stop, preserve the original candidate and report the limit, remaining capacity and any returned `Retry-After` or reset. Do not convert it to individual/Bcc sends, split over windows, silently remove recipients or switch mailbox/provider/tool. The user may independently choose a different legitimate candidate, but it needs new preflight, test and exact approval and must still meet all limits. A genuinely requested future send also requires its own approval; scheduling cannot guarantee later capacity or bypass a current rejected payload.
 
 ## Safe auto-fixes vs questions
 

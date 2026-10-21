@@ -30,7 +30,7 @@ Attachments: verify presence, filename, type, and size from `get_email` metadata
 | --- | --- | --- | --- | ---: |
 | `save_draft` | `mermail-compose-email` | Fixed candidate; internal preflight report to the mailbox's own address (`body.body` string; pass `draft_id` when replacing an existing draft and the live schema supports it) | Internal | 2 |
 | `send_email` | `mermail-compose-email` | `[TEST]` copy to the user's own address; then one real send per recipient (`body.from`, `body.to`, `body.subject`, `body.html`/`body.text`) | External | 5 |
-| `schedule_email_send` | `mermail-compose-email` | Only when the user chooses to split a batch over windows; each schedule needs its own approval | External | 5 |
+| `schedule_email_send` | `mermail-compose-email` | Only an independently selected future delivery; exact preview and approval, never fragments to evade a rejected delivery limit | External | 5 |
 
 There is no preflight-specific tool. Do not invent one (`preflight_email`, `validate_links`, `send_test`). Use the tools above plus the host's own HTTP/web-fetch tool, if one exists, for reachability.
 
