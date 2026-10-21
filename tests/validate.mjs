@@ -2377,7 +2377,8 @@ async function validatePluginManifests() {
   if (genericMcp.mcpServers?.mermail?.url !== coverage.mcpEndpoint) {
     errors.push(`Generic/Claude MCP config URL must be ${coverage.mcpEndpoint}`);
   }
-  // Preserve the current-main empty default so an unset key does not override OAuth.
+  // The empty default keeps OAuth working when MERMAIL_API_KEY is unset;
+  // otherwise Claude Code sends the literal "${MERMAIL_API_KEY}" header.
   if (genericMcp.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY:-}") {
     errors.push("Claude MCP config must expand MERMAIL_API_KEY with an empty default in x-api-key");
   }
