@@ -56,4 +56,4 @@ Use this skill to enable an autonomous AI agent operating with a Mermail mailbox
 A 1080p full demonstration showing the live execution of this skill, MCP connection, wallet liquidity verification, on-chain Solana USDC settlement, and email receipt dispatch:
 - **Hosted Video Demo**: [https://gofile.io/d/UOhCC637](https://gofile.io/d/UOhCC637) (Instant streaming & download)
 - **Direct Stream (Mirror)**: [https://tmpfiles.org/wAwENFb46fNn/demo_video_mermail_skill.mp4](https://tmpfiles.org/wAwENFb46fNn/demo_video_mermail_skill.mp4)
-- **Repository Video Asset**: [assets/demo_video_mermail_skill.mp4](assets/demo_video_mermail_skill.mp4)
+- **Submitted repository video**: [View the original demo on GitHub](https://github.com/litixboi/mermail-skills/blob/4301894aeec904b960a1310f2ef78582003c4fa9/skills/mermail-invoice-settler/assets/demo_video_mermail_skill.mp4). Video and thumbnail binaries remain in the repository but are excluded from the install bundle to respect its size limit. This historical submission video is not verification of the current PR head; no replay, payment or email send is required to install or inspect the skill.

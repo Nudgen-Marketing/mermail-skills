@@ -1,3 +1,7 @@
 # Development-only root tests are not declared runtime package content.
-# They still run in CI before packaging; no skill or runtime resource is excluded.
+# They still run in CI before packaging.
 tests/
+# Submitted demo media stays in GitHub; it is not needed to execute the skill.
+skills/mermail-invoice-settler/assets/demo_video_mermail_skill.mp4
+skills/mermail-invoice-settler/assets/thumb_135s.jpg
+skills/mermail-invoice-settler/assets/thumb_190s.jpg
