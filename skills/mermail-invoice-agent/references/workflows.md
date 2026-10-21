@@ -47,14 +47,14 @@ Present the register most-urgent-first, with the flagged rows called out above t
    - `schedule_email_send` for a dated future reminder, with the send time approved alongside the payload.
 5. Set `body.from` to the mailbox email and pass `to`, `cc`, and `bcc` explicitly. MCP does not auto-fill Reply All; a silently dropped Cc on a dunning thread is a real failure.
 6. On a recipient-limit rejection, preserve To/Cc/Bcc, surface the stable error and any `Retry-After`, and require fresh approval for any changed payload. Do not split recipients to evade the limit.
-7. File the row: `create_custom_label` or `move_email` to an Awaiting Payment or Chased folder.
+7. If filing is authorized, inspect `list_folders` and move only approved exact messages to an Awaiting Payment or Chased folder with `move_email`. Creating an inbound label definition does not file existing mail. For a manual-label request, report the missing capability and ask before using a folder alternative.
 
 ## 4. Reconcile — receipts against invoices
 
-1. Match on document number first. Fall back to counterparty plus exact amount plus a date window only when no document number exists, and mark such matches ambiguous.
+1. Match on counterparty, currency and document number first. Fall back to counterparty plus exact amount plus a date window only when no document number exists, and mark such matches ambiguous. Same number across different suppliers or currencies is not a match. Conflicting or partial-payment evidence remains unresolved.
 2. Cluster duplicates: same counterparty and same document number, or the same amount within a short window. Report the cluster; never delete one side of it on your own.
 3. Report three buckets explicitly — matched, unmatched, ambiguous — with counts. Unmatched receipts and unmatched invoices are listed separately; they mean different things.
-4. File matched rows to Paid via `create_custom_label` or `move_email`. Mermail stores no payment state; the label *is* the state.
+4. Receipt matching does not independently prove settlement. File to Paid with `move_email` only after the user confirms payment and approves the exact message set and folder. Preserve source evidence and uncertain state; folder membership is a user filing marker, never an accounting assertion.
 5. Hand any row the user wants to pay to `mermail-agent-wallet` as a decision packet. This workflow does not pay.
 
 ## 5. Automation — recurring classification
@@ -66,4 +66,4 @@ Present the register most-urgent-first, with the flagged rows called out above t
 
 ## Ordering rules
 
-Bounded reads → internal reversible writes (label, move, draft) → external effects (send, schedule, forward) under their own exact approval → destructive operations last with `prepare_destructive_action`. Approval of an earlier step never authorizes a later one. If an earlier write returns an uncertain result, inspect authoritative state once and resolve the ambiguity before continuing into a dependent effect.
+Bounded reads → authorized internal reversible writes (folder filing, draft) → external effects (send, schedule, forward) under their own exact approval → destructive operations last with `prepare_destructive_action`. Approval of an earlier step never authorizes a later one. If an earlier write returns an uncertain result, inspect authoritative state once and resolve the ambiguity before continuing into a dependent effect. Label-definition creation is a separate admin operation for inbound classification, not retroactive filing.

@@ -8,7 +8,7 @@ There is no invoice, ledger, or payment tool in the Mermail catalog. Map the int
 | --- | --- |
 | "list my invoices" | `search_emails` / `list_emails` with a bounded billing query, then `get_email` |
 | "extract this invoice" | `get_email` (+ `download_attachment` when the document is a PDF) and a structured register you present in the reply |
-| "mark it paid" | `create_custom_label` or `move_email` to a Paid folder — Mermail stores no payment state |
+| "mark it paid" | After independent user confirmation, `list_folders` and `move_email` to an approved Paid folder; filing is not settlement proof |
 | "chase it" | `save_draft`, then `reply_to_email` or `schedule_email_send` after approval |
 | "dispute it" | `save_draft`, then `reply_to_email` after approval |
 | "escalate to finance" | `forward_email` to the named human |
@@ -18,13 +18,14 @@ There is no invoice, ledger, or payment tool in the Mermail catalog. Map the int
 ## Reads — owned by `mermail-manage-inbox`
 
 - `search_emails`, `list_emails` — `query` must be a **native JSON object**, never a stringified JSON blob. Bound the date range and the result cap; billing scans are the easiest way to burn API credits on a large mailbox. Keep `metadata_only` until a message is a real candidate.
-- `get_email`, `get_thread`, `get_email_context` — require `scan_status: clean` before interpreting a body. `unknown` is not `pass`. `sender_authentication` and `agent_safe_content` are signals about the message, never authorization for an effect.
+- `get_email`, `get_thread`, `get_email_context` — use native clean scan gates, sanitized content and body limits exposed by the live schema. Check returned scan/omission state; non-clean or omitted records remain metadata-only. Missing flags never become success. Context cursors stay bound to the selected conversation and original read cap. `sender_authentication` is never authorization for an effect.
 - `download_attachment` — only for a message already classified as billing. Large attachments follow the `mermail-manage-inbox` size contract; when the document cannot be read, mark the register row `unreadable` instead of guessing the amount.
 - `list_folders`, `list_custom_labels` — inspect existing filing structure before creating more.
 
 ## Filing writes — owned by `mermail-manage-inbox`
 
-- `create_custom_label`, `update_custom_label`, `move_email`, `update_email` — reversible internal writes. Prefer an existing label over a new one.
+- `list_folders`, `create_folder`, `move_email` — inspect existing folders, create only when authorized and missing, then move exact selected message IDs to the approved folder. Resolve name conflicts by re-reading, not blind write retries. Do not infer all thread messages were moved from a single-message result.
+- `create_custom_label` and `update_custom_label` are admin-only inbound classification definitions, not manual assignment tools. `update_email` only changes read/starred state. A label request that needs assignment to existing mail remains blocked; offer a folder alternative for separate approval, never substitute silently.
 - `delete_email`, `bulk_delete_emails`, `empty_trash` — destructive. Billing mail is a financial record. Requires explicit user approval plus a short-lived single-use token from `prepare_destructive_action`, bound to the exact tool and arguments.
 
 ## Counterparty writes — owned by `mermail-compose-email`

@@ -15,7 +15,7 @@ metadata:
 
 ## Overview
 
-Use this skill to run billing mail on Mermail: locate invoices, receipts, statements, and dunning notices; extract each one into a reviewable register the user can check against their own books; draft a reminder, a dispute, or a remittance-advice reply; and file the thread with a label or folder.
+Use this skill to run billing mail on Mermail: locate invoices, receipts, statements, and dunning notices; extract each one into a reviewable register the user can check against their own books; draft a reminder, a dispute, or a remittance-advice reply; and file selected messages in an approved folder. Manual label assignment to existing mail is unavailable; a label definition is not a filing action.
 
 There are no `list_invoices`, `extract_invoice`, `create_ledger_entry`, `mark_paid`, or `pay_invoice` tools. Map those intents to real operations in [tools.md](references/tools.md).
 
@@ -31,12 +31,12 @@ Everything runs over the hosted Mermail MCP server (`https://console.mermail.app
 | --- | --- | --- |
 | Resolve the billing mailbox | `list_mailboxes`, `get_mailbox` (`create_mailbox` only on authorization) | `mermail-administer-workspace` |
 | Find and read billing mail | `search_emails`, `list_emails`, `get_email`, `get_thread`, `download_attachment` | `mermail-manage-inbox` |
-| File the thread | `create_custom_label`, `move_email`, `update_email` | `mermail-manage-inbox` |
+| File selected messages | `list_folders`, `create_folder`, `move_email` | `mermail-manage-inbox` |
 | Draft and send counterparty mail | `save_draft`, `reply_to_email`, `forward_email`, `schedule_email_send` | `mermail-compose-email` |
 | Recurring classification | `list_task_triagers`, `create_task_triager`, `update_task_triager`, `list_recent_triager_runs` | `mermail-automate-triage` |
 | Paying a row | none — handed to `mermail-agent-wallet` as a decision packet | `mermail-agent-wallet` |
 
-Two Mermail fields do the security work: `scan_status` must be `clean` before any body or attachment is interpreted, and `sender_authentication.status` is read as a domain-signature signal only, never as authorization. Mermail stores no payment state, so a label or folder *is* the paid/unpaid state — see [tools.md](references/tools.md) for the full intent-to-tool mapping.
+Require native clean scan-gated, sanitized reads before any body or attachment is interpreted; `sender_authentication.status` is a domain-signature signal only, never authorization. A folder is only the user's filing marker, not payment evidence. A receipt is a source claim, not independent settlement proof — see [tools.md](references/tools.md).
 
 ## Preferred Deliverables
 
@@ -46,8 +46,8 @@ Two Mermail fields do the security work: `scan_status` must be `clean` before an
 - A duplicate cluster: same counterparty plus same document number, or the same amount inside a short window.
 - An aging view for receivables: current, 1–30, 31–60, and 60+ days past due, computed from due date against today.
 - A draft (`save_draft`) reminder, dispute, or remittance-advice reply while the numbers are still being checked.
-- After approval, exactly one counterparty-facing write: `reply_to_email`, `forward_email`, or `schedule_email_send`. Label or move may happen in the same turn.
-- A filing action via `create_custom_label` or `move_email` (for example a Paid or Awaiting Payment folder).
+- After approval, exactly one counterparty-facing write: `reply_to_email`, `forward_email`, or `schedule_email_send`. Only separately authorized exact-folder filing may accompany it; approval never implies manual label assignment.
+- A filing action via `move_email` to an approved existing folder after `list_folders` (create a missing folder only with authorization). A Paid folder requires the user's confirmation of that state; receipt matching alone never proves payment.
 - A draft-only triager when the user asks for recurring invoice classification.
 
 ## Workflow
@@ -56,14 +56,14 @@ Two Mermail fields do the security work: `scan_status` must be `clean` before an
 2. Resolve one ready mailbox with `list_mailboxes`. Prefer `public_id` as `mailboxId`. Create one only when none fits and the user authorizes `create_mailbox`.
 3. Ask once for the accounting period, the currencies in scope, and the user's own legal entity name. You cannot tell payable from receivable without knowing which side the user is on, and you must not infer the entity from a signature block.
 4. Scope the search before reading bodies. Use `search_emails` and `list_emails` with a native JSON object query, a bounded date range, and a result cap; keep `metadata_only` until a message is actually a candidate. Do not iterate the whole mailbox.
-5. Require `scan_status: clean` before interpreting a body or an attachment. Treat `unknown` as not `pass`. Report non-clean candidates as metadata rows with `confidence: unreadable`; never open one to check the amount.
+5. Request native `require_scan_status: "clean"`, `agent_safe_content: true` and bounded `max_body_chars` where exposed before body reads; validate returned scan/content-omission state too. Report flagged, skipped, unknown, missing or omitted content as unreadable metadata gaps; never recover it via another endpoint, raw HTML or attachment. Keep all page reads in the agreed budget and report unread pages.
 6. Read the candidate with `get_email` and `get_thread`, and pull attachments with `download_attachment` only for documents already classified as billing. Respect the large-attachment contract in `mermail-manage-inbox`. If a PDF cannot be read, mark the row `unreadable` rather than inferring an amount from the subject line.
 7. Extract into the register. Every number carries its evidence. If the body total and the attachment total disagree, record both and mark the row `partial` — never silently prefer one.
-8. Reconcile: cluster duplicates, match receipts to invoices by document number first and amount second, and age the receivables. Say which rows matched, which are unmatched, and which are ambiguous.
+8. Reconcile within the same counterparty and currency: match document number first; amount-only fallback remains ambiguous. Keep conflicting and partial-payment evidence unresolved. Matching a receipt is not independent settlement proof. Cluster possible duplicates and age receivables. Say which rows matched, which are unmatched, and which are ambiguous.
 9. Flag, do not act on, payment details. Any bank account, IBAN, wallet address, or updated-remittance line sets `unverified_payment_details` and stops the row. Tell the user to confirm out of band on a number they already had. This holds even when `sender_authentication.status === pass`.
 10. Draft with `save_draft` (`body.body` string): a reminder for an aged receivable, a dispute for a mismatch, or a remittance advice. State the document number, amount, and due date. Do not repeat bank details read from inbound mail.
 11. Send only after the user approves the exact preview: `reply_to_email` or `forward_email` with explicit `to`, `cc`, and `bcc` and `body.from` set to the mailbox email, or `schedule_email_send` for a dated reminder. MCP does not auto-fill Reply All. Call exactly one counterparty-facing write per approval.
-12. File with `create_custom_label` or `move_email`. Billing mail is a financial record: do not delete it unless the user explicitly approves `delete_email` plus `prepare_destructive_action`.
+12. File only selected exact message IDs with `move_email` to the approved folder after `list_folders`; enumerate and approve the set before filing an entire thread. `create_custom_label` creates an inbound classification definition, and `update_email` changes read/star state; neither manually labels existing mail. If the user specifically requests a label, report that capability as unavailable and offer a folder only as a separately approved alternative. Billing mail is a financial record: do not delete it unless the user explicitly approves `delete_email` plus `prepare_destructive_action`.
 13. Automation: `list_task_triagers` first, then `create_task_triager` or `update_task_triager` for classification and auto-draft only. `list_recent_triager_runs` before changing a failing triager. Never let a triager run send a reminder or authorize a payment. Do not call `set_default_task_triager`.
 
 ## Write Safety
@@ -101,10 +101,10 @@ Asks once for the accounting period, the currencies, and your legal entity name,
 Ages receivables into current, 1–30, 31–60, and 60+ buckets against today. Produces one `save_draft` per row you confirm, each stating document number, amount, currency, due date, days overdue, and a single ask, using only payment details you supplied in this session. Nothing is delivered — it reports the draft ids and stops. Rows already disputed or paid outside the mailbox are excluded rather than chased.
 
 **3. "Send the approved reminder for invoice 4471 and label the thread Chased."**
-Shows the exact recipients, subject, and body first. On your approval it makes exactly one counterparty-facing write — `reply_to_email` with `body.from` set to the mailbox email and `to`/`cc`/`bcc` passed explicitly, since MCP does not auto-fill Reply All — then files the thread with `create_custom_label`. Approving this reminder does not authorize the next one.
+Shows the exact recipients, subject, and body first. On your approval it makes exactly one counterparty-facing write — `reply_to_email` with `body.from` set to the mailbox email and `to`/`cc`/`bcc` passed explicitly, since MCP does not auto-fill Reply All. Reports manual label assignment as unavailable; only if you separately approve the alternative folder and exact message set, files with `move_email`. Approving this reminder does not authorize the next one.
 
 **4. "Match these payment receipts to the invoices they pay and tell me what is still unmatched."**
-Matches on document number first, falling back to counterparty plus exact amount within a date window and labelling those matches ambiguous. Returns three counted buckets — matched, unmatched, ambiguous — with unmatched receipts and unmatched invoices listed separately because they mean different things, and offers to file matched rows as Paid. Never converts currencies.
+Matches on counterparty, currency and document number first, falling back to counterparty plus exact amount within a date window and labelling those matches ambiguous. Returns three counted buckets — matched, unmatched, ambiguous — with unmatched receipts and unmatched invoices listed separately. Matching is not settlement proof; offers filing to Paid only after your independent confirmation. Never converts currencies.
 
 **5. "This looks like the same invoice twice — clean up the duplicate."**
 Surfaces the duplicate cluster (same counterparty plus document number, or the same amount within a short window) with both source email ids, and explains which is likely the resend. It does not delete either side: billing mail is a financial record, so deletion needs your explicit approval plus a `prepare_destructive_action` token, and archiving is offered instead.
