@@ -15,18 +15,19 @@ Pass `query` and `body` as **native JSON objects**. Never stringify them. Use th
 - Full-profile Mermail access is required: the restricted agent-inbox profile cannot run the arbitrary searches this workflow needs.
 - `search_emails` with sender/recipient/subject/`date_start` bounds first; fall back to newest-first `list_emails`. Keep every pass bounded and count retries inside the same deadline. Request `metadata_only` and `agent_safe_content` fields when the live schema exposes them.
 - Validate before interpretation: expected mailbox, sender allowlist or verified registrable domain, `scan_status: clean`, in-period timestamp. Metadata-only treatment for anything flagged, skipped, unknown, or missing scan state.
+- After metadata validation, selected body reads must use native `get_email` arguments: `mailboxId`, `emailId`, `query: {"require_scan_status":"clean","agent_safe_content":true,"max_body_chars":10000}`. Unknown storage state, omitted/unavailable or truncated content remains incomplete; never retry as a raw read. Search filters find candidates, not authenticated evidence. Search uses `query.from`, `query.to`, `query.query`, `query.date_start`/`date_end`; list-only `sortColumn`/`sortDirection` do not sort search results. Locally order the bounded reviewed slice by parsed timestamps and disclose unread pages.
 - `get_email_context` only after a message is selected and only as far as the period or thread requires; never use thread context to decide an amount.
 
 ## Ledger
 
 - Per-entry evidence: mailbox, `messageId`, sender address, `scan_status`, in-period date, document number if stated.
-- Idempotency by (message ID, document number). Duplicates are reported; corrected documents create a superseding entry with both retained.
-- Amounts, currencies, and tax lines are document-stated facts only. No conversion, no computation, no inference.
+- Scope evidence keys to workspace/mailbox/message ID plus document number when stated. Cross-message invoice/receipt/confirmation duplication needs event linkage, not a second expense. Retain superseded entries but exclude their amounts from active totals.
+- Amounts, currencies, and tax lines are document-stated facts only. No tax computation or conversion. Exact decimal sums of supported active entries are allowed, separately by currency, event type and due/paid status; never infer payment from an invoice.
 
 ## Draft and delivery
 
 - Draft content is the string `body.body` for `save_draft`; send content is `body.html` and/or `body.text` with required `body.from` for `send_email`.
-- One idempotency key per approved send (`bookkeeper-summary-{period}-{recipient-domain}` pattern). Preserve To/Cc/Bcc exactly as approved. Do not invent recipients.
+- Allocate one opaque stable idempotency key to the exact approved workspace/mailbox/period/content version and full To/Cc/Bcc/attachment set. A period and recipient domain alone are not unique (two accountants can share a domain). Preserve the key across uncertainty and reconcile the original outcome; do not create a replacement or reuse it for a different summary. Preserve all approved fields exactly and do not invent recipients.
 - Attachments only when the live send schema supports them and the owner approved the exact attachment; otherwise keep summaries in-body and bounded.
 
 ## Forbidden surfaces

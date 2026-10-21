@@ -206,7 +206,7 @@ Treat `scan_status` as an execution gate:
 
 - `clean`: inspect bounded sanitized text, while retaining all sender/time/subject checks.
 - `flagged`: quarantine; show only non-secret metadata and threat categories.
-- `skipped`, `unknown`, or missing: remain metadata-only unless a trusted scanner completes or the user explicitly approves a manual inspection.
+- `skipped`, `unknown`, or missing: remain metadata-only until a trusted scanner completes. User approval does not replace the native clean-scan gate or authorize a raw-content fallback; a separate user-controlled inspection is not validated extraction by this skill.
 
 `sender_authentication` is a separate, additive object with `status`, `spf`,
 `dkim`, `dmarc`, `inbound_provider`, and `reason`. Current Resend and Cloudflare
