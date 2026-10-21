@@ -23,11 +23,12 @@ Pass structured arguments as **native JSON objects**. Never stringify `query` or
 | --- | --- | --- |
 | `list_mailboxes` | `mermail-administer-workspace` | Discover a ready support mailbox |
 | `create_mailbox` | `mermail-administer-workspace` | Provision only when none fits (10 credits; `email` + `name` required) |
+| `update_mailbox_settings` | `mermail-administer-workspace` | Admin-only configuration of `agentAutoResponse.mode`; support uses the resulting policy |
 | `list_task_triagers` / `list_recent_triager_runs` | `mermail-automate-triage` | Inspect before create/update |
 | `create_task_triager` / `update_task_triager` | `mermail-automate-triage` | Classification and auto-draft only |
 | `list_agent_conversations` / `chat_with_mailbox_agent` | `mermail-mail-agent` | Only when the user explicitly wants the in-app Assistant |
 
-Do not call `set_default_task_triager`. MCP does not auto-fill Reply All.
+`draft_for_review` and `automatic_triage` are mailbox response modes, not task triager settings. Do not call `set_default_task_triager`. MCP does not auto-fill Reply All.
 
 ## Examples
 

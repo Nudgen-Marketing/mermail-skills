@@ -1,0 +1,10 @@
+{
+  "id": "mermail",
+  "name": "Mermail",
+  "description": "Privacy-first email inboxes and workspace automation for AI agents through Mermail MCP.",
+  "icon": "https://raw.githubusercontent.com/Nudgen-Marketing/mermail-skills/main/assets/logo.png",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}

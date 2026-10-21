@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
+    paths:
+      - "skills/**"
+      - ".github/workflows/clawhub-skill-publish.yml"
+      - "scripts/clawhub-ci-publish.py"
   pull_request:
     paths:
       - "skills/**"
@@ -11,11 +15,51 @@ on:
       - "scripts/clawhub-ci-publish.py"
   workflow_dispatch:
 
+concurrency:
+  group: clawhub-skills-${{ github.event_name == 'pull_request' && github.ref || 'publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
 jobs:
-  publish:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Validate repository before publishing
+        run: npm test
+
+      - name: Resolve skill publish version
+        run: |
+          set -euo pipefail
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            [[ "$GITHUB_REF" == "refs/heads/main" || "$GITHUB_REF" == refs/tags/v* ]] || {
+              echo "::error::Manual skill publishes must run from main or a v* tag."
+              exit 1
+            }
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+            if [[ "$TAG_VERSION" != "$PACKAGE_VERSION" ]]; then
+              echo "::error::Tag version v$TAG_VERSION must match package.json version $PACKAGE_VERSION."
+              exit 1
+            fi
+          fi
+
+  dry-run:
+    needs: validate
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -26,19 +70,50 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+          package-manager-cache: false
+
+      - name: Install ClawHub CLI
+        run: npm i -g clawhub@0.23.3
+
+      - name: Run skill publish dry-run
+        env:
+          CLAWHUB_OWNER: mermail
+          CLAWHUB_ROOT: skills
+          CLAWHUB_DRY_RUN: "true"
+          CLAWHUB_TAGS: latest
+          CLAWHUB_SITE: https://clawhub.ai
+          CLAWHUB_REGISTRY: https://clawhub.ai
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: ${{ github.ref }}
+        run: python3 scripts/clawhub-ci-publish.py
+
+  publish:
+    needs: validate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: clawhub
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
 
       - name: Install ClawHub CLI
         run: npm i -g clawhub@0.23.3
 
       - name: Validate publish mode inputs
         env:
-          DRY_RUN: ${{ github.event_name == 'pull_request' }}
           CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
         run: |
-          if [[ "$DRY_RUN" == "true" || -n "$CLAWHUB_TOKEN" ]]; then
+          if [[ -n "$CLAWHUB_TOKEN" ]]; then
             exit 0
           fi
-          echo "::error::Real skill publishes need secrets.CLAWHUB_TOKEN."
+          echo "::error::Live skill publishes need the CLAWHUB_TOKEN environment secret."
           exit 1
 
       - name: Write ClawHub config
@@ -64,6 +139,7 @@ jobs:
               + "\n",
               encoding="utf-8",
           )
+          path.chmod(0o600)
           print(path)
           PY
           echo "CLAWHUB_CONFIG_PATH=$RUNNER_TEMP/clawhub-config.json" >> "$GITHUB_ENV"
@@ -72,10 +148,18 @@ jobs:
         env:
           CLAWHUB_OWNER: mermail
           CLAWHUB_ROOT: skills
-          CLAWHUB_DRY_RUN: ${{ github.event_name == 'pull_request' }}
           CLAWHUB_TAGS: latest
           CLAWHUB_SITE: https://clawhub.ai
           CLAWHUB_REGISTRY: https://clawhub.ai
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: ${{ github.ref }}
         run: python3 scripts/clawhub-ci-publish.py
+
+      - name: Remove temporary ClawHub credentials
+        if: ${{ always() }}
+        env:
+          CLAWHUB_CONFIG_PATH: ${{ env.CLAWHUB_CONFIG_PATH }}
+        run: |
+          if [[ -n "$CLAWHUB_CONFIG_PATH" && -f "$CLAWHUB_CONFIG_PATH" ]]; then
+            shred -u "$CLAWHUB_CONFIG_PATH" 2>/dev/null || unlink "$CLAWHUB_CONFIG_PATH"
+          fi

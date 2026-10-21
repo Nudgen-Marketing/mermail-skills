@@ -1,0 +1,79 @@
+name: Cursor Directory submission readiness
+
+on:
+  pull_request:
+    paths:
+      - ".plugin/**"
+      - ".cursor-plugin/**"
+      - ".mcp.json"
+      - "skills/**"
+      - "README.md"
+      - "CURSOR_DIRECTORY.md"
+      - "tests/validate.mjs"
+      - ".github/workflows/cursor-directory.yml"
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - ".plugin/**"
+      - ".cursor-plugin/**"
+      - ".mcp.json"
+      - "skills/**"
+      - "README.md"
+      - "CURSOR_DIRECTORY.md"
+      - "tests/validate.mjs"
+      - ".github/workflows/cursor-directory.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cursor-directory-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Validate repository metadata
+        run: npm test
+
+      - name: Verify Cursor Directory submission inputs
+        run: |
+          test -f CURSOR_DIRECTORY.md
+          test -f .mcp.json
+          test -f .plugin/plugin.json
+          test -f .cursor-plugin/plugin.json
+          test -f .cursor-plugin/mcp.json
+          test -d skills
+          test -n "$(find skills -mindepth 2 -maxdepth 2 -name SKILL.md -print -quit)"
+
+      - name: Summarize submission handoff
+        env:
+          REPOSITORY_URL: https://github.com/${{ github.repository }}
+        run: |
+          {
+            echo "## Cursor Directory handoff"
+            echo
+            echo "Official submission remains web-based at https://cursor.directory/plugins/new."
+            echo
+            echo "- Repository: ${REPOSITORY_URL}"
+            echo "- Skills path: \`skills/*/SKILL.md\`"
+            echo "- MCP path: \`.mcp.json\`"
+            echo "- Generic plugin manifest: \`.plugin/plugin.json\`"
+            echo "- Cursor plugin manifest: \`.cursor-plugin/plugin.json\`"
+            echo "- Cursor MCP manifest: \`.cursor-plugin/mcp.json\`"
+            echo
+            echo "This workflow verifies the repo is submission-ready and keeps the required files green on PRs, main, and release tags."
+          } >> "$GITHUB_STEP_SUMMARY"
