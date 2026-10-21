@@ -998,7 +998,7 @@ for (const required of [
 }
 for (const required of [
   "env_http_headers",
-  '"x-api-key": "${MERMAIL_API_KEY}"',
+  '"x-api-key": "${MERMAIL_API_KEY:-}"',
   '"x-api-key": "${env:MERMAIL_API_KEY}"',
   "host-qualified identifiers",
   "Never manually add, strip, or invent the qualifier",
@@ -2425,8 +2425,9 @@ async function validatePluginManifests() {
   if (genericMcp.mcpServers?.mermail?.url !== coverage.mcpEndpoint) {
     errors.push(`Generic/Claude MCP config URL must be ${coverage.mcpEndpoint}`);
   }
-  if (genericMcp.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY}") {
-    errors.push("Claude MCP config must expand MERMAIL_API_KEY in x-api-key");
+  // Preserve the current-main empty default so an unset key does not override OAuth.
+  if (genericMcp.mcpServers?.mermail?.headers?.["x-api-key"] !== "${MERMAIL_API_KEY:-}") {
+    errors.push("Claude MCP config must expand MERMAIL_API_KEY with an empty default in x-api-key");
   }
 
   const claudeMarketplace = JSON.parse(
