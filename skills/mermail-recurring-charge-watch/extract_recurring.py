@@ -829,6 +829,33 @@ def _load_payload(raw: str) -> list[dict[str, Any]]:
     raise TypeError("JSON root must be an object or array")
 
 
+def normalize_native_get_email(email: dict[str, Any]) -> dict[str, Any]:
+    """Normalize only the documented native safe get_email projection.
+
+    That projection emits positive omission/truncation markers, not explicit
+    false values. Their absence has meaning only with the exact safe text
+    projection below. Generic fixture/unknown-provider inputs stay strict.
+    This is a format check, not proof of origin, scope or authentication.
+    """
+    if (email.get("agent_safe_content") is not True
+            or email.get("body_format") != "text"
+            or email.get("scan_status") != "clean"
+            or not isinstance(email.get("body"), str)
+            or len(email["body"]) > MAX_BODY_CHARS
+            or not isinstance(email.get("id"), str)
+            or not email["id"]):
+        raise ValueError("unknown native projection")
+    if any(key in email and email[key] is not False
+           for key in ("content_omitted", "content_truncated")):
+        raise ValueError("incomplete native projection")
+    if "content_omission_reason" in email or "body_original_char_count" in email:
+        raise ValueError("conflicting completeness evidence")
+    if not isinstance(email.get("sender"), str) or not isinstance(email.get("recipient"), str):
+        raise ValueError("unknown native message fields")
+    return {**email, "from": email["sender"], "to": email["recipient"],
+            "content_omitted": False, "content_truncated": False}
+
+
 def _read_inputs(argv: list[str]) -> list[dict[str, Any]]:
     emails: list[dict[str, Any]] = []
     if not argv:
@@ -857,13 +884,20 @@ def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
     if args and args[0] in {"-h", "--help"}:
         sys.stdout.write(
-            "Usage: extract_recurring.py [file.json ...] [fixtures-dir]\n"
+            "Usage: extract_recurring.py [--native-get-email] [file.json ...] [fixtures-dir]\n"
             "       cat fixture.json | extract_recurring.py\n"
             "No network. Emits mermail.recurring_charge_watch.v1 JSON.\n"
         )
         return 0
     try:
+        native = bool(args and args[0] == "--native-get-email")
+        if native:
+            args = args[1:]
         emails = _read_inputs(args)
+        if native:
+            if len(emails) != 1:
+                raise ValueError("select one native message")
+            emails = [normalize_native_get_email(emails[0])]
     except (OSError, ValueError, TypeError):
         sys.stderr.write("error: invalid or oversized email JSON input\n")
         return 2

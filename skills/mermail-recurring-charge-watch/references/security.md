@@ -13,6 +13,7 @@ Mailbox possession proves only that the current Mermail credential can read that
 
 - `scan_status: "clean"` is a content-safety signal, not sender authentication. Only `sender_authentication.status === "pass"` may be called authenticated. Current providers often report `unknown`; unknown is not a pass.
 - Before body access, require observed native clean and complete safe content. Helper input must explicitly contain `content_omitted: false` and `content_truncated: false`, normalized only from the exact observed provider contract. Missing/unknown flags never default to false. Clean alone does not prove completeness. Unknown, omitted, truncated, unavailable or oversized bodies are `unreadable` (flagged stays `flagged`).
+- Known absence in the documented native positive-marker projection is distinct from unknown generic metadata: only the explicit adapter in [tools.md](tools.md) may normalize it after checking the exact safe-text/native-field contract. It is not a raw-content fallback or proof of response origin. Stop on changed/unknown contracts or conflicting markers.
 - Baseline ids are **Mermail email `id` values**, never provider/RFC `message_id`.
 - Manage/cancel URLs are **parsed locally**. Never preflight, GET, HEAD, unfurl, or click them. After a fresh operator yes, a **human** (or a separately authorized browser skill) validates the initial HTTPS hostname and every redirect.
 - Reject `http://`, userinfo, IP-literal hosts, non-443 ports, and known shorteners when recording a URL.

@@ -145,6 +145,28 @@ class RecurringTests(unittest.TestCase):
             self.assertEqual(failed.returncode, 2)
             self.assertNotIn("PRIVATE_MARKER", failed.stderr)
 
+    def test_known_native_positive_marker_projection_normalizes_without_generic_defaults(self):
+        native = {"id": "native_demo_001", "sender": "billing@example.test",
+                  "recipient": "owner@example.test", "subject": "Your Example receipt",
+                  "scan_status": "clean", "agent_safe_content": True, "body_format": "text",
+                  "body": "We charged US$15.49. Monthly subscription. Renews on 2027-04-25."}
+        self.assertEqual(helper.extract_one(native)["skip_reason"], "unreadable")
+        normalized = helper.normalize_native_get_email(native)
+        self.assertEqual(helper.extract_one(normalized)["packet"]["amount"], "15.49")
+        self.assertNotIn("content_omitted", native)
+        success = subprocess.run([sys.executable, "-B", str(HELPER), "--native-get-email"],
+                                 input=json.dumps(native), text=True, capture_output=True, timeout=5)
+        self.assertEqual(success.returncode, 0)
+        self.assertEqual(json.loads(success.stdout)["decision"], "audit")
+        for changes in [{"agent_safe_content": False}, {"body_format": "html"},
+                        {"content_omitted": True}, {"content_truncated": True},
+                        {"content_truncated": "false"}, {"content_omitted": 0},
+                        {"content_omission_reason": "unknown"}, {"body_original_char_count": 15000},
+                        {"scan_status": "unknown"}, {"sender": None}]:
+            with self.subTest(changes=changes):
+                with self.assertRaises(ValueError):
+                    helper.normalize_native_get_email({**native, **changes})
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

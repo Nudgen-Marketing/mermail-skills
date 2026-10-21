@@ -102,3 +102,13 @@ python3 -B tests/recurring-charge-watch.test.py
 ```
 
 The helper opens no sockets. It is not an MCP tool. These tests are not live-agent/provider proof. Historical fixture bytes are unchanged: raw fixtures lack completeness flags and yield `unreadable`; tests construct explicitly synthetic known-complete copies. Normalize `scan_status: "clean"`, `content_omitted: false` and `content_truncated: false` only from observed native results and their exact contract, never guesses or missing flags. Stop unknown; do not paste withheld body. The historical bare-dollar Netflix example also needs explicit USD evidence. `fixture-run.txt` is a historical snapshot, not current proof.
+
+### Current native `get_email` normalization
+
+The current safe projection uses positive optional markers: omission or truncation is emitted as `true`; complete sanitized text normally has no such fields. For one exact selected, observed native result (not a raw provider/legacy fixture), use:
+
+```bash
+python3 -B <skill-dir>/extract_recurring.py --native-get-email selected-safe-response.json
+```
+
+The adapter requires `agent_safe_content: true`, `body_format: text`, `scan_status: clean`, an ID, native `sender`/`recipient` strings, a bounded body, and no positive, malformed or conflicting omission/truncation evidence. Only under this exact known native contract does absence of positive markers normalize to explicit false; generic missing flags remain unreadable. Confirm this contract against the current deployment before use; changed/unknown projections stop rather than receive guessed defaults. The caller must still establish workspace/mailbox/message correlation from the actual request/result. The adapter checks supplied data, not authenticity or live execution, and never fetches omitted content.
