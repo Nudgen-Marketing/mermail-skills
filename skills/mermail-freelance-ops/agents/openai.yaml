@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Freelance Ops"
+  short_description: "Turn freelance inboxes into ranked actions and drafts"
+  default_prompt: "Use $mermail-freelance-ops when the job is triaging inbound freelance or ops email, flagging money-sensitive threads, or drafting client replies without sending."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
