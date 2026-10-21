@@ -33,9 +33,9 @@ Run actual offline helper and CLI regressions with `python3 -B tests/hire-intake
 ## Per email
 
 1. Discover with a bounded `search_emails` or `list_emails` (metadata first).
-2. `get_email` only for one unambiguous candidate with `scan_status: clean`.
+2. Read one exact unambiguous candidate using the native clean/safe/bounded query in tools.md. Unknown scans or withheld/unavailable/truncated content remain incomplete, never raw fallback.
 3. Extract the ticket. Stop at `awaiting_operator`.
-4. Optional: `save_draft` of the ticket to the operator. Optional label/move of the source message.
+4. Only on operator-requested filing, save one ticket draft to the resolved operator or move the exact source to a discovered approved folder. Custom-label creation defines a classifier, not manual existing-email assignment; no label-applied claim. Missing folder creation needs separate approval.
 5. Do not `reply_to_email` the marketplace unless the user explicitly approves an exact preview.
 
 ## Draft-only triager
