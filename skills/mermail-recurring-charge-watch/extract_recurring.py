@@ -703,6 +703,11 @@ def extract_one(email: dict[str, Any]) -> dict[str, Any]:
         return _skip("flagged" if scan == "flagged" else "unreadable", email)
     if email.get("content_omitted") is not False or email.get("content_truncated") is not False:
         return _skip("unreadable", email)
+    # Current complete native projections omit storage-status/message fields.
+    # Presence means unavailable or an unknown/conflicting storage contract,
+    # even if a caller also supplied false omission/truncation flags.
+    if any(key in email for key in ("body_storage_status", "body_storage_message")):
+        return _skip("unreadable", email)
     if not isinstance(email.get("body"), str) or len(email["body"]) > MAX_BODY_CHARS:
         return _skip("unreadable", email)
     body = _norm(email["body"])
@@ -835,7 +840,8 @@ def normalize_native_get_email(email: dict[str, Any]) -> dict[str, Any]:
     That projection emits positive omission/truncation markers, not explicit
     false values. Their absence has meaning only with the exact safe text
     projection below. Generic fixture/unknown-provider inputs stay strict.
-    This is a format check, not proof of origin, scope or authentication.
+    This is a format check, not proof of origin, full-body provenance, scope
+    or authentication (native legacy rows can fall back to a body preview).
     """
     if (email.get("agent_safe_content") is not True
             or email.get("body_format") != "text"
@@ -850,6 +856,8 @@ def normalize_native_get_email(email: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("incomplete native projection")
     if "content_omission_reason" in email or "body_original_char_count" in email:
         raise ValueError("conflicting completeness evidence")
+    if any(key in email for key in ("body_storage_status", "body_storage_message")):
+        raise ValueError("unavailable or unknown body storage")
     if not isinstance(email.get("sender"), str) or not isinstance(email.get("recipient"), str):
         raise ValueError("unknown native message fields")
     return {**email, "from": email["sender"], "to": email["recipient"],

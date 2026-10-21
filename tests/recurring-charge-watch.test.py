@@ -171,6 +171,34 @@ class RecurringTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     helper.normalize_native_get_email({**native, **changes})
 
+    def test_unavailable_or_unknown_body_storage_cannot_audit_from_subject(self):
+        native = {"id": "native_deleted_001", "sender": "billing@example.test",
+                  "recipient": "owner@example.test", "subject": "Your Example monthly receipt. Amount: USD 25.50",
+                  "scan_status": "clean", "agent_safe_content": True, "body_format": "text",
+                  "body": "Email content is unavailable because it was removed."}
+        for metadata in [{"body_storage_status": value} for value in
+                         ["deleted", "unavailable", "unknown", "available", None, False, ""]] + [
+                             {"body_storage_message": "PRIVATE_BODY_STORAGE_MARKER"},
+                             {"body_storage_message": None}]:
+            with self.subTest(metadata=metadata):
+                candidate = {**native, **metadata}
+                result = subprocess.run([sys.executable, "-B", str(HELPER), "--native-get-email"],
+                                        input=json.dumps(candidate), text=True, capture_output=True, timeout=5)
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(result.stdout, "")
+                self.assertEqual(result.stderr, "error: invalid or oversized email JSON input\n")
+                # Explicit generic flags must not override contradictory
+                # availability metadata or reintroduce a withheld body.
+                generic = {**candidate, "from": native["sender"], "to": native["recipient"],
+                           "content_omitted": False, "content_truncated": False}
+                rejected = cli(generic)
+                self.assertEqual(rejected.returncode, 0)
+                parsed = json.loads(rejected.stdout)
+                self.assertEqual(parsed["skip_reason"], "unreadable")
+                self.assertIsNone(parsed["packet"])
+                self.assertNotIn("PRIVATE_BODY_STORAGE_MARKER", rejected.stdout)
+                self.assertNotIn("subject", parsed["source"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
