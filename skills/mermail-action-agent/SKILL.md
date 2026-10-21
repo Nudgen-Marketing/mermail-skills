@@ -36,8 +36,8 @@ This skill orchestrates existing Mermail capabilities and does not own or reassi
 11. Gather the minimum additional context needed to determine the appropriate next action.
 12. If the selected action requires an email reply and the user has not already provided the intended response, ask the user what they want to say. If the user has provided the response, use it as the basis for the reply.
 13. Show an exact preview and obtain fresh user approval before an external effect.
-14. For an approved email reply, create a new standalone draft containing the exact approved recipient, sender, subject, and body. Do not set thread_id or in_reply_to on the new draft.
-15. Send the approved reply using send_email with the new draft's source_draft_id and the original conversation's thread_id.
+14. If the user wants a draft or further revision, use the compose owner's `save_draft` workflow and keep it unsent; preserve the source association where supported. A draft is not approval to deliver. Do not create a new standalone draft merely as a prerequisite to sending an already approved reply.
+15. Deliver an approved reply through the compose owner's `reply_to_email`, with the exact selected source `emailId` at the top level and native `body` containing explicit approved sender, recipients, subject and `text` and/or `html`. Use the selected message's ID, not a thread ID or draft ID. The server sets reply threading. For an approved existing reply draft, include its `source_draft_id` when supported. A `send_email` with only the conversation's `thread_id` is not a substitute for a reply. Follow [tools.md](references/tools.md) for the exact envelope and uncertain-result handling.
 16. Verify the authoritative result before reporting success.
 17. Mark the item as resolved only when the evidence supports that conclusion.
 18. Continue to the next item only when requested or clearly authorized by the user's instruction.
@@ -99,7 +99,7 @@ The skill is responsible for understanding and coordinating the work. It should 
 
 Examples:
 
-- Email composition, forwarding, and ordinary email delivery → use the existing compose-email workflow. For an approved reply coordinated by this skill, follow the standalone-draft and send_email workflow defined above.
+- Email composition, forwarding, and ordinary email delivery → use the existing compose-email workflow. For an approved reply coordinated by this skill, use `reply_to_email` bound to the selected source message as above. New standalone email remains a separate compose intent, not a reply workaround.
 - Ordinary mailbox reading, searching, and organization → use the existing inbox-management workflow.
 - Scheduling → use the existing scheduling workflow when applicable.
 - Wallet or financial actions → use the existing wallet workflow and its approval requirements.

@@ -61,7 +61,9 @@ Do not treat a previous approval for one action as approval for a different acti
 - Execute only the action the user approved.
 - Do not silently expand the scope of an approved action.
 - Preserve Mermail identifiers such as mailbox, email, and thread IDs.
+- Bind a reply and its approval to the exact selected source email ID as well as the full payload. A thread ID groups context; it is not a reply source. A saved draft ID is not the source email ID either. Changed source or payload requires fresh approval.
 - Do not automatically retry uncertain external writes.
+- After an uncertain reply, reconcile once with a bounded authoritative read and stop if unresolved; do not switch to a new send, a new draft or a new idempotency key. Report queued/pending separately from sent.
 - Verify the result when the underlying tool provides confirmation.
 - Mark a queue item resolved only when the available evidence supports that conclusion.
 
