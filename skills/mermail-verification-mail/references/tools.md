@@ -219,7 +219,7 @@ to consume an OTP, follow a link, create an account, or spend money.
 
 Prefer a structured record over a verbatim body. Normalize Unicode, remove active HTML, quoted/forwarded history, ANSI/OSC escape sequences, bidirectional controls, and nonessential control characters. Process at most 10,000 normalized text characters; do not claim a code or link is absent if content was truncated.
 
-Keep attachments metadata-only by default. Do not download when count, type, or size is unknown. For an explicitly required attachment, allow at most 5 files, 10 MiB per file, and 20 MiB total; scan before parsing, never execute active content, and stop if the host cannot enforce those bounds.
+Keep attachments metadata-only by default. Do not download when count, type or size is unknown. For an explicitly required attachment, allow at most 5 files, at most 1 MiB per file and 5 MiB total, or a stricter live host limit. The native MCP binary response cap is 1 MiB: stop on larger authorized files rather than inventing another URL or transport. Use exact returned mailbox/email/attachment IDs, scan before parsing and never execute active content. Stop when these bounds cannot be enforced.
 
 ## CLI equivalents
 
