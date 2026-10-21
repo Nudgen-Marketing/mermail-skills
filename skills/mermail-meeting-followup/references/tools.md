@@ -63,3 +63,11 @@ draft ID for `source_draft_id` on the approved reply. Follow the composition
 owner's actual schema rather than inventing source headers. Forwarding can
 disclose original source mail; preview that full disclosure. Recap-only new
 messages belong to the composition handoff, never an implicit full forward.
+
+Before sending a saved draft, reread its current stored version and compare
+body, recipients, source/thread and exact attachment metadata against the
+approved preview. Missing verification or any change requires review again.
+Native `source_draft_id` can inherit the draft's current attachments if the send
+omits `body.attachments`: pass the exact approved live-schema attachment
+references explicitly, or `body.attachments: []` when no attachments were
+approved. A previously observed empty draft is not proof it is still empty.
