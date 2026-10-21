@@ -4,9 +4,10 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { tmpdir } = require('node:os');
 const { spawnSync } = require('node:child_process');
 const helper = path.resolve(__dirname, '../skills/mermail-commitment-keeper/scripts/commitments.js');
-const scratch = fs.mkdtempSync('/private/tmp/mermail-195-cli-');
+const scratch = fs.mkdtempSync(path.join(tmpdir(), 'mermail-195-cli-'));
 let sequence = 0;
 function file() { return path.join(scratch, `ledger-${++sequence}.json`); }
 function cli(ledger, command, args = [], mailbox = 'mailbox-A') {
