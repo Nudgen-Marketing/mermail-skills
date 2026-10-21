@@ -98,6 +98,6 @@ export async function main() {
     }
     console.log(JSON.stringify(settleLedger(JSON.parse(Buffer.concat(chunks).toString("utf8"))), null, 2));
     return 0;
-  } catch (error) { console.error(error.message); return 1; }
+  } catch (error) { console.error(error instanceof SyntaxError ? "invalid ledger JSON; source content was not echoed" : error.message); return 1; }
 }
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) process.exitCode = await main();

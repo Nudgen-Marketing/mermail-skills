@@ -60,4 +60,5 @@ test('actual CLI emits exact JSON once; invalid ledger exits nonzero with no pla
   const run=input=>spawnSync(process.execPath,[script],{input,encoding:'utf8',maxBuffer:2e6});
   const valid=run(JSON.stringify(inputFor([600,400,-400,-300,-300])));assert.equal(valid.status,0,valid.stderr);assert.equal(JSON.parse(valid.stdout).transfers.length,3);
   for(const input of ['{',JSON.stringify({}), 'x'.repeat(1024*1024+1)]){const invalid=run(input);assert.equal(invalid.status,1);assert.equal(invalid.stdout,'');assert.ok(invalid.stderr);}
+  const privateInput=run('{"customer_secret_marker": [}');assert.equal(privateInput.status,1);assert.doesNotMatch(privateInput.stderr,/customer_secret_marker/);assert.match(privateInput.stderr,/invalid ledger JSON/);
 });
