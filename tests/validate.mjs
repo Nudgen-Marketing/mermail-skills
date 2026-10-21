@@ -32,7 +32,8 @@ if (JSON.stringify(skillNames) !== JSON.stringify(expectedSkills)) {
 
 for (const skillName of skillNames) {
   const skillDir = path.join(skillsRoot, skillName);
-  const markdown = await readFile(path.join(skillDir, "SKILL.md"), "utf8");
+  // Git's core.autocrlf can check out valid skill files with Windows line endings.
+  const markdown = (await readFile(path.join(skillDir, "SKILL.md"), "utf8")).replace(/\r\n/g, "\n");
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatter) {
     errors.push(`${skillName}: missing YAML frontmatter`);
@@ -1040,7 +1041,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
