@@ -23,6 +23,10 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - name: Test invitation reconciliation against the locked parser
+        run: |
+          npm ci --prefix skills/mermail-invite-reconcile --ignore-scripts --no-audit --no-fund
+          npm run test:invite
       - name: Validate production MCP contract
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         env:
