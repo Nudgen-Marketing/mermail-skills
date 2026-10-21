@@ -200,12 +200,37 @@ def reconcile(ledger, transactions, scope):
     return result
 
 
+def candidate_registry(report, conflicts):
+    """Validate every new-schema conflict, including those beyond template caps."""
+    graph = [c for c in conflicts if 'candidate_transaction_indices' in c or 'candidate_count' in c]
+    if not graph:
+        return []  # Legacy inline-candidate reports need no registry.
+    references = [text(t.get('reference', '')) for t in rows(report.get('transactions', []))]
+    if not all(references) or len(set(references)) != len(references):
+        raise ValueError('Invalid candidate registry references: require nonempty unique references')
+    links = 0
+    for conflict in graph:
+        indices = conflict.get('candidate_transaction_indices')
+        count = conflict.get('candidate_count')
+        if (conflict.get('kind') != 'possible_counterpart_not_confirmed' or 'candidates' in conflict or
+                not isinstance(indices, list) or not 1 <= len(indices) <= MAX_ROWS or
+                any(type(i) is not int or not 0 <= i < len(references) for i in indices) or
+                len(set(indices)) != len(indices) or type(count) is not int or count != len(indices)):
+            raise ValueError('Invalid candidate transaction indices, count or conflict kind')
+        links += count
+        if links > MAX_CANDIDATE_LINKS:
+            raise ValueError('Candidate link budget exceeded; choose narrower artifacts')
+    return references
+
+
 def drafts(report, scope):
     # Structured report, not regex parsing of untrusted Markdown. No inferred recipient.
     if not isinstance(report, dict):
         raise ValueError('Expected structured reconciliation report')
     if (report.get('workspace_id'), report.get('mailbox_id')) != scope_key(scope):
         raise ValueError('Report is outside the selected scope')
+    conflicts = rows(report.get('conflicts', []))
+    references = candidate_registry(report, conflicts)
     output = []
     for tx in rows(report.get('transaction_without_receipt', []))[:25]:
         output.append({'kind': 'receipt_request', 'to': '', 'subject': 'Receipt request for review',
@@ -214,19 +239,15 @@ def drafts(report, scope):
                                f"(statement reference {text(tx.get('reference', ''))})? Thank you.",
                        'workspace_id': scope[0], 'mailbox_id': scope[1],
                        'evidence': tx, 'state': 'local_unaddressed_template_not_saved_or_sent'})
-    for conflict in rows(report.get('conflicts', []))[:25]:
+    for conflict in conflicts[:25]:
         assert_scope(conflict.get('evidence', {}), scope)
         evidence = conflict
         if 'candidate_transaction_indices' in conflict:
             indices = conflict['candidate_transaction_indices']
-            transactions = rows(report.get('transactions', []))
-            if (not isinstance(indices, list) or len(indices) > MAX_ROWS or
-                    any(type(i) is not int or not 0 <= i < len(transactions) for i in indices)):
-                raise ValueError('Invalid candidate transaction indices')
             # Templates remain standalone: stable references, not dangling indices
             # into a report that is no longer included in this output artifact.
             evidence = {k: v for k, v in conflict.items() if k != 'candidate_transaction_indices'}
-            evidence['candidate_references'] = [text(transactions[i].get('reference', '')) for i in indices]
+            evidence['candidate_references'] = [references[i] for i in indices]
         output.append({'kind': 'discrepancy', 'to': '', 'subject': 'Reconciliation question for review',
                        'body': 'My reviewed records have a possible discrepancy. Please review the attached evidence before contacting a vendor.',
                        'workspace_id': scope[0], 'mailbox_id': scope[1],

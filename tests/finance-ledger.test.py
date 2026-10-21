@@ -1,6 +1,7 @@
 """Offline executable tests. No inbox, payment, or email effect."""
 import importlib.util
 import csv
+import copy
 import io
 import json
 import os
@@ -248,6 +249,79 @@ class FinanceOutputBoundaryTests(unittest.TestCase):
                     drafts({'transactions': [tx()], 'transaction_without_receipt': [],
                             'conflicts': [{'kind': 'possible_counterpart_not_confirmed',
                                            'evidence': row(), 'candidate_transaction_indices': indices}]})
+
+    def test_new_candidate_schema_cli_errors_preserve_existing_artifact(self):
+        report = reconcile([row(reference='')], [tx(reference='first'), tx(reference='second')])
+        cases = []
+        for count in [0, '2', None, True, -1, 2.0, 300]:
+            value = copy.deepcopy(report)
+            value['conflicts'][0]['candidate_count'] = count
+            cases.append((f'count-{count!r}', value))
+        value = copy.deepcopy(report)
+        value['conflicts'][0].pop('candidate_count')
+        cases.append(('missing-count', value))
+        for indices, count in [([0, 0], 2), ([], 300), ([True], 1), (['0'], 1), ([2], 1), ([-1], 1)]:
+            value = copy.deepcopy(report)
+            value['conflicts'][0].update(candidate_transaction_indices=indices, candidate_count=count)
+            cases.append((f'indices-{indices!r}', value))
+        value = copy.deepcopy(report)
+        value['conflicts'][0].pop('candidate_transaction_indices')
+        cases.append(('missing-indices', value))
+        value = copy.deepcopy(report)
+        value['conflicts'][0]['kind'] = 'stable_reference_mismatch'
+        cases.append(('wrong-kind', value))
+        value = copy.deepcopy(report)
+        value['conflicts'][0]['candidates'] = value['transactions']
+        cases.append(('mixed-representations', value))
+        for reference in ['', '   ', 'first', None, 123, 'x' * 161, 'line\nbreak']:
+            value = copy.deepcopy(report)
+            # Even an unselected registry row must have a valid unique reference.
+            value['conflicts'][0].update(candidate_transaction_indices=[0], candidate_count=1)
+            value['transactions'][1]['reference'] = reference
+            cases.append((f'registry-{reference!r}', value))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            source, output = root / 'report.json', root / 'drafts.json'
+            original = b'{"operator_edit":"do not replace"}'
+            output.write_bytes(original)
+            for name, malformed in cases:
+                with self.subTest(case=name):
+                    source.write_text(json.dumps(malformed), encoding='utf-8')
+                    result = self.cli('drafts', 'w', 'm', source, output)
+                    self.assertEqual(1, result.returncode, result.stdout)
+                    self.assertTrue(result.stderr)
+                    self.assertEqual(original, output.read_bytes())
+                    self.assertEqual({'report.json', 'drafts.json'}, {p.name for p in root.iterdir()})
+
+    def test_new_schema_beyond_template_cap_is_still_validated(self):
+        report = reconcile([row(reference='')], [tx()])
+        report['conflicts'] = [copy.deepcopy(report['conflicts'][0]) for _ in range(26)]
+        report['conflicts'][-1]['candidate_count'] = 0
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            source, output = root / 'report.json', root / 'drafts.json'
+            source.write_text(json.dumps(report))
+            output.write_bytes(b'preserved')
+            result = self.cli('drafts', 'w', 'm', source, output)
+            self.assertEqual(1, result.returncode)
+            self.assertEqual(b'preserved', output.read_bytes())
+            self.assertFalse(output.with_name(output.name + '.lock').exists())
+
+    def test_legacy_inline_candidate_report_cli_remains_compatible(self):
+        report = reconcile([row(reference='')], [tx(reference='first'), tx(reference='second')])
+        conflict = report['conflicts'][0]
+        conflict['candidates'] = report.pop('transactions')
+        conflict.pop('candidate_transaction_indices')
+        conflict.pop('candidate_count')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            source, output = root / 'report.json', root / 'drafts.json'
+            source.write_text(json.dumps(report))
+            result = self.cli('drafts', 'w', 'm', source, output)
+            self.assertEqual(0, result.returncode, result.stderr)
+            templates = json.loads(ledger.read_bytes(output))
+            self.assertEqual(conflict['candidates'], templates[-1]['evidence']['candidates'])
+            self.assertEqual('', templates[-1]['to'])
 
 
 if __name__ == '__main__':
