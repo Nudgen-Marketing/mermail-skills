@@ -8,6 +8,7 @@ on:
       - ".cursor-plugin/**"
       - ".plugin/**"
       - ".mcp.json"
+      - ".clawhubignore"
       - "assets/**"
       - "openclaw.plugin.json"
       - "package.json"
