@@ -42,7 +42,7 @@ Candidate discovery for one keyword in a 90-day window, metadata only:
 }
 ```
 
-The free-text term is the `query` field inside the native `query` object. Use the live schema's `sender`, `recipient` and `subject` fields for candidate filtering; do not substitute invented `from`/`to` query parameters. Candidate matches are not sender authentication or complete coverage. Confirm fields against `tools/list`.
+The free-text term is the `query` field inside the native `query` object. The current MCP search schema uses `from`, `to` and `subject` for candidate filtering; sender/recipient are returned message fields, not interchangeable search parameter names. Candidate matches are not sender authentication or complete coverage. Confirm fields against `tools/list`.
 
 Read one shortlisted notice:
 
