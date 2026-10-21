@@ -32,6 +32,20 @@ test("ledger producer rejects coerced sale state or a substituted malformed mint
   assert.throws(() => ledgerLine({ ...row, mint: "unverified\nledger" }));
   assert.equal(parseLedger(ledgerLine(row), mint)[0].tookHalf, false);
 });
+
+test("raw provider pool date must be native Unix milliseconds before evidence normalization", async () => {
+  for (const pairCreatedAt of ["2026-02-30T00:00:00Z", "2026-03-02T00:00:00Z", NaN, Infinity, -1, 1.5, 9007199254740992]) {
+    assert.equal(bestPair({ pairs: [{ ...pool(), pairCreatedAt }] }, mint).pair_created_at, null);
+  }
+  const observed = new Date(openedAt).getTime();
+  assert.equal(bestPair({ pairs: [{ ...pool(), pairCreatedAt: observed }] }, mint).pair_created_at, "2026-10-21T00:00:00.000Z");
+  await withFetch(async url => String(url).startsWith(PRICE_ORIGIN)
+    ? json({ pairs: [{ ...pool(), pairCreatedAt: "2026-02-30T00:00:00Z" }] })
+    : json({ known: true, token: { created_at: "2026-03-02T00:00:00Z" }, as_of: now }), async () => {
+    const result = await check(selected);
+    assert.equal(result.evidence.coverage, "partial");
+  });
+});
 async function withFetch(fake, run) {
   const original = globalThis.fetch;
   globalThis.fetch = fake;

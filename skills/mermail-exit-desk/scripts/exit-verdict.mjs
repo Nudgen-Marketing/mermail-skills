@@ -213,7 +213,10 @@ export function bestPair(body, mint) {
     pair: p.pairAddress ?? null,
     quote: QUOTE_MINTS[p.quoteToken.address],
     pools_considered: pools.length,
-    pair_created_at: p.pairCreatedAt ? new Date(p.pairCreatedAt).toISOString() : null,
+    // Native provider timestamps are Unix milliseconds. Never normalize an
+    // unvalidated date string into apparent launch-coverage evidence.
+    pair_created_at: typeof p.pairCreatedAt === "number" && Number.isSafeInteger(p.pairCreatedAt) && p.pairCreatedAt >= 0 && Number.isFinite(new Date(p.pairCreatedAt).getTime())
+      ? new Date(p.pairCreatedAt).toISOString() : null,
     symbol: p?.baseToken?.symbol ?? null,
   };
 }
