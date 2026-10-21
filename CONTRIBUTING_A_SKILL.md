@@ -210,6 +210,8 @@ For a release change, update these values together:
 - `.claude-plugin/plugin.json`
 - `.cursor-plugin/plugin.json`
 - `.plugin/plugin.json`
+- `plugin.json`
+- `mcp.json`
 - `compatibility.json` → `pluginVersion`
 
 Update catalog counts in `compatibility.json` whenever skills or tools change, even if the package version is not bumped in that pull request.

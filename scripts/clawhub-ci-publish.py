@@ -8,8 +8,10 @@ non-zero CLI exit, non-JSON stdout, or an unknown status.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -56,6 +58,65 @@ def discover_targets(workspace: Path, root_input: str, skill_path: str) -> list[
     if not discovered:
         raise SystemExit(f"No skill folders found under: {root_input}")
     return sorted(discovered, key=lambda child: child.name.lower())
+
+
+def local_file_hashes(target: Path) -> dict[str, str]:
+    return {
+        path.relative_to(target).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sorted(target.rglob("*"))
+        if path.is_file()
+    }
+
+
+def inspect_existing_version(
+    workspace: Path,
+    target: Path,
+    slug: str,
+    version: str,
+    site: str,
+    registry: str,
+    owner: str,
+) -> dict | None:
+    command = [
+        "clawhub",
+        "--workdir",
+        str(workspace),
+        "--site",
+        site,
+        "--registry",
+        registry,
+        "inspect",
+        slug,
+        "--version",
+        version,
+        "--files",
+        "--json",
+    ]
+    completed = subprocess.run(command, cwd=workspace, capture_output=True, text=True)
+    if completed.returncode != 0:
+        return None
+    try:
+        result = json.loads(completed.stdout)
+        if owner and result.get("owner", {}).get("handle") != owner.lstrip("@"):
+            return None
+        remote_version = result.get("version") or {}
+        remote_hashes = {
+            item["path"]: item["sha256"] for item in remote_version.get("files", [])
+        }
+        if remote_version.get("version") != version or remote_hashes != local_file_hashes(target):
+            return None
+        return {
+            "ok": True,
+            "status": "unchanged",
+            "slug": slug,
+            "folder": target.relative_to(workspace).as_posix(),
+            "version": version,
+            "latestVersion": version,
+            "fileCount": len(remote_hashes),
+            "verifiedExistingVersion": True,
+        }
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return None
 
 
 def main() -> int:
@@ -114,6 +175,17 @@ def main() -> int:
         completed = subprocess.run(command, cwd=workspace, capture_output=True, text=True)
         if completed.returncode != 0:
             message = completed.stderr.strip() or completed.stdout.strip() or f"exit {completed.returncode}"
+            match = re.search(r"Version ([0-9A-Za-z.+-]+) already exists", message)
+            existing = (
+                inspect_existing_version(
+                    workspace, target, target.name, match.group(1), site, registry, owner
+                )
+                if match
+                else None
+            )
+            if existing:
+                results["alreadySynced"].append(existing)
+                continue
             results["failed"].append(
                 {"slug": target.name, "folder": relative_path, "message": message}
             )
