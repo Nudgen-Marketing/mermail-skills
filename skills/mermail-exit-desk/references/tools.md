@@ -106,7 +106,9 @@ PayBox owns approval and signing. Do not call `prepare_destructive_action`, a tr
 
 ## Helper script
 
-`scripts/exit-verdict.mjs` runs the rules with no dependencies on Node.js 22 or newer. It reads the two fixed origins and prints one JSON object. It holds no credential and cannot send, schedule, sign, or spend. Importing it as a module makes no network request.
+`scripts/exit-verdict.mjs` runs the rules with no dependencies on Node.js 22 or newer. It reads the fixed price origin and optional evidence origin and prints one JSON object. It holds no credential and cannot send, schedule, sign, or spend. Importing it as a module makes no network request.
+
+Prices are bounded plain positive decimals (at most 800 characters), compared and serialized exactly. Prefer strings in library calls: numeric compatibility uses only the number already supplied and cannot recover precision lost before the call. Display numbers are approximate, not decision inputs. Times require actual calendar dates and valid clock/zone components, with at most millisecond precision. Responses are streamed with redirects disabled, credentials omitted, a 15-second timeout, a 40,000-byte cap and a 10,000-character cap before JSON parsing. No arbitrary URL is accepted.
 
 ```bash
 node scripts/exit-verdict.mjs --mint <mint> --entry-usd 0.00042 --opened-at 2026-09-27T14:05:00Z
@@ -120,6 +122,7 @@ node scripts/exit-verdict.mjs --mint <mint> --entry-usd 0.00042 --opened-at 2026
 | `--peak-usd` | A recorded peak to apply |
 | `--ledger-file` | A text file with the bodies of earlier sent memos; exact ledger lines are merged |
 | `--took-half` | The user has already sold at least half |
+| `--skip-evidence` | The user declined evidence; make only the price request |
 | `--now` | An ISO-8601 time with a zone to evaluate at, for reproducible runs |
 
 Output fields:
@@ -129,7 +132,7 @@ Output fields:
 | `mint`, `symbol`, `observed_at` | The position checked and when |
 | `status`, `reason`, `sell_fraction` | The verdict, the rule with its inputs, and `0`, `0.5`, or `1` |
 | `multiple`, `peak_multiple`, `peak_usd`, `drop_from_peak_pct`, `hours_held`, `time_stop_at` | The arithmetic |
-| `levels` | `take_half_usd`, `trail_usd` (or `null` before it arms), `cut_usd`, as numbers |
+| `levels` | `take_half_usd`, `trail_usd` (or `null` before it arms), `cut_usd`, as display numbers, or an exact decimal string if a derived level exceeds numeric range |
 | `display` | The same prices and multiples as plain decimal strings for the memo, plus `symbol` (12 safe characters), `subject`, `liquidity_usd`, and `fdv_usd` |
 | `price` | `price_usd`, `liquidity_usd`, `fdv_usd`, `dex`, `pair`, `quote`, `pools_considered`, `pair_created_at`, `symbol` |
 | `memory` | `rows_used` and `rows_ignored` from the ledger |
@@ -139,3 +142,5 @@ Output fields:
 | `rules` | The thresholds in force |
 
 A missing or invalid value prints `entry_required`, before any request is made. A source failure, pools that disagree, or a mint with no eligible pool prints `evidence_unavailable`. Both exit with code 1; a verdict exits with 0.
+
+`peak_usd_exact` and `price.price_usd_exact` preserve canonical decimal strings for arithmetic and ledger serialization. Ledger identity uses exact entry equality and the same purchase instant, never tolerance. The CLI accepts only a regular non-symlink UTF-8 ledger file bounded to 240,000 bytes and 60,000 characters; oversized input fails rather than truncating a ledger price. Library `check` accepts bounded `ledgerText`, boolean `includeEvidence` (default true), and boolean `tookHalf` (default false).

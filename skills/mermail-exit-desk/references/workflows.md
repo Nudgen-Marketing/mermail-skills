@@ -5,7 +5,7 @@ Each workflow starts from what the authenticated user states in the current conv
 ## 1. Exit check (read-only)
 
 1. Confirm the mint, the entry price in USD, and the purchase time. Ask once for whatever is missing.
-2. Read the price from the fixed origin. Read the evidence unless the user declined it.
+2. Read the price from the fixed origin. Read the evidence unless the user declined it; use `--skip-evidence` (library: `includeEvidence: false`) so no evidence request is made. Reject redirects and over-bound responses without expanding scope.
 3. Recover memory: `list_mailboxes`, one `search_emails` with the subject filter `[Exit Desk] <full mint>`, then `get_email` for each kept result, at most five.
 4. Compute the verdict and report it with the number of ledger rows used and ignored.
 

@@ -199,7 +199,7 @@ export async function validateExitDesk(root, scenarios, coverage) {
 
   // check() with a stubbed network: no real request is made.
   const realFetch = globalThis.fetch;
-  const answer = (body, ok = true) => ({ ok, status: ok ? 200 : 503, json: async () => body });
+  const answer = (body, ok = true) => new Response(JSON.stringify(body), { status: ok ? 200 : 503 });
   try {
     globalThis.fetch = async (url) => String(url).startsWith(mod.PRICE_ORIGIN)
       ? answer({ pairs: [pool("deep", "2.2", 90_000)] }) : answer({}, false);

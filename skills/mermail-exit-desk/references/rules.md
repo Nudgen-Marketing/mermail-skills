@@ -12,6 +12,8 @@ Five rules, checked in this order. The first that fires is the verdict; otherwis
 
 Definitions:
 
+Compare plain decimal prices exactly for the 2x, 1.3x, 0.7x, 0.5x, and pool-agreement boundaries. The helper uses integer cross-products; rounded display multiples and percentages never decide a rule. For example, a peak of $0.10 and price of $0.07 is exactly a 30% drop and fires an armed trailing stop.
+
 - `multiple` is price divided by entry.
 - `peak` is the largest of the entry, every price the desk recorded for this position, and the live price.
 - `take_half_usd` is `2.0 x entry`. `cut_usd` is `0.5 x entry`. `trail_usd` is `0.7 x peak` once the peak is at least `1.3 x entry`, and absent before that.
