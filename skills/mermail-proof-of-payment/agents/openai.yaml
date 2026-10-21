@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Proof-of-Payment"
+  short_description: "Verify payment claims from inbound email against on-chain Solana transactions"
+  default_prompt: "Use $mermail-proof-of-payment when an inbound email claims a payment with a transaction hash and you need to independently verify it on-chain before releasing a deliverable or booking income. The skill checks recipient, amount, token contract (not just symbol), confirmed/finalized status, and rejects fabricated hashes, wrong-recipient txs, amount mismatches, lookalike tokens, and replayed old payments."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server for email intake"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
