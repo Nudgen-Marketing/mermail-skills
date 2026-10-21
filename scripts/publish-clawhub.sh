@@ -14,6 +14,17 @@ fi
 VERSION="${CLAWHUB_VERSION:-$(node -p "require('./package.json').version")}"
 OWNER="${CLAWHUB_OWNER:-mermail}"
 LIVE="${CLAWHUB_LIVE:-}"
+case "$LIVE" in
+  ""|0|false|no) LIVE=0 ;;
+  1) LIVE=1 ;;
+  *) echo "Invalid CLAWHUB_LIVE; only 1 enables publishing." >&2; exit 1 ;;
+esac
+
+# Refuse every symlink before any package can reach the external publisher.
+if [[ -L skills ]] || [[ -n "$(find skills -type l -print -quit)" ]]; then
+  echo "Publish packages must not contain symbolic links." >&2
+  exit 1
+fi
 
 display_name() {
   local slug="$1"
@@ -42,7 +53,7 @@ display_name() {
 
 echo "Owner:  $OWNER"
 echo "Version: $VERSION"
-if [[ -n "$LIVE" ]]; then
+if [[ "$LIVE" == 1 ]]; then
   echo "Mode:   LIVE publish"
 else
   echo "Mode:   dry-run (set CLAWHUB_LIVE=1 to upload)"
@@ -61,7 +72,7 @@ for d in skills/*/; do
     --owner "$OWNER"
     --version "$VERSION"
   )
-  if [[ -z "$LIVE" ]]; then
+  if [[ "$LIVE" == 0 ]]; then
     args+=(--dry-run)
   fi
 

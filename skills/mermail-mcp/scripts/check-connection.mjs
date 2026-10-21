@@ -3,7 +3,24 @@ import process from "node:process";
 
 const endpoint = process.env.MERMAIL_MCP_URL || "https://console.mermail.app/mcp";
 const apiKey = process.env.MERMAIL_API_KEY;
-const currentFullCatalogBaseline = 72;
+let endpointUrl;
+try {
+  endpointUrl = new URL(endpoint);
+} catch {
+  fail("Mermail MCP endpoint is invalid.");
+}
+if (endpointUrl.protocol !== "https:" || endpointUrl.hostname !== "console.mermail.app" ||
+    (endpointUrl.port && endpointUrl.port !== "443") || endpointUrl.pathname !== "/mcp" ||
+    endpointUrl.username || endpointUrl.password || endpointUrl.hash) {
+  fail("Mermail MCP endpoint must use the canonical HTTPS console endpoint.");
+}
+const profile = endpointUrl.searchParams.get("profile");
+if ((profile && profile !== "agent-inbox") ||
+    [...endpointUrl.searchParams.keys()].some((name) => name !== "profile") ||
+    endpointUrl.searchParams.getAll("profile").length > 1) {
+  fail("Unsupported Mermail MCP profile.");
+}
+const currentFullCatalogBaseline = 83;
 const compatibleFullCatalogFloor = 63;
 const agentInboxTools = [
   "get_api_credit_usage",
@@ -53,10 +70,6 @@ if (tools.some((tool) => !tool || typeof tool.name !== "string")) {
   fail("MCP tools/list returned an invalid tool entry.");
 }
 const names = new Set(tools.map((tool) => tool.name));
-const profile = new URL(endpoint).searchParams.get("profile");
-if (profile && profile !== "agent-inbox") {
-  fail(`Unsupported Mermail MCP profile: ${profile}.`);
-}
 if (names.size !== tools.length) fail("MCP tools/list returned duplicate tool names.");
 const required = profile === "agent-inbox" ? agentInboxTools : fullCatalogCanaries;
 const missing = required.filter((name) => !names.has(name));
@@ -74,23 +87,39 @@ if (!profile && tools.length < currentFullCatalogBaseline) {
 }
 
 console.log(
-  `Connected to ${initialize.result.serverInfo.name}; discovered ${tools.length} tools (${profile ?? "full"} profile).`
+  `Connected to Mermail; discovered ${tools.length} tools (${profile ?? "full"} profile).`
 );
 
 async function request(body) {
   const httpPost = globalThis["fetch"];
-  const response = await httpPost(endpoint, {
-    method: "POST",
-    headers: {
-      accept: "application/json, text/event-stream",
-      "content-type": "application/json",
-      "x-api\u002dkey": apiKey
-    },
-    body: JSON.stringify(body)
-  });
+  let response;
+  try {
+    response = await httpPost(endpoint, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
+      headers: {
+        accept: "application/json, text/event-stream",
+        "content-type": "application/json",
+        "x-api\u002dkey": apiKey
+      },
+      body: JSON.stringify(body)
+    });
+  } catch {
+    fail("MCP network request failed or timed out.");
+  }
   if (!response.ok) fail(`MCP returned HTTP ${response.status}.`);
-  const payload = await response.json();
-  if (payload.error) fail(`MCP error ${payload.error.code ?? "unknown"}: ${payload.error.message ?? "request failed"}`);
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    fail("MCP returned an invalid JSON response.");
+  }
+  if (payload?.jsonrpc !== "2.0" || payload.id !== body.id) fail("MCP returned an invalid response envelope.");
+  if (payload.error) {
+    const code = Number.isSafeInteger(payload.error.code) ? payload.error.code : "unknown";
+    fail(`MCP request failed (code ${code}).`);
+  }
   return payload;
 }
 
