@@ -221,18 +221,19 @@ export function bestPair(body, mint) {
 // Evidence is context for the memo. It never changes the verdict and never authorizes a trade.
 export function evidence(lens, pair) {
   if (!lens || lens.known !== true) return { coverage: "none", note: "the token is not on the launch tape", flags: [] };
-  const created = lens?.token?.created_at ? new Date(lens.token.created_at) : null;
-  const pairCreated = pair?.pair_created_at ? new Date(pair.pair_created_at) : null;
+  const observedTime = value => { try { return value ? isoTime(value, "evidence time") : null; } catch { return null; } };
+  const created = observedTime(lens?.token?.created_at);
+  const pairCreated = observedTime(pair?.pair_created_at);
   // A pool clearly older than the tape's first sight of the token means the launch was not observed.
   // Without both times the launch cannot be shown to have been observed, so it is treated as unobserved.
   const observed = Boolean(created && pairCreated && !Number.isNaN(created.getTime()) &&
     pairCreated.getTime() >= created.getTime() - COVERAGE_TOLERANCE_MS);
-  const asOf = lens.as_of ? new Date(lens.as_of) : null;
+  const asOf = observedTime(lens.as_of);
   const hours = Number(lens?.base_rates?.since_hours);
-  const windowFrom = asOf && !Number.isNaN(asOf.getTime()) && hours > 0
+  const windowFrom = asOf && Number.isFinite(hours) && hours > 0
     ? new Date(Math.max(asOf.getTime() - hours * 3_600_000, new Date(TAPE_START).getTime())).toISOString()
     : null;
-  const common = { as_of: lens.as_of ?? null, base_rates: lens.base_rates ?? null, base_rates_from: windowFrom };
+  const common = { as_of: asOf?.toISOString() ?? null, base_rates: lens.base_rates ?? null, base_rates_from: windowFrom };
   if (!observed) {
     // Everything derived from the launch is dropped, including the source's own flags and summary.
     return {
@@ -283,6 +284,7 @@ const LEDGER =
   /^EXIT-DESK-LEDGER v1 \| mint=([1-9A-HJ-NP-Za-km-z]{32,44}) \| entry_usd=([0-9.]+) \| opened_at=([0-9TZ:.+-]+) \| peak_usd=([0-9.]+) \| took_half=(true|false) \| observed_at=([0-9TZ:.+-]+) \| price_usd=([0-9.]+)$/;
 
 export function ledgerLine({ mint, entryUsd, openedAt, peakUsd, tookHalf, observedAt, priceUsd }) {
+  if (!isMint(mint) || typeof tookHalf !== "boolean") throw new InputError("ledger needs the exact mint and boolean sale state");
   return (
     `EXIT-DESK-LEDGER v1 | mint=${mint} | entry_usd=${exactPrice(entryUsd, "ledger entry").text} | opened_at=${isoTime(openedAt, "ledger purchase time").toISOString()}` +
     ` | peak_usd=${exactPrice(peakUsd, "ledger peak").text} | took_half=${Boolean(tookHalf)} | observed_at=${isoTime(observedAt, "ledger observation time").toISOString()} | price_usd=${exactPrice(priceUsd, "ledger price").text}`

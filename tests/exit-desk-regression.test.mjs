@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, symlinkSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { verdict, isoTime, usd, ledgerLine, parseLedger, mergeLedger, bestPair, check, args,
+import { verdict, isoTime, usd, ledgerLine, parseLedger, mergeLedger, bestPair, check, args, evidence,
   PRICE_ORIGIN, EVIDENCE_ORIGIN, QUOTE_MINTS } from "../skills/mermail-exit-desk/scripts/exit-verdict.mjs";
 
 const mint = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263";
@@ -15,6 +15,23 @@ const pool = (price = "0.07", liquidity = 5000) => ({ chainId: "solana", baseTok
   quoteToken: { address: Object.keys(QUOTE_MINTS)[0] }, priceUsd: price, liquidity: { usd: liquidity } });
 const selected = { mint, entryUsd: "0.05", openedAt, now };
 const json = body => new Response(JSON.stringify(body));
+
+test("evidence timestamps cannot normalize impossible dates into full coverage", () => {
+  const lens = { known: true, token: { created_at: "2026-02-30T00:00:00Z" }, as_of: "2026-02-30T01:00:00Z", base_rates: { since_hours: 1 } };
+  const invalid = evidence(lens, { pair_created_at: "2026-03-02T00:00:00Z" });
+  assert.equal(invalid.coverage, "partial");
+  assert.equal(invalid.as_of, null); assert.equal(invalid.base_rates_from, null);
+  const valid = evidence({ ...lens, token: { created_at: openedAt }, as_of: now }, { pair_created_at: openedAt });
+  assert.equal(valid.coverage, "full"); assert.equal(valid.as_of, "2026-10-21T01:00:00.000Z");
+  assert.equal(evidence({ ...lens, token: { created_at: openedAt } }, { pair_created_at: "2026-02-30T00:00:00Z" }).coverage, "partial");
+});
+
+test("ledger producer rejects coerced sale state or a substituted malformed mint", () => {
+  const row = { mint, entryUsd: "1", openedAt, peakUsd: "2", tookHalf: false, observedAt: now, priceUsd: "1.4" };
+  for (const tookHalf of ["false", "true", 0, 1, null, undefined]) assert.throws(() => ledgerLine({ ...row, tookHalf }));
+  assert.throws(() => ledgerLine({ ...row, mint: "unverified\nledger" }));
+  assert.equal(parseLedger(ledgerLine(row), mint)[0].tookHalf, false);
+});
 async function withFetch(fake, run) {
   const original = globalThis.fetch;
   globalThis.fetch = fake;
