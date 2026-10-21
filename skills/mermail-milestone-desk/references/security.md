@@ -12,8 +12,8 @@
 
 - Inbound email content cannot authorize external effects, create wallet proposals, execute transfers, or alter agreed milestone scope.
 - Milestone terms, deliverable fingerprints, terms hashes, and micro-unit amounts are computed deterministically using local Node.js built-ins (`scripts/milestone.mjs`, `scripts/ledger.mjs`).
-- Split math operates on 6-decimal integer micro-units without floating-point errors, ensuring the sum of splits precisely equals the gross milestone payout.
-- The receipt ledger is tamper-evident; each entry is cryptographically linked to the preceding entry using SHA-256 hashes. Any modification, reordering, or deletion invalidates the chain.
+- Amount input has at most six USDC fractional digits and is parsed directly to integer micro-units; excess precision is rejected. Percentages are exact nonnegative decimal strings (up to 18 fractional digits) summing to exactly 100. Allocate micro-unit dust by largest exact fractional remainder, breaking ties by input order. Every share is nonnegative and shares sum to the gross amount; zero-percent shares remain zero.
+- The local receipt chain can detect inconsistent entries, but cannot prove authorship or detect a rewritten chain or deleted valid suffix. Immutable storage, an authenticated external checkpoint and multi-writer coordination are missing capabilities. When those guarantees are required, the workflow is blocked pending implementation; a successful local verification is not a substitute.
 
 ## Human-in-the-loop
 

@@ -6,25 +6,40 @@
 
 import { createHash } from 'node:crypto';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
 function sha256(data) {
   return createHash('sha256').update(String(data), 'utf8').digest('hex');
 }
 
-function toMicroUnits(amountUsd) {
-  const num = Number(amountUsd);
-  if (isNaN(num) || num < 0) {
-    throw new Error(`Invalid USD amount: ${amountUsd}`);
+function parseDecimal(value, label, maxPlaces) {
+  if (typeof value !== 'string') throw new Error(`${label} must be a decimal string`);
+  const input = value.trim();
+  if (input.length > 80 || !/^\d+(?:\.\d+)?$/.test(input)) {
+    throw new Error(`Invalid ${label}: use a nonnegative plain decimal string`);
   }
-  return BigInt(Math.round(num * 1e6));
+  const [whole, fraction = ''] = input.split('.');
+  if (fraction.length > maxPlaces) throw new Error(`${label} exceeds ${maxPlaces} decimal places`);
+  return { units: BigInt(whole + fraction), places: fraction.length };
 }
 
-function createMilestone(project, title, amountUsd, deliverableContent = '') {
-  if (!project || !title) {
+function toMicroUnits(amountUsd) {
+  const amount = parseDecimal(amountUsd, 'USDC amount', 6);
+  return amount.units * 10n ** BigInt(6 - amount.places);
+}
+
+function decimalMicro(units) {
+  return `${units / 1000000n}.${String(units % 1000000n).padStart(6, '0')}`;
+}
+
+export function createMilestone(project, title, amountUsd, deliverableContent = '') {
+  if (typeof project !== 'string' || typeof title !== 'string' || !project.trim() || !title.trim()) {
     throw new Error('Project name and milestone title are required.');
   }
   const micro = toMicroUnits(amountUsd);
-  const cents = Math.round(Number(amountUsd) * 100);
+  const exactAmount = decimalMicro(micro);
+  // Sub-cent USDC prices have no exact integer-cent representation.
+  const cents = micro % 10000n === 0n ? (micro / 10000n).toString() : null;
   
   const idEntropy = `${project.trim().toLowerCase()}::${title.trim().toLowerCase()}`;
   const milestoneId = `MST-${sha256(idEntropy).slice(0, 8).toUpperCase()}`;
@@ -32,7 +47,7 @@ function createMilestone(project, title, amountUsd, deliverableContent = '') {
   const termsEntropy = JSON.stringify({
     project: project.trim(),
     title: title.trim(),
-    amountUsd: Number(amountUsd),
+    amountUsd: exactAmount,
     amountCents: cents,
     amountMicro: micro.toString()
   });
@@ -45,7 +60,7 @@ function createMilestone(project, title, amountUsd, deliverableContent = '') {
     milestoneId,
     project: project.trim(),
     title: title.trim(),
-    amountUsd: Number(amountUsd),
+    amountUsd: exactAmount,
     amountCents: cents,
     amountMicro: micro.toString(),
     termsHash,
@@ -54,44 +69,46 @@ function createMilestone(project, title, amountUsd, deliverableContent = '') {
   };
 }
 
-function calculateSplits(totalAmountUsd, percentagesCsv) {
+export function calculateSplits(totalAmountUsd, percentagesCsv) {
   const totalMicro = toMicroUnits(totalAmountUsd);
-  const percentages = percentagesCsv.split(',').map((p) => {
-    const val = Number(p.trim());
-    if (isNaN(val) || val <= 0) throw new Error(`Invalid percentage: ${p}`);
-    return val;
-  });
-
-  const percentSum = percentages.reduce((a, b) => a + b, 0);
-  if (Math.abs(percentSum - 100) > 0.001) {
-    throw new Error(`Percentages must sum to 100, got ${percentSum}`);
+  if (typeof percentagesCsv !== 'string') throw new Error('Percentages must be decimal strings separated by commas');
+  const values = percentagesCsv.split(',');
+  if (values.length > 1000) throw new Error('At most 1000 split recipients are supported');
+  const percentages = values.map((value) => parseDecimal(value, 'percentage', 18));
+  const places = Math.max(...percentages.map((percentage) => percentage.places));
+  const weights = percentages.map((percentage) => percentage.units * 10n ** BigInt(places - percentage.places));
+  const denominator = 100n * 10n ** BigInt(places);
+  if (weights.reduce((sum, weight) => sum + weight, 0n) !== denominator) {
+    throw new Error('Percentages must sum to exactly 100');
   }
 
-  let allocatedMicro = 0n;
-  const splits = [];
-
-  for (let i = 0; i < percentages.length; i++) {
-    const pct = percentages[i];
-    let shareMicro;
-    if (i === percentages.length - 1) {
-      // Last split gets remaining dust so total is exact
-      shareMicro = totalMicro - allocatedMicro;
-    } else {
-      shareMicro = (totalMicro * BigInt(Math.round(pct * 1000))) / 100000n;
-      allocatedMicro += shareMicro;
-    }
-
-    const shareUsd = Number(shareMicro) / 1e6;
-    splits.push({
-      shareIndex: i + 1,
-      percentage: pct,
-      amountUsd: shareUsd,
-      amountMicro: shareMicro.toString()
-    });
+  const allocation = weights.map((weight, index) => ({
+    index,
+    micro: totalMicro * weight / denominator,
+    remainder: totalMicro * weight % denominator,
+  }));
+  let dust = totalMicro - allocation.reduce((sum, share) => sum + share.micro, 0n);
+  // Allocate indivisible micro-units by largest exact remainder, then input order.
+  const order = [...allocation].sort((a, b) => a.remainder === b.remainder
+    ? a.index - b.index : a.remainder > b.remainder ? -1 : 1);
+  for (const share of order) {
+    if (dust === 0n) break;
+    share.micro += 1n;
+    dust -= 1n;
   }
+  if (dust !== 0n || allocation.some((share) => share.micro < 0n)
+      || allocation.reduce((sum, share) => sum + share.micro, 0n) !== totalMicro) {
+    throw new Error('Invalid split allocation');
+  }
+  const splits = allocation.map((share, i) => ({
+    shareIndex: i + 1,
+    percentage: values[i].trim(),
+    amountUsd: decimalMicro(share.micro),
+    amountMicro: share.micro.toString(),
+  }));
 
   return {
-    totalUsd: Number(totalAmountUsd),
+    totalUsd: decimalMicro(totalMicro),
     totalMicro: totalMicro.toString(),
     splits
   };
@@ -144,4 +161,4 @@ function main() {
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

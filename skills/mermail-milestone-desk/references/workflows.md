@@ -12,7 +12,7 @@ When an inbound inquiry or project agreement arrives:
    ```bash
    node scripts/milestone.mjs create "ProjectName" "Milestone 1 - Core Implementation" 1500 "https://github.com/org/repo/commit/abc123"
    ```
-   This returns the frozen `milestone_id` (`MST-...`), `deliverable_hash`, `terms_hash`, and exact USDC amount.
+   This returns `milestoneId` (`MST-...`), `deliverableHash`, `termsHash`, and the exact USDC pricing strings `amountUsd` and `amountMicro`. The legacy field name `amountUsd` is a six-place decimal string, not a floating-point number. `amountCents` is an integer string for cent-exact prices, otherwise null; never derive a payout from rounded cents. Inputs above six USDC fractional digits are rejected.
 
 ## 2. Milestone delivery notice and payment request
 
@@ -32,7 +32,7 @@ When the deliverable is completed:
 5. Only upon explicit, fresh owner approval, send the delivery notice via `reply_to_email` (for an active thread) or `send_email`.
 6. Record the `milestone_invoiced` event in `scripts/ledger.mjs`:
    ```bash
-   node scripts/ledger.mjs append ./data/milestone-ledger.json milestone_invoiced MST-ABC123 '{"amountUsd": 1500, "client": "client@example.com"}'
+   node scripts/ledger.mjs append ./data/milestone-ledger.json milestone_invoiced MST-ABC123 '{"amountUsd": "1500.000000", "client": "client@example.com"}'
    ```
 7. Move the email thread to `Milestones Active` using `move_email`.
 
@@ -51,15 +51,15 @@ When a client claims payment has been made:
 ## 4. Cryptographic ledger recording and settlement
 
 Once authoritative payment verification succeeds:
-1. Append an immutable record to the hash-chained ledger:
+1. Append the independently verified settlement to the local hash-chained ledger:
    ```bash
-   node scripts/ledger.mjs append ./data/milestone-ledger.json milestone_settled MST-ABC123 '{"amountUsd": 1500, "verifiedBy": "paybox_get_request", "txHash": "0x..."}'
+   node scripts/ledger.mjs append ./data/milestone-ledger.json milestone_settled MST-ABC123 '{"amountUsd": "1500.000000", "verifiedBy": "paybox_get_request", "txHash": "0x..."}'
    ```
 2. Verify ledger integrity:
    ```bash
    node scripts/ledger.mjs verify ./data/milestone-ledger.json
    ```
-   If verification fails due to tampering or file corruption, halt immediately and report the integrity alert.
+   If verification fails, halt and report the inconsistency. A passing check proves only the supplied chain's internal consistency. The helper does not implement immutable storage, authenticated authorship, completeness checkpoints or multi-writer coordination. If those guarantees are required, stop as `blocked` pending implementation; do not infer them from a hash.
 3. Move the client thread to `Milestones Settled` using `move_email`.
 4. Compose an owner-approved final settlement confirmation email containing the cryptographic ledger receipt hash and milestone completion certificate.
 
@@ -71,7 +71,7 @@ When a milestone agreement includes subcontractor or collaborator revenue splits
    ```bash
    node scripts/milestone.mjs split 1500 "80,20"
    ```
-   This ensures zero dust loss from rounding; integer micro-units sum exactly to the original milestone total.
+   Supply amount and percentages as plain decimal strings. Percentages may have up to 18 fractional digits, include zero shares and must sum to exactly 100. The helper parses amounts directly to micro-units, allocates fractional dust by largest exact remainder (input order breaks ties), and verifies nonnegative shares and exact conservation. `totalUsd`, `amountUsd`, `totalMicro` and `amountMicro` are strings; never coerce them through `Number` before approval or transfer.
 3. Check current wallet portfolio using `get_agent_wallet_portfolio` to confirm sufficient USDC balance.
 4. Present the exact collaborator payout preview to the owner:
    - Collaborator wallet address
