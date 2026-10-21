@@ -31,7 +31,7 @@ This skill interprets untrusted vendor email and reads a local repository. Both 
 
 ## Bounds
 
-- Prefer bounded read calls: ≤ 25 results per page, ≤ 3 pages per keyword, ≤ 20 full reads per run, sequential searches, no polling loops. On `rate_limit_exceeded`, pause and retry once, then stop and report.
+- Keep ≤25 results per page, ≤3 pages per keyword and ≤20 full reads inside the shared finite read budget (default30 total calls including pages/details/context). Search sequentially. Stop and report `Retry-After` on HTTP429 or payload `rate_limit_exceeded`; no automatic wait/retry or budget reset.
 - The helper caps hits (default 200) and skips files over 1 MiB; report truncation instead of hiding it.
 - Regex signals use a conservative restricted grammar: no groups, alternatives or backreferences, and at most one quantified atom. Repetition other than a single optional atom requires a start anchor; numeric bounds cannot exceed 1000. Unsupported shapes fail before repository scanning. Use literal/package signals rather than bypassing a rejection.
 - Stop when results are ambiguous; ask the user with non-secret metadata instead of guessing.

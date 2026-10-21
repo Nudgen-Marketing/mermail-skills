@@ -20,7 +20,7 @@ Local helper (not an MCP tool): `scripts/scan-repo.mjs` — read-only repository
 - Use the exact tool identifier exposed by the current host (for example `search_emails` or a host-qualified form like `Mermail:search_emails`). Do not manually add, strip, or invent prefixes inconsistently.
 - Prefer mailbox `public_id` as `mailboxId` when `list_mailboxes` returns it.
 - Keep reads bounded: `limit` ≤ 25 per page, at most 3 pages per keyword, at most 20 full reads per run.
-- Call `search_emails` **sequentially**, not in parallel. The hosted MCP rate-limits bursts (a Free-plan workspace returned `{"error": "rate_limit_exceeded", "code": "rate_limit_exceeded"}` after about 20 rapid calls). On that error pause about a minute and retry the same call once; if it repeats, stop and report which keywords were not searched.
+- Call `search_emails` sequentially under the current plan's live limits and one shared read budget (default30 calls, including every page/detail/context). Stop on HTTP429 or payload `rate_limit_exceeded`, report `Retry-After` and uncovered scope, and do not automatically wait or retry. Another bounded run requires an explicit user continuation; historical burst observations do not establish a universal quota.
 
 ## Examples
 
@@ -42,7 +42,7 @@ Candidate discovery for one keyword in a 90-day window, metadata only:
 }
 ```
 
-The free-text term is the `query` field *inside* the native `query` object (Sold API `GET /api/v1/mailboxes/{mailboxId}/search?query=…`). It is a substring match across subject, preview, sender, and recipients, so a stem such as `deprecat` also matches "deprecation" and "deprecated". `from`, `to`, and `subject` are substring candidate filters only. Confirm field names against the live `search_emails` schema from `tools/list`.
+The free-text term is the `query` field inside the native `query` object. Use the live schema's `sender`, `recipient` and `subject` fields for candidate filtering; do not substitute invented `from`/`to` query parameters. Candidate matches are not sender authentication or complete coverage. Confirm fields against `tools/list`.
 
 Read one shortlisted notice:
 
@@ -101,3 +101,5 @@ Signal types: `literal` (host, path, header, env var name), `regex` (1–200 cha
 Prefer literal/package signals. Regex supports literal/escaped characters, character classes and anchors, with at most one quantified atom. A single optional atom (`?`) may be unanchored; `*`, `+` and numeric repeats require a start anchor (`^`), and numeric bounds cannot exceed 1000. Groups, alternatives, backreferences, lookarounds and lazy/nested repeats are unsupported. For example `legacy\.vendor\.example`, `https?://legacy.example` and `^v[0-9]+$` are accepted. A rejected signal is a scan error, never a zero-hit result; do not bypass it through another execution surface.
 
 Each hit retains `file`, `line` and `signal`. `text` is an explicit source-withheld placeholder and `snippet_status` is `withheld`; neither JSON nor human output echoes the arbitrary matching source line. Importing the helper exposes `scan`, `redact`, `urgency` and `validateRegexPattern` without starting the CLI.
+
+Package evidence emits only recognized exact, caret or tilde three-part stable version declarations. Arbitrary specifiers (including URLs, aliases, paths, complex ranges or prereleases) are withheld and yield `affected: null`; a supported range crossing the minimum also yields unknown until the resolved version is reviewed. This is declared-range evidence, not proof of the installed package version. A zero-hit notice never proves absence across excluded/unread files; a hit-capped scan explicitly remains incomplete. `max-hits` must be an integer from1 to10000 and at most100 notice records are accepted. Impossible or ambiguous effective dates retain unknown urgency.

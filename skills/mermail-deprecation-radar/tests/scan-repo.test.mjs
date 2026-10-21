@@ -6,7 +6,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { redact, scan, validateRegexPattern } from "../scripts/scan-repo.mjs";
+import { redact, scan, urgency, validateRegexPattern } from "../scripts/scan-repo.mjs";
 
 const execute = promisify(execFile);
 const cli = fileURLToPath(new URL("../scripts/scan-repo.mjs", import.meta.url));
@@ -82,4 +82,43 @@ test("actual CLI rejects the original catastrophic regex input instead of execut
     assert.equal(error.stdout, "");
     return true;
   });
+});
+
+test("dependency evidence withholds arbitrary source specifiers and does not guess crossing version ranges", async (t) => {
+  const { root } = await fixture(t);
+  const sourceSecret = "SYNTHETIC_DEPENDENCY_PASSWORD";
+  await writeFile(path.join(root, "package.json"), JSON.stringify({ dependencies: {
+    "remote-sdk": `git+https://demo:${sourceSecret}@example.test/sdk.git`,
+    "crossing-sdk": "^1.3.0", "exact-sdk": "1.3.0", "new-sdk": "2.1.0",
+  } }));
+  const result = await scan(root, [{ id: "packages", signals: [
+    { type: "package", value: "remote-sdk", below: "2.0.0" },
+    { type: "package", value: "crossing-sdk", below: "1.4.0" },
+    { type: "package", value: "exact-sdk", below: "2.0.0" },
+    { type: "package", value: "new-sdk", below: "2.0.0" },
+  ] }]);
+  const by = Object.fromEntries(result.notices[0].packageFindings.map(row => [row.package, row]));
+  assert.ok(!JSON.stringify(result).includes(sourceSecret));
+  assert.equal(by["remote-sdk"].affected, null);
+  assert.equal(by["crossing-sdk"].affected, null);
+  assert.equal(by["exact-sdk"].affected, true);
+  assert.equal(by["new-sdk"].affected, false);
+});
+
+test("invalid calendar dates and scan limits fail closed without guessed urgency or unbounded hits", async () => {
+  for (const date of ["2026-02-30", "2026-02-29", "2026-04-31", "not-a-date"]) assert.equal(urgency(date), "unknown-date");
+  assert.equal(urgency("2028-02-29", new Date("2028-02-28T00:00:00Z")), "due-within-14-days");
+  for (const limit of [NaN, Infinity, -1, 0, 1.5, 10001]) await assert.rejects(scan("/must-not-read", [], limit), /max-hits/);
+});
+
+test("actual capped CLI does not describe another notice's missing hits as repository-wide absence", async (t) => {
+  const { dir, root } = await fixture(t);
+  const signals = path.join(dir, "capped.json");
+  await writeFile(signals, JSON.stringify({ notices: [
+    { id: "first", signals: [{ type: "literal", value: "legacy.vendor.example" }] },
+    { id: "second", signals: [{ type: "literal", value: "legacy.vendor.example" }] },
+  ] }));
+  const result = await execute(process.execPath, [cli, "--signals", signals, "--root", root, "--max-hits", "1"], { timeout: 2000 });
+  assert.match(result.stdout, /absence not established/);
+  assert.ok(!result.stdout.includes("no references found in this repository"));
 });

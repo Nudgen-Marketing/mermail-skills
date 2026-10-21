@@ -88,13 +88,31 @@ async function* walk(dir) {
   }
 }
 
-function compareSemver(a, b) {
-  const pa = String(a).replace(/^[^0-9]*/, "").split(/[.+-]/).map((n) => Number.parseInt(n, 10) || 0);
-  const pb = String(b).replace(/^[^0-9]*/, "").split(/[.+-]/).map((n) => Number.parseInt(n, 10) || 0);
+function compareSemver(pa, pb) {
   for (let i = 0; i < 3; i += 1) {
     if ((pa[i] ?? 0) !== (pb[i] ?? 0)) return (pa[i] ?? 0) - (pb[i] ?? 0);
   }
   return 0;
+}
+
+function packageRangeEvidence(range, below) {
+  const match = typeof range === "string" && range.match(/^(\^|~)?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+  const minimum = typeof below === "string" && below.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+  const safe = (parts) => parts.every(Number.isSafeInteger);
+  const lower = match && match.slice(2).map(Number), threshold = minimum && minimum.slice(1).map(Number);
+  // A dependency may contain a credentialed URL or arbitrary source material.
+  // Only the bounded recognized version grammar may be emitted as evidence.
+  if (!match || !safe(lower)) return { range: "[non-version source withheld]", affected: null, comparison: "unknown-specifier" };
+  if (!minimum || !safe(threshold)) return { range, affected: null, comparison: "unknown-threshold" };
+  if (compareSemver(lower, threshold) >= 0) return { range, affected: false, comparison: "supported-range-not-below-threshold" };
+  if (!match[1]) return { range, affected: true, comparison: "exact-declared-version-below-threshold" };
+  const upper = match[1] === "~" ? [lower[0], lower[1] + 1, 0]
+    : lower[0] > 0 ? [lower[0] + 1, 0, 0]
+      : lower[1] > 0 ? [0, lower[1] + 1, 0] : [0, 0, lower[2] + 1];
+  if (!safe(upper)) return { range, affected: null, comparison: "unknown-range-bound" };
+  return compareSemver(upper, threshold) <= 0
+    ? { range, affected: true, comparison: "supported-range-entirely-below-threshold" }
+    : { range, affected: null, comparison: "range-crosses-threshold-check-resolved-version" };
 }
 
 function escapeRegex(s) {
@@ -163,8 +181,10 @@ function compileSignal(signal) {
 }
 
 export function urgency(effective, today = new Date()) {
-  if (!effective) return "unknown-date";
-  const days = Math.floor((new Date(`${effective}T00:00:00Z`) - today) / 86400000);
+  if (typeof effective !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(effective)) return "unknown-date";
+  const parsed = new Date(`${effective}T00:00:00Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0,10) !== effective) return "unknown-date";
+  const days = Math.floor((parsed - today) / 86400000);
   if (Number.isNaN(days)) return "unknown-date";
   if (days < 0) return "past-due";
   if (days <= 14) return "due-within-14-days";
@@ -173,6 +193,8 @@ export function urgency(effective, today = new Date()) {
 }
 
 export async function scan(root, notices, maxHits = 200, today = new Date()) {
+  if (!Number.isSafeInteger(maxHits) || maxHits < 1 || maxHits > 10000) throw new Error("max-hits must be an integer from1 to10000");
+  if (!Array.isArray(notices) || notices.length > 100) throw new Error("notices must be an array with at most100 records");
   const compiled = notices.map((n) => ({
     notice: n,
     signals: (n.signals ?? []).map((s) => ({ signal: s, re: compileSignal(s) })),
@@ -198,8 +220,8 @@ export async function scan(root, notices, maxHits = 200, today = new Date()) {
             for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
               const range = pkg[field]?.[signal.value];
               if (!range) continue;
-              const affected = signal.below ? compareSemver(range, signal.below) < 0 : true;
-              c.packageFindings.push({ file: rel, field, package: signal.value, range, below: signal.below ?? null, affected });
+              const evidence = packageRangeEvidence(range, signal.below);
+              c.packageFindings.push({ file: rel, field, package: signal.value, ...evidence, below: signal.below ?? null });
             }
           }
         }
@@ -223,6 +245,7 @@ export async function scan(root, notices, maxHits = 200, today = new Date()) {
     root: path.resolve(root),
     filesScanned,
     truncated: total >= maxHits,
+    coverage: total >= maxHits ? "limited-hit-cap" : "reviewed-text-files-only",
     notices: compiled
       .map((c) => ({
         id: c.notice.id,
@@ -248,7 +271,7 @@ function printHuman(result) {
   for (const n of result.notices) {
     console.log(`\n[${n.urgency}] ${n.vendor ?? n.id} (${n.id}) effective=${n.effective ?? "unknown"} status=${n.status}`);
     if (!n.hitCount && !n.packageFindings.length) {
-      console.log("  no references found in this repository");
+      console.log(result.truncated ? "  no recorded hits in incomplete scan; absence not established" : "  no recorded references in reviewed text files; excluded or unread files are not covered");
       continue;
     }
     for (const p of n.packageFindings) {
