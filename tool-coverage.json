@@ -5,6 +5,7 @@
   "infrastructureSkills": [
     "mermail",
     "mermail-agent-inbox",
+    "mermail-chargeback-dispute-desk",
     "mermail-cli",
     "mermail-gtm-agent",
     "mermail-mcp",
