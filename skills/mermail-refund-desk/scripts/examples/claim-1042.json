@@ -1,0 +1,13 @@
+{
+  "order_ref": "1042",
+  "from_email": "jamie.lee@example.com",
+  "claimed_amount": 29.0,
+  "claimed_reason": "I was charged twice for order #1042. Two charges of $29.00. Please refund.",
+  "modification_attempt": false,
+  "observed": {
+    "mailbox_public_id": "mbx_example",
+    "message_id": "msg_example_1042",
+    "thread_id": "thr_example_1042",
+    "scan_status": "clean"
+  }
+}
