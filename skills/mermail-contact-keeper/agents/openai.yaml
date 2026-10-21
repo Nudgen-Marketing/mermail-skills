@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Contact Keeper"
+  short_description: "Turn a Mermail inbox into a relationship ledger and draft the follow-ups you owe."
+  default_prompt: "Use $mermail-contact-keeper to build a relationship ledger from my inbox and draft the follow-ups I owe."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
