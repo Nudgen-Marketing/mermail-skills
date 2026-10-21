@@ -6,21 +6,22 @@
  * Exit codes: 0 ok · 1 usage error · 2 refused / validation.
  *
  * Subcommands:
- *   add       --creditor E --debtor E --promise S --due DATE [--evidence-email-id ID]
- *             --mailbox-id ID [--key KEY] [--file P] [--today DATE]
- *   list      [--status open|fulfilled|closed|cancelled] [--mailbox-id ID] [--file P]
- *   due       [--on DATE] [--mailbox-id ID] [--file P] [--today DATE]
- *   followup  --id ID [--date DATE] [--draft-id ID] [--note S]
- *             [--max-count N] [--min-gap-days N] [--mailbox-id ID] [--file P] [--today DATE]
- *   complete  --id ID --evidence-email-id ID [--quote S] [--mailbox-id ID] [--file P] [--today DATE]
- *   close     --id ID --reason fulfilled|cancelled|waived [--mailbox-id ID] [--file P] [--today DATE]
+ *   add       --creditor E --debtor E --promise S --due DATE --evidence-email-id ID
+ *             --mailbox-id ID --key KEY [--file P] [--today DATE]
+ *   list      --mailbox-id ID [--status open|fulfilled|closed|cancelled] [--file P]
+ *   due       --mailbox-id ID [--on DATE] [--file P] [--today DATE]
+ *   preflight --id ID --mailbox-id ID [--max-count N] [--min-gap-days N] [--today DATE]
+ *   followup  --id ID --key KEY --message-id CONFIRMED_SENT_ID [--date DATE] [--draft-id ID] [--note S]
+ *             --mailbox-id ID [--max-count N] [--min-gap-days N] [--file P] [--today DATE]
+ *   complete  --id ID --evidence-email-id ID --mailbox-id ID [--quote S] [--file P] [--today DATE]
+ *   close     --id ID --reason fulfilled|cancelled|waived --mailbox-id ID [--file P] [--today DATE]
  *
  * Invariants enforced here (the agent must respect refusals, never hand-edit the file):
- *   - add is idempotent on --key (replay returns the existing entry, created:false)
+ *   - add requires --key, scoped by mailbox and bound to the immutable add payload
  *   - complete requires evidence email id; close:fulfilled requires prior complete
  *   - followup enforces a per-commitment count cap and minimum day gap
  *   - every entry is bound to one mailboxId; cross-mailbox operations are refused
- *   - writes are atomic (tmp file + rename); the file is the single source of truth
+ *   - local rename is not a concurrent pre-send reservation or mail receipt ledger
  */
 "use strict";
 
@@ -64,15 +65,18 @@ function validISODate(s) {
 
 function parseArgs(argv) {
   const args = { _: [] };
+  const allowed = new Set(["creditor", "debtor", "promise", "due", "evidence-email-id", "mailbox-id", "key", "file", "today", "status", "on", "id", "date", "draft-id", "message-id", "note", "max-count", "min-gap-days", "quote", "reason", "help"]);
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (!a.startsWith("--")) {
-      args._.push(a);
-      continue;
+      throw new UsageError("unexpected positional argument");
     }
     const key = a.slice(2);
+    if (!allowed.has(key)) throw new UsageError("unknown argument");
+    if (Object.hasOwn(args, key)) throw new UsageError("duplicate argument");
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) {
+      if (key !== "help") throw new UsageError("argument value required");
       args[key] = true;
     } else {
       args[key] = next;
@@ -84,7 +88,8 @@ function parseArgs(argv) {
 
 function reqStr(args, name) {
   const v = args[name];
-  if (typeof v !== "string" || v.trim() === "" || v === true) {
+  if (typeof v !== "string" || v.trim() === "" || v.length > 10000 || v === true) {
+    if (name === "evidence-email-id") throw new RefusedError("evidence_required", "source/evidence email id is required");
     throw new UsageError(`missing required --${name}`);
   }
   return v.trim();
@@ -99,7 +104,7 @@ function optStr(args, name, fallback = null) {
 function reqDate(args, name) {
   const v = reqStr(args, name);
   if (!validISODate(v)) {
-    throw new UsageError(`--${name} must be a valid YYYY-MM-DD date, got "${v}"`);
+    throw new UsageError(`--${name} must be a valid YYYY-MM-DD date`);
   }
   return v;
 }
@@ -108,59 +113,103 @@ function optInt(args, name, fallback) {
   const v = args[name];
   if (v === undefined) return fallback;
   const n = Number(v);
-  if (!Number.isInteger(n) || n < 0) {
-    throw new UsageError(`--${name} must be a non-negative integer, got "${v}"`);
+  if (typeof v !== "string" || !/^(?:0|[1-9][0-9]*)$/.test(v) || !Number.isSafeInteger(n) || n > 10000) {
+    throw new UsageError(`--${name} must be an integer from 0 through 10000`);
   }
   return n;
 }
 
 // ---------- storage ----------
 
-function load(file) {
-  if (!fs.existsSync(file)) return { version: 1, commitments: [] };
+function load(file, allowNew = false) {
+  if (!fs.existsSync(file)) {
+    if (allowNew) return { version: 1, commitments: [] };
+    throw new RefusedError("ledger_missing", "ledger unavailable; stop rather than treating it as empty");
+  }
   let raw;
   try {
+    if (!fs.statSync(file).isFile() || fs.statSync(file).size > 1024 * 1024) throw new Error("size");
     raw = JSON.parse(fs.readFileSync(file, "utf8"));
   } catch (e) {
-    throw new RefusedError("ledger_corrupt", `ledger file is not valid JSON: ${file} (${e.message})`);
+    throw new RefusedError("ledger_corrupt", "ledger is invalid or oversized; stop for owner recovery");
   }
-  if (!raw || !Array.isArray(raw.commitments)) {
-    throw new RefusedError("ledger_corrupt", `ledger file has no commitments[] array: ${file}`);
+  if (!raw || raw.version !== 1 || !Array.isArray(raw.commitments) || raw.commitments.length > 10000) {
+    throw new RefusedError("ledger_corrupt", "invalid ledger schema");
+  }
+  const ids = new Set(), keys = new Set(), recordKeys = new Set(), messageIds = new Set();
+  for (const c of raw.commitments) {
+    if (!c || typeof c !== "object" ||
+        ["id", "key", "mailboxId", "creditor", "debtor", "promise", "evidenceEmailId"].some(k => typeof c[k] !== "string" || !c[k].trim() || c[k].length > 10000) ||
+        !validISODate(c.dueDate) || !["open", "fulfilled", "closed", "cancelled"].includes(c.status) ||
+        !Array.isArray(c.followUps) || c.followUps.length > 10000 ||
+        c.followUps.some(f => !f || typeof f !== "object" || !validISODate(f.date)) ||
+        c.followUps.some((f, i) => i > 0 && f.date < c.followUps[i - 1].date) ||
+        (c.addPayloadHash !== undefined && (typeof c.addPayloadHash !== "string" || !/^[a-f0-9]{64}$/.test(c.addPayloadHash))) ||
+        ids.has(c.id) || keys.has(JSON.stringify([c.mailboxId, c.key]))) {
+      throw new RefusedError("ledger_corrupt", "invalid or ambiguous ledger entries");
+    }
+    ids.add(c.id); keys.add(JSON.stringify([c.mailboxId, c.key]));
+    for (const f of c.followUps) {
+      if (f.key === undefined && f.messageId === undefined && f.recordHash === undefined) continue; // read-only legacy history
+      const recordKey = JSON.stringify([c.mailboxId, f.key]);
+      const messageKey = JSON.stringify([c.mailboxId, f.messageId]);
+      const payload = { key: f.key, messageId: f.messageId, date: f.date, draftId: f.draftId, note: f.note };
+      const hash = crypto.createHash("sha256").update(JSON.stringify([c.mailboxId, c.id, payload])).digest("hex");
+      if (typeof f.key !== "string" || !f.key.trim() || typeof f.messageId !== "string" || !f.messageId.trim() ||
+          f.recordHash !== hash || recordKeys.has(recordKey) || messageIds.has(messageKey)) {
+        throw new RefusedError("ledger_corrupt", "invalid or ambiguous follow-up bookkeeping");
+      }
+      recordKeys.add(recordKey); messageIds.add(messageKey);
+    }
   }
   return raw;
 }
 
 function save(file, data) {
-  fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
+  const serialized = JSON.stringify(data, null, 2) + "\n";
+  if (Buffer.byteLength(serialized) > 1024 * 1024) throw new RefusedError("ledger_limit", "ledger size limit; stop for owner recovery");
+  fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true, mode: 0o700 });
   const tmp = `${file}.tmp-${process.pid}`;
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + "\n");
+  fs.writeFileSync(tmp, serialized, { flag: "wx", mode: 0o600 });
   fs.renameSync(tmp, file);
 }
 
 function newId(key) {
   const h = crypto.createHash("sha256").update(key).digest("hex");
-  return `c-${h.slice(0, 8)}`;
+  return `c-${h.slice(0, 24)}`;
 }
 
-function find(data, id) {
-  const entry = data.commitments.find((c) => c.id === id);
+function find(data, id, mailboxId) {
+  const entry = data.commitments.find((c) => c.id === id && c.mailboxId === mailboxId);
   if (!entry) {
-    throw new RefusedError("not_found", `no commitment with id ${id}`);
+    throw new RefusedError("not_found_or_out_of_scope", "no commitment in the selected mailbox scope");
   }
   return entry;
 }
 
 function checkMailbox(entry, args) {
-  const mbox = optStr(args, "mailbox-id");
-  if (mbox !== null && mbox !== entry.mailboxId) {
+  const mbox = reqStr(args, "mailbox-id");
+  if (mbox !== entry.mailboxId) {
     throw new RefusedError(
       "cross_mailbox_refused",
-      `entry ${entry.id} is bound to mailbox ${entry.mailboxId}; refusing operation from mailbox ${mbox}`
+      "operation does not match selected mailbox scope"
     );
   }
 }
 
-function entryView(c, today) {
+function followupPolicy(c, today, args) {
+  const cap = optInt(args, "max-count", 3);
+  const minGapDays = optInt(args, "min-gap-days", 3);
+  const last = c.followUps.at(-1);
+  let reason = null;
+  if (c.status !== "open") reason = "not_open";
+  else if (c.dueDate > today) reason = "not_due";
+  else if (c.followUps.length >= cap || (last && daysBetween(last.date, today) < minGapDays)) reason = "followup_frequency_cap";
+  return { followupEligible: reason === null, followupReason: reason, cap, minGapDays,
+    preflightOnly: true, atomicReservation: false };
+}
+
+function entryView(c, today, args = {}) {
   const dDue = daysBetween(today, c.dueDate); // >0 future, 0 today, <0 past
   const last = c.followUps.length ? c.followUps[c.followUps.length - 1] : null;
   return {
@@ -174,6 +223,7 @@ function entryView(c, today) {
     mailboxId: c.mailboxId,
     followUpCount: c.followUps.length,
     lastFollowUpDate: last ? last.date : null,
+    ...followupPolicy(c, today, args),
     ...(c.status === "open"
       ? {
           dueClass: dDue > 0 ? "upcoming" : dDue === 0 ? "due" : "overdue",
@@ -192,9 +242,9 @@ function emit(obj) {
 function cmdAdd(args, file) {
   const today = optStr(args, "today") || todayISO();
   if (!validISODate(today)) throw new UsageError(`--today must be YYYY-MM-DD`);
-  const key = optStr(args, "key") || `add-${today}-${crypto.randomBytes(6).toString("hex")}`;
+  const key = reqStr(args, "key");
   const entry = {
-    id: newId(key),
+    id: newId(JSON.stringify([reqStr(args, "mailbox-id"), key])),
     key,
     mailboxId: reqStr(args, "mailbox-id"),
     creditor: reqStr(args, "creditor"),
@@ -209,9 +259,13 @@ function cmdAdd(args, file) {
     closeReason: null,
     followUps: [],
   };
-  const data = load(file);
-  const existing = data.commitments.find((c) => c.key === key);
+  const payload = Object.fromEntries(["mailboxId", "creditor", "debtor", "promise", "dueDate", "evidenceEmailId"].map(k => [k, entry[k]]));
+  entry.addPayloadHash = crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+  const data = load(file, true);
+  const existing = data.commitments.find((c) => c.mailboxId === entry.mailboxId && c.key === key);
   if (existing) {
+    if (!existing.addPayloadHash) throw new RefusedError("idempotency_unverified", "legacy add payload is not verifiable; owner migration required");
+    if (existing.addPayloadHash !== entry.addPayloadHash) throw new RefusedError("idempotency_conflict", "key already binds a different add payload in this mailbox");
     emit({ ok: true, created: false, duplicate_add_ignored: true, commitment: entryView(existing, today) });
     return;
   }
@@ -222,19 +276,20 @@ function cmdAdd(args, file) {
 
 function cmdList(args, file) {
   const today = optStr(args, "today") || todayISO();
+  if (!validISODate(today)) throw new UsageError("--today must be YYYY-MM-DD");
+  const mbox = reqStr(args, "mailbox-id");
   const data = load(file);
   let items = data.commitments;
   const status = optStr(args, "status");
-  const mbox = optStr(args, "mailbox-id");
   if (status) {
     if (!["open", "fulfilled", "closed", "cancelled"].includes(status)) {
       throw new UsageError(`--status must be open|fulfilled|closed|cancelled`);
     }
     items = items.filter((c) => c.status === status);
   }
-  if (mbox) items = items.filter((c) => c.mailboxId === mbox);
+  items = items.filter((c) => c.mailboxId === mbox);
   items = items.slice().sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : a.id < b.id ? -1 : 1));
-  emit({ ok: true, today, count: items.length, commitments: items.map((c) => entryView(c, today)) });
+  emit({ ok: true, today, count: items.length, commitments: items.map((c) => entryView(c, today, args)) });
 }
 
 function cmdDue(args, file) {
@@ -246,47 +301,50 @@ function cmdDue(args, file) {
   }
   const refToday = today || todayISO();
   const data = load(file);
-  const mbox = optStr(args, "mailbox-id");
+  const mbox = reqStr(args, "mailbox-id");
   let items = data.commitments.filter((c) => c.status === "open" && c.dueDate <= on);
-  if (mbox) items = items.filter((c) => c.mailboxId === mbox);
+  items = items.filter((c) => c.mailboxId === mbox);
   items = items.slice().sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : a.id < b.id ? -1 : 1));
-  emit({ ok: true, on, today: refToday, count: items.length, commitments: items.map((c) => entryView(c, refToday)) });
+  emit({ ok: true, on, today: refToday, count: items.length, commitments: items.map((c) => entryView(c, refToday, args)) });
+}
+
+function cmdPreflight(args, file) {
+  const today = optStr(args, "today") || todayISO();
+  if (!validISODate(today)) throw new UsageError("--today must be YYYY-MM-DD");
+  const mailboxId = reqStr(args, "mailbox-id");
+  const entry = find(load(file), reqStr(args, "id"), mailboxId);
+  emit({ ok: true, today, commitment: entryView(entry, today, args),
+    warning: "read-only eligibility; not an atomic pre-send cap reservation or authorization" });
 }
 
 function cmdFollowup(args, file) {
   const today = optStr(args, "today") || todayISO();
   if (!validISODate(today)) throw new UsageError(`--today must be YYYY-MM-DD`);
   const data = load(file);
-  const entry = find(data, reqStr(args, "id"));
+  const entry = find(data, reqStr(args, "id"), reqStr(args, "mailbox-id"));
   checkMailbox(entry, args);
-  if (entry.status !== "open") {
-    throw new RefusedError("not_open", `commitment ${entry.id} is ${entry.status}; follow-ups apply to open commitments`);
-  }
   const date = optStr(args, "date") || today;
   if (!validISODate(date)) throw new UsageError(`--date must be YYYY-MM-DD`);
-  const maxCount = optInt(args, "max-count", 3);
-  const minGapDays = optInt(args, "min-gap-days", 3);
-  if (entry.followUps.length >= maxCount) {
-    throw new RefusedError(
-      "followup_frequency_cap",
-      `commitment ${entry.id} already has ${entry.followUps.length} follow-ups (cap ${maxCount}); report followup_capped and leave the decision to the user`
-    );
-  }
-  const last = entry.followUps[entry.followUps.length - 1];
-  if (last) {
-    const gap = daysBetween(last.date, date);
-    if (gap < minGapDays) {
-      throw new RefusedError(
-        "followup_frequency_cap",
-        `last follow-up on ${last.date} is only ${gap} day(s) before ${date}; minimum gap is ${minGapDays} day(s)`
-      );
-    }
-  }
   const rec = {
+    key: reqStr(args, "key"),
+    messageId: reqStr(args, "message-id"),
     date,
     draftId: optStr(args, "draft-id"),
     note: optStr(args, "note"),
   };
+  const recordHash = crypto.createHash("sha256").update(JSON.stringify([entry.mailboxId, entry.id, rec])).digest("hex");
+  for (const candidate of data.commitments.filter(c => c.mailboxId === entry.mailboxId)) {
+    const prior = candidate.followUps.find(f => f.key === rec.key || f.messageId === rec.messageId);
+    if (prior) {
+      if (candidate.id !== entry.id || prior.recordHash !== recordHash) throw new RefusedError("idempotency_conflict", "follow-up record key/message already binds different bookkeeping in this mailbox");
+      emit({ ok: true, recorded: false, duplicate_record_ignored: true, commitment: entryView(entry, today, args), bookkeepingOnly: true });
+      return;
+    }
+  }
+  rec.recordHash = recordHash;
+  if (date !== today) throw new RefusedError("followup_date_mismatch", "record date must equal the trusted run date; no backdating/future records");
+  const policy = followupPolicy(entry, today, args);
+  if (!policy.followupEligible) throw new RefusedError(policy.followupReason, "follow-up not eligible under the same preflight policy");
   entry.followUps.push(rec);
   save(file, data);
   emit({
@@ -295,10 +353,10 @@ function cmdFollowup(args, file) {
     commitment: {
       id: entry.id,
       followUpCount: entry.followUps.length,
-      cap: maxCount,
-      minGapDays,
       lastFollowUpDate: date,
-      eligibleForAnother: entry.followUps.length < maxCount,
+      ...followupPolicy(entry, today, args),
+      eligibleForAnother: followupPolicy(entry, today, args).followupEligible,
+      bookkeepingOnly: true,
     },
   });
 }
@@ -307,7 +365,7 @@ function cmdComplete(args, file) {
   const today = optStr(args, "today") || todayISO();
   if (!validISODate(today)) throw new UsageError(`--today must be YYYY-MM-DD`);
   const data = load(file);
-  const entry = find(data, reqStr(args, "id"));
+  const entry = find(data, reqStr(args, "id"), reqStr(args, "mailbox-id"));
   checkMailbox(entry, args);
   if (entry.status !== "open") {
     throw new RefusedError("not_open", `commitment ${entry.id} is ${entry.status}; only open commitments can be completed`);
@@ -325,7 +383,7 @@ function cmdClose(args, file) {
   const today = optStr(args, "today") || todayISO();
   if (!validISODate(today)) throw new UsageError(`--today must be YYYY-MM-DD`);
   const data = load(file);
-  const entry = find(data, reqStr(args, "id"));
+  const entry = find(data, reqStr(args, "id"), reqStr(args, "mailbox-id"));
   checkMailbox(entry, args);
   const reason = reqStr(args, "reason");
   if (!["fulfilled", "cancelled", "waived"].includes(reason)) {
@@ -352,9 +410,11 @@ function cmdClose(args, file) {
 function main() {
   const argv = process.argv.slice(2);
   const cmd = argv[0];
-  const args = parseArgs(argv.slice(1));
-  const file = optStr(args, "file") || "commitments.json";
-  const commands = { add: cmdAdd, list: cmdList, due: cmdDue, followup: cmdFollowup, complete: cmdComplete, close: cmdClose };
+  let args, file;
+  const commands = { add: cmdAdd, list: cmdList, due: cmdDue, preflight: cmdPreflight, followup: cmdFollowup, complete: cmdComplete, close: cmdClose };
+
+  try { args = parseArgs(argv.slice(1)); file = optStr(args, "file") || "commitments.json"; }
+  catch { process.stderr.write(JSON.stringify({ ok: false, error: "usage", message: "invalid arguments" }) + "\n"); process.exit(USAGE_EXIT); }
 
   if (!cmd || cmd === "help" || args.help) {
     process.stdout.write(fs.readFileSync(__filename, "utf8").match(/\/\*\*[\s\S]*?\*\//)[0] + "\n");
@@ -362,10 +422,19 @@ function main() {
   }
   const fn = commands[cmd];
   if (!fn) {
-    process.stderr.write(JSON.stringify({ ok: false, error: "unknown_command", command: String(cmd) }) + "\n");
+    process.stderr.write(JSON.stringify({ ok: false, error: "unknown_command" }) + "\n");
     process.exit(USAGE_EXIT);
   }
   try {
+    const commandFields = {
+      add: ["creditor", "debtor", "promise", "due", "evidence-email-id", "key"],
+      list: ["status", "max-count", "min-gap-days"], due: ["on", "max-count", "min-gap-days"],
+      preflight: ["id", "max-count", "min-gap-days"],
+      followup: ["id", "date", "key", "message-id", "draft-id", "note", "max-count", "min-gap-days"],
+      complete: ["id", "evidence-email-id", "quote"], close: ["id", "reason"],
+    };
+    const permitted = new Set(["_", "file", "mailbox-id", "today", "help", ...commandFields[cmd]]);
+    if (Object.keys(args).some(k => !permitted.has(k))) throw new UsageError("argument not supported for this command");
     fn(args, file);
   } catch (e) {
     if (e instanceof UsageError) {
@@ -376,7 +445,7 @@ function main() {
       process.stderr.write(JSON.stringify({ ok: false, error: e.code, message: e.message }) + "\n");
       process.exit(REFUSED_EXIT);
     }
-    process.stderr.write(JSON.stringify({ ok: false, error: "internal", message: e.message }) + "\n");
+    process.stderr.write(JSON.stringify({ ok: false, error: "internal", message: "local ledger operation failed; stop for owner recovery" }) + "\n");
     process.exit(1);
   }
 }

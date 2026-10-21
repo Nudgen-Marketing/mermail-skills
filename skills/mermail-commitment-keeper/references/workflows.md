@@ -52,7 +52,7 @@ node commitments.js add \
   --key sweep-2026-09-08-acme-contract --file ~/state/commitments.json
 ```
 
-- Derive `--key` from run + source message + promise (stable across reruns). A repeated `add` with the same key returns the existing entry (`"created": false`, `duplicate_add_ignored`) — the sweep can be replayed safely.
+- Derive required `--key` from source message + promise (stable across reruns, not a changing run timestamp). A repeated `add` in the same mailbox returns the existing entry only when the immutable add payload hash matches (`"created": false`, `duplicate_add_ignored`). Changed creditor/debtor/promise/due/source with that key is `idempotency_conflict`; missing legacy payload provenance is `idempotency_unverified` and needs owner migration. Another mailbox has a separate key scope and never returns the first mailbox's entry.
 - `add` without `--evidence-email-id` is refused (`evidence_required`): every commitment cites its source message.
 - Failure path: if the CLI exits non-zero, fix the arguments; never hand-edit the JSON file.
 
@@ -63,6 +63,8 @@ node commitments.js due --on 2026-09-08 --mailbox-id MAILBOX_PUBLIC_ID --file ~/
 ```
 
 Classifies open items as `upcoming` (due in the future), `due` (due today), or `overdue` (past due, with `daysOverdue`), and reports `followUps` count, last follow-up date, and `followupEligible`. `due` is read-only; nothing is drafted or sent by the sweep itself.
+
+Actual fields are `followUpCount`, `lastFollowUpDate`, `followupEligible`, `followupReason`, `cap`, `minGapDays`, `preflightOnly: true`, `atomicReservation: false`; the full stored `followUps[]` is not emitted. `--on` is the due horizon; eligibility uses trusted current date (or owner-controlled/test-only `--today`), never the future horizon. `list`, `due`, `preflight`, and all mutations require `--mailbox-id`. Missing/corrupt/ambiguous ledgers stop, not an empty success; only an explicit `add` initializes a new file.
 
 ## 5. Fulfillment verification
 
@@ -85,11 +87,15 @@ node commitments.js close --id c-1a2b3f04 --reason fulfilled \
 
 ## 6. Follow-up (draft → approval → send once)
 
-1. Run only when `followupEligible` is true — the CLI `followup` command enforces the cap (at most `--max-count`, default 3, follow-ups per commitment and at least `--min-gap-days`, default 3, between them) and records `{date, draftId, note}` into `followUps[]`. A capped item is reported, not retried.
+1. Run read-only `preflight --id COMMITMENT_ID --mailbox-id MAILBOX_PUBLIC_ID --file PRIVATE_LEDGER` before drafting and again immediately before an approved send. Require `followupEligible: true` under the owner-selected cap/gap (defaults 3 total and 3 days). It checks open/due/current-date/count/gap only, not fulfillment, authorization, live capacity, exact send contents or any reserved slot. A capped/not-due/not-open item is reported, never bypassed.
 2. Draft with `save_draft` on the promise thread (`in_reply_to`, `thread_id`), polite, short, matching the thread language, naming the concrete promise and date. No threats, no payment links, no new demands beyond the original promise.
-3. Show the exact draft plus ledger id; send with `reply_to_email` only on fresh user approval of that exact payload, using one idempotency key (`commitment-<id>-followup-<n>-<date>`), then record the sent follow-up via CLI `followup` with the returned message/draft id.
+3. Show the exact draft plus ledger id; in an attended serialized workflow only, send with `reply_to_email` only on fresh user approval of that exact payload and a fresh eligible preflight, using one exact native-payload-bound send idempotency key. After authoritative confirmation of delivery, record once: `followup --id COMMITMENT_ID --mailbox-id MAILBOX_PUBLIC_ID --key STABLE_RECORD_KEY --message-id CONFIRMED_SENT_ID --date CURRENT_DATE --file PRIVATE_LEDGER` (optional `--draft-id`, `--note`). Date must equal the trusted run date. Same record key/message/payload replay is a no-op; conflicting reuse fails. A draft id alone is not delivery evidence. This is local bookkeeping, not proof of delivery or a pre-send guarantee.
 4. Failure paths: `email_send_rate_limit_exceeded` → surface `Retry-After`, record nothing, do not auto-retry. Ambiguous/timeout result → one authoritative reconcile read (re-list the thread); still uncertain → report `uncertain`, never replay with a new key. Validation failure → correct the named field, do not reshape recipients.
 5. When the user approves fulfillment arrived later, resume at step 5.
+
+**Blocked pending original author implementation:** unattended/concurrent sends and guaranteed pre-send cap safety. The helper has no durable cap reservation, send transaction, receipt verification or uncertain-outcome reconciliation. Read-only preflight can race and post-send recording can fail after the external effect. Do not claim the cap was atomically enforced before mail, record a timeout as sent or launch another send while any outcome is unresolved. Author acceptance requires owner-scoped durable reservations, exact-send binding, crash/concurrency and receipt-reconciliation tests; preserve the original use case rather than invent a backend here.
+
+Actual offline helper/CLI regressions from repository root: `node --test tests/commitment-keeper.test.cjs`. These use synthetic private `/private/tmp` ledgers and prove bookkeeping/refusal behavior only, not live mail, agent decisions, atomic mail reservations or production durability. Original scenario/adversarial fixtures are unchanged.
 
 ## 7. Close and confirm
 

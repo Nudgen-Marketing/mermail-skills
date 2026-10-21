@@ -36,7 +36,9 @@ Bounded sweep with explicit ISO date filters (all filters establish candidates, 
     "date_end": "2026-09-08T23:59:59Z",
     "folder": "inbox",
     "page": 1,
-    "limit": 25
+    "limit": 25,
+    "metadata_only": true,
+    "agent_safe_content": true
   }
 }
 ```
