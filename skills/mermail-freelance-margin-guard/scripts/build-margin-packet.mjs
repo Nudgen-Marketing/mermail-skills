@@ -241,7 +241,7 @@ export function verifySelectedEmailCompleteness(email) {
     invariant(email[field] === undefined || email[field] === false, `selected email has omitted or truncated content: ${field}`);
   }
   invariant(email.content_omission_reason === undefined, "selected email has an omission reason");
-  invariant(email.body_storage_status === undefined || email.body_storage_status === "available",
+  invariant(email.body_storage_status == null || email.body_storage_status === "available",
     "selected email body storage is unavailable or unknown");
   if (email.body_original_char_count !== undefined) {
     invariant(Number.isSafeInteger(email.body_original_char_count) && email.body_original_char_count >= 0 &&

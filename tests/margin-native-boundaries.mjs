@@ -16,7 +16,7 @@ const noSleep=async()=>{throw Error("Unexpected poll/backoff after terminal evid
 
 test("native storage, omission and truncation failures reject real evidence gates in both copy orders",()=>{
   for(const change of [{body_storage_status:"deleted"},{body_storage_status:"unavailable"},
-    {body_storage_status:null},{body_storage_status:"unknown"},{body_truncated:true},
+    {body_storage_status:"unknown"},{body_truncated:true},
     {body_truncated:"false"},{content_omitted:null},{content_truncated:null},
     {content_omission_reason:"body_unavailable"},{body_original_char_count:10000}]) {
     const safe=selected(), unsafe={...safe,...change};
@@ -33,6 +33,10 @@ test("current optional-positive native markers preserve complete safe reads and 
   const explicit={...email,content_omitted:false,content_truncated:false,body_truncated:false,
     body_original_char_count:email.body.length,body_storage_status:"available"};
   assert.equal(resolveSelectedEmailEvidence([{email:explicit}],email.id,[]).email.id,email.id);
+  const nativeNull={...email,body_storage_status:null};
+  assert.equal(verifySelectedEmailEvidence(input(nativeNull),[{tool:"get_email",email:nativeNull}]).valid,true);
+  assert.equal(resolveSelectedEmailEvidence([{email:nativeNull}],email.id,[]).email.id,email.id);
+  assert.throws(()=>resolveSelectedEmailEvidence([{email:{...nativeNull,content_truncated:true}}],email.id,[]));
   const sent={...email,folder_id:"Sent",scan_status:null,is_incoming:false};
   assert.equal(resolveSelectedEmailEvidence([{email:sent}],email.id,[],"get_email_context").email.id,email.id);
   assert.throws(()=>resolveSelectedEmailEvidence([{email:sent}],email.id,[],"get_email"));
