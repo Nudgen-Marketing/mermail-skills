@@ -62,10 +62,13 @@ Claude Code API-key fallback:
   "type": "http",
   "url": "https://console.mermail.app/mcp",
   "headers": {
-    "x-api-key": "${MERMAIL_API_KEY}"
+    "x-api-key": "${MERMAIL_API_KEY:-}"
   }
 }
 ```
+
+Keep the `:-` empty default. Without it, an unset variable is sent as the
+literal `${MERMAIL_API_KEY}` header, which Mermail rejects before OAuth is tried.
 
 Use `/mcp` or `claude mcp get mermail` to inspect connection state. Start a new
 session after skill or connector updates.
