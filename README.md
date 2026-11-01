@@ -21,6 +21,16 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-xstocks-desk
 
 ## Install as a plugin
 
+### Antigravity
+
+```bash
+agy plugin install https://github.com/Nudgen-Marketing/mermail-skills
+```
+
+Enable Mermail in **Customizations > Installed**, then complete MCP OAuth sign-in and choose your workspace. No API key is required. Verify the connection by asking Antigravity to list your mailboxes.
+
+The Antigravity package uses `.antigravity-plugin/plugin.json`, the root `mcp_config.json`, and the shared `skills/` directory. See the [Antigravity setup guide](./.antigravity-plugin/README.md) for prerequisites and permissions. Official marketplace inclusion is subject to Google's review.
+
 ### Codex
 
 ```bash

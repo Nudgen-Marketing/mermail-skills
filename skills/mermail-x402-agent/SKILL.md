@@ -15,7 +15,7 @@ metadata:
 
 ## Overview
 
-Use this skill when the user’s current task needs a paid x402 resource from **any** third-party origin that supports x402, then the work continues with that paid output. `paybox_pay_x402` creates a signed payment proof; its tool/request `status: success` means proof creation succeeded, **not** that the merchant redeemed it or funds settled. Before authorization, freeze both a **fulfillment plan** and an **outcome contract**. The fulfillment plan defines how this origin is paid and continued; the outcome contract defines what result would actually satisfy the user. Derive both from the authenticated request, this origin's live challenge/contract, and same-origin docs — **not a vendor allowlist**. Discover, then validate. Do not invent Apify or any other host, copy one vendor’s continue shape onto another, or report success for a merely plausible result.
+Use this skill for a user-selected x402 resource followed by work with the paid output. `paybox_pay_x402` success means proof creation, **not** merchant redemption or settlement. Before authorization, freeze a **fulfillment plan** (payment and continuation) and an **outcome contract** (required result), grounded in the authenticated request, live challenge/contract, and same-origin docs, **not a vendor allowlist**. Never invent a host, reuse another vendor's continuation shape, or claim success for a merely plausible result.
 
 Apify is a **labeled example** only (prepaid mint then a follow-on API is one class-2 shape). It is not the playbook and not a guaranteed catalog listing.
 
@@ -121,21 +121,4 @@ This skill does not own MCP tools. Follow the same argument, approval, and retry
 
 ## Example Requests
 
-- "Pay this x402 weather API with my Mermail Agent Wallet, then return the forecast I asked for."
-- "Discover then pay the x402 origin I named and continue the original job."
-- "If this third-party call requires x402 payment and I did not name an amount, resolve the vendor floor from same-origin docs then continue after approval."
-- "At most 1 USDC; if required_charge fits, pay that floor and keep going with the paid result."
-- "PayBox is not connected; connect Agent Wallet in Mermail before paying the selected service."
-- "Fund 1 USDC into the wallet, then pay required_charge and continue."
-- "My wallet already covers the 0.01 quote; still charge the resolved vendor prepaid floor."
-- "tools/list looks empty for paybox; always call get_paybox_connection once — if ACTIVE, continue; do not ask to reconnect MCP."
-- "Mermail MCP is already connected; still tools/call get_paybox_connection even if it is omitted from tools/list. Do not say the probe isn’t exposed."
-- "The PayBox frame is Waiting with nothing to sign after paybox_pay_x402; paste one signing_handoff.console_url, do not call reopen_signing_window, then continue after I sign."
-- "Submit failed with paybox_continuation_origin_not_found; do not say awaiting signature — reconcile once, then pay with a fresh approved paybox_pay_x402."
-- "Paid output is a vendor session credential; do not replay the settled pay URL — call the follow-on API/resource from same-origin docs with the in-session token."
-- "Paid body was redacted after settlement; report paid_and_blocked, do not pay again."
-- "This vendor mints an API key, but Mermail will scrub it and no secure follow-on tool exists; stop before payment."
-- "Buy at most 1 USDC of the selected service and return 10 China hot-search topics; do not ask me to approve the same cap twice, and reject results for another market or result type."
-- "The result contains x_payment; use this origin's live protocol contract for the exact replay header — do not guess X-PAYMENT from the field name."
-- "get_request says success with proof_status created and gateway false; report proof_ready, not settled or charged, then replay the exact frozen request once."
-- "Example only — not the playbook: Pay Apify with my Mermail Agent Wallet over x402, then crawl this TikTok profile."
+See [example requests](references/examples.md).

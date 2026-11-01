@@ -2257,6 +2257,7 @@ async function validatePluginManifests() {
     errors.push("openclaw.plugin.json: configSchema must reject undeclared configuration");
   }
   const manifests = [
+    ".antigravity-plugin/plugin.json",
     ".codex-plugin/plugin.json",
     ".claude-plugin/plugin.json",
     ".cursor-plugin/plugin.json",

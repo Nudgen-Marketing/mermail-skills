@@ -15,12 +15,14 @@
     "LICENSE",
     "plugin.json",
     "mcp.json",
+    "mcp_config.json",
     "openclaw.plugin.json",
     ".mcp.json",
     ".plugin",
     ".codex-plugin",
     ".claude-plugin",
     ".cursor-plugin",
+    ".antigravity-plugin",
     "compatibility.json",
     "tool-coverage.json"
   ],
@@ -35,6 +37,7 @@
     "prepublishOnly": "node -e \"throw new Error('mermail-skills is published through ClawHub, not the npm registry')\"",
     "test": "node tests/validate.mjs",
     "validate:remote": "node tests/validate.mjs --remote",
-    "build:openai-zip": "bash scripts/build-openai-skills-zip.sh"
+    "build:openai-zip": "bash scripts/build-openai-skills-zip.sh",
+    "build:antigravity": "bash scripts/build-antigravity-plugin.sh"
   }
 }

@@ -15,6 +15,30 @@ OAuth uses the same Enoki account as the Mermail console and binds the grant to 
 
 API-key mode uses a workspace-scoped Mermail API key mapped from `MERMAIL_API_KEY` to the `x-api-key` header. API-key mode cannot unlock Agent Wallet or `paybox_*` tools.
 
+## Antigravity
+
+Install the plugin with a current Antigravity CLI:
+
+```bash
+agy plugin install https://github.com/Nudgen-Marketing/mermail-skills
+```
+
+Enable Mermail in **Customizations > Installed** and complete browser OAuth sign-in. If prompted, select **Authenticate** in MCP settings. Choose the intended Mermail workspace during consent. Antigravity discovers OAuth through dynamic client registration; no API key or manually configured client secret is required.
+
+The bundled root `mcp_config.json` contains:
+
+```json
+{
+  "mcpServers": {
+    "mermail": {
+      "serverUrl": "https://console.mermail.app/mcp"
+    }
+  }
+}
+```
+
+OpenClaw-specific environment metadata in the shared skills does not apply to Antigravity. Do not add an API-key header to this configuration. Verify the connection through the client's MCP catalog and one read-only `list_mailboxes` or `list_workspaces` call, using the exact host-exposed tool identifier. The API-key check script is not an OAuth verification tool.
+
 ## Codex
 
 Prefer native MCP OAuth with a current Codex CLI:

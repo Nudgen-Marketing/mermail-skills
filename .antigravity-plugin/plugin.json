@@ -1,0 +1,22 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "mermail",
+  "displayName": "Mermail",
+  "version": "1.5.7",
+  "description": "Connect your Mermail workspace to create agent inboxes, search and organize email, draft replies, and manage mailbox workflows with OAuth.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Connect Mermail and list the mailboxes in my workspace.",
+    "Summarize unread messages in my Mermail inbox and flag those needing a reply.",
+    "Draft a reply to a message I choose and show it to me before sending."
+  ],
+  "author": {
+    "name": "Mermail",
+    "email": "contact@mermail.app",
+    "url": "https://mermail.app"
+  },
+  "homepage": "https://docs.mermail.app/ai/skills",
+  "repository": "https://github.com/Nudgen-Marketing/mermail-skills",
+  "license": "MIT",
+  "keywords": ["email", "inbox", "mcp", "ai-agent", "automation"]
+}
