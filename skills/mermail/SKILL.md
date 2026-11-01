@@ -8,7 +8,7 @@ metadata:
         - MERMAIL_API_KEY
     primaryEnv: MERMAIL_API_KEY
     homepage: https://docs.mermail.app/ai/skills
-    emoji: "📬"
+    emoji: 📬
 ---
 
 # Mermail
@@ -25,6 +25,8 @@ Route the request before invoking Mermail tools. Read [routing.md](references/ro
 5. Preserve one authenticated workspace and exact mailbox context across steps, but resolve stable IDs from read results instead of guessing them. Prefer mailbox `public_id` as `mailboxId`. Re-resolve state before a write when an earlier domain step may have changed the target.
 6. Apply each focused skill's approval and retry boundary independently. Authorization for mailbox creation, inbox organization, drafting, sending, a provider action, or a payment does not authorize any other effect in the same cross-domain request.
 7. Summarize completed, pending, skipped, blocked, failed, and uncertain actions separately, with any remaining user approval or browser/UI handoff.
+
+Run the subscription and recurring-spend audit from [subscription-audit.md](references/subscription-audit.md) as a bounded read-only cross-domain workflow: sweep receipts, extract charge facts, build the ledger, and report — no writes.
 
 Never request that the user paste an API key into chat. Never bypass confirmation, provider policy, MCP profile, role, RPM, credit, or workspace-scope errors. Never retry an uncertain write through another skill, client, CLI, connector, or tool surface.
 
