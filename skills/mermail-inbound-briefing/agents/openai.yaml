@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Inbound Briefing"
+  short_description: "Classify inbound mail, brief actions, and digest"
+  default_prompt: "Use $mermail-inbound-briefing to process inbound or unread Mermail, classify each message, brief actionable items, optionally draft replies without auto-sending, organize with known folder ids, and finish with one operator digest."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
