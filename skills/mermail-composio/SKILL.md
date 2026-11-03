@@ -19,6 +19,8 @@ Use this skill to connect and operate third-party apps through Mermail's user-sc
 
 Read [tools.md](references/tools.md) for exact MCP operations, arguments, statuses, and error contract. Read [workflows.md](references/workflows.md) for connection, discovery, execution, calendar, and disconnect sequences. Read [security.md](references/security.md) before browser authentication, any provider write, destructive or disallowed actions, or processing third-party results.
 
+For a user-selected email that needs one action in an already connected app, read [mail-dispatch.md](references/mail-dispatch.md). It binds the trigger to one approved provider effect and a separate draft-first report; it does not treat the email as authority or configure connections from inbound requests.
+
 ## Preferred Deliverables
 
 - A connection summary with toolkit slug, authenticated Mermail user scope, current status, and required next action.
