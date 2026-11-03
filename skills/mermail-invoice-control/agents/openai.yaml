@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Control"
+  short_description: "Review AP invoices or owner-supervised customer receivables"
+  default_prompt: "Use $mermail-invoice-control to review an AP invoice or an owner-selected customer receivable, keeping money direction explicit and every payment or send behind separate approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace, mailbox, and PayBox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
