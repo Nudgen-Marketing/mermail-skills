@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail E-Invoice Intake"
+  short_description: "Pre-check inbound EN 16931 UBL e-invoices and draft supplier corrections"
+  default_prompt: "Use $mermail-einvoice-intake when the job is checking supplier e-invoice XML attachments in a Mermail accounts-payable inbox, filing them, and drafting correction requests."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
