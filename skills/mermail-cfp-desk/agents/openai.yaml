@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail CFP Desk"
+  short_description: "Rank CFPs and draft safe submissions from agent mail"
+  default_prompt: "Use $mermail-cfp-desk to find, validate, and rank conference CFPs in my Mermail inbox, then prepare any requested draft without sending it."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
