@@ -545,6 +545,34 @@ for (const forbidden of [
     errors.push(`mermail-compose-email: stale composition contract ${forbidden}`);
   }
 }
+// Held-review contracts are separate from the user's approval of a regular draft.
+for (const required of [
+  "Held Task Triager drafts (Needs review)",
+  "External MCP has no held-draft approval tool",
+  "Approval sends the reply",
+  "returned replacement `id`",
+  "Editing a held draft clears prior approval",
+  "does not release existing held drafts",
+  "triage_review_required",
+]) {
+  if (!composeEmailWorkflows.includes(required)) {
+    errors.push(`mermail-compose-email: missing held-review contract ${required}`);
+  }
+}
+const heldReviewRoutes = new Map([
+  ["held-review-stop-no-chat-approval-bypass", []],
+  ["held-edit-retain-replacement-id-review-again", ["save_draft"]],
+  ["held-approval-reconcile-no-duplicate-send", ["get_email_context"]],
+  ["held-mode-change-no-review-bypass", []],
+  ["regular-approved-draft-send-once-with-source-id", ["reply_to_email"]],
+]);
+for (const [expected, tools] of heldReviewRoutes) {
+  const scenario = scenarios.find((entry) => entry.skill === "mermail-compose-email" && entry.expected === expected);
+  if (!scenario || JSON.stringify(scenario.tools) !== JSON.stringify(tools)) {
+    errors.push(`mermail-compose-email: invalid held-review route ${expected}`);
+  }
+}
+
 const scheduledReplyScenario = scenarios.find(
   (scenario) => scenario.expected === "schedule-only-no-immediate-reply",
 );
