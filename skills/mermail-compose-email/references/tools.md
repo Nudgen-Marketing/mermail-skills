@@ -53,7 +53,7 @@ Content fields are **`html` and/or `text`** — not `body` or `content`. `from` 
 
 Aliases accepted for send-like tools: `body` or `content` string → `text` (or `html` if the string looks like HTML).
 
-When sending an existing draft, pass `source_draft_id` so it is retired after a successful delivery. Preserve `thread_id`, `in_reply_to`, and `references` when the selected source or draft provides them and the live schema requires them. Attachments use the live send schema and must remain within the user's explicit attachment intent.
+When sending an existing regular draft, pass `source_draft_id` so it is retired after a successful delivery. `source_draft_id` identifies a draft; it does not approve a held Task Triager draft. External MCP has no held-draft approval tool. On `409 triage_review_required`, follow [Needs review recovery](workflows.md#held-task-triager-drafts-needs-review) instead of retrying. Preserve `thread_id`, `in_reply_to`, and `references` when the selected source or draft provides them and the live schema requires them. Attachments use the live send schema and must remain within the user's explicit attachment intent.
 
 ### Draft / schedule
 
