@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Customer Evidence"
+  short_description: "Turn feedback email into source-linked product evidence"
+  default_prompt: "Use $mermail-customer-evidence to analyze a bounded feedback inbox, separate independent customer support from repeated activity, preserve counterevidence, and produce a source-linked product decision brief."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
