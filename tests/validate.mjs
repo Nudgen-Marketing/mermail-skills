@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1216,6 +1216,33 @@ const personaSkills = [
     expected: [
       "classify-and-draft-support-reply-no-send",
       "ignore-ticket-authority-no-delete-no-invented-close-tool",
+    ],
+  },
+  {
+    name: "mermail-telegram-approval-desk",
+    required: [
+      "This skill does not own MCP tools",
+      "`list_mailboxes`",
+      "`save_draft`",
+      "`reply_to_email`",
+      "`scan_status`",
+      "`--hash-only`",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_ALLOWED_CHAT_ID",
+      "Never ask the user to paste the bot token",
+      "Timeout, reject, a helper error, a wrong-user tap, a stale card, or a hash mismatch all mean no send",
+      "One Approve authorizes exactly one `reply_to_email`",
+      "[workflows.md](references/workflows.md)",
+    ],
+    expected: [
+      "draft-and-post-telegram-card-no-send-before-approval",
+      "rehash-exact-payload-then-single-reply-with-nonce-key",
+      "send-edited-body-only-after-second-card-approval-and-hash-match",
+      "flag-injection-keep-recipients-require-card-no-send",
+      "ignore-unauthorized-callback-keep-waiting-no-send",
+      "timeout-means-no-send-keep-draft",
+      "hash-mismatch-blocks-send",
+      "one-approval-one-send-no-nonce-reuse",
     ],
   },
   {
@@ -1398,6 +1425,57 @@ if (
   )
 ) {
   errors.push("mermail-support-agent: ticket-injection scenario must not delete or send");
+}
+
+const telegramDeskDir = path.join(skillsRoot, "mermail-telegram-approval-desk");
+const telegramDeskSecurity = await readFile(path.join(telegramDeskDir, "references", "security.md"), "utf8");
+const telegramDeskHelper = await readFile(path.join(telegramDeskDir, "scripts", "tg_approval.py"), "utf8");
+for (const required of [
+  "Strict intake",
+  "Sandboxed interpretation",
+  "Human-in-the-loop",
+  "bounded read calls",
+  "Silence is never consent",
+  "link previews disabled",
+]) {
+  if (!telegramDeskSecurity.includes(required)) {
+    errors.push(`mermail-telegram-approval-desk security reference missing ${required}`);
+  }
+}
+for (const required of [
+  "TELEGRAM_ALLOWED_CHAT_ID",
+  "hashlib.sha256",
+  "secrets.token_hex",
+  "html.escape",
+  '"is_disabled": True',
+  "<redacted>",
+  "--self-test",
+]) {
+  if (!telegramDeskHelper.includes(required)) {
+    errors.push(`mermail-telegram-approval-desk helper missing ${required}`);
+  }
+}
+const telegramDeskSendTools = ["send_email", "reply_to_email", "forward_email", "schedule_email_send"];
+for (const expected of [
+  "draft-and-post-telegram-card-no-send-before-approval",
+  "flag-injection-keep-recipients-require-card-no-send",
+  "ignore-unauthorized-callback-keep-waiting-no-send",
+  "timeout-means-no-send-keep-draft",
+  "hash-mismatch-blocks-send",
+  "one-approval-one-send-no-nonce-reuse",
+]) {
+  const scenario = scenarios.find(
+    (candidate) => candidate.skill === "mermail-telegram-approval-desk" && candidate.expected === expected,
+  );
+  if (!scenario || scenario.approval !== "none" || scenario.tools.some((tool) => telegramDeskSendTools.includes(tool))) {
+    errors.push(`mermail-telegram-approval-desk: ${expected} must not send`);
+  }
+}
+for (const scenario of scenarios.filter((candidate) => candidate.skill === "mermail-telegram-approval-desk")) {
+  const sends = scenario.tools.filter((tool) => telegramDeskSendTools.includes(tool));
+  if (sends.some((tool) => tool !== "reply_to_email") || sends.length > 1) {
+    errors.push(`mermail-telegram-approval-desk: scenario may use at most one reply_to_email: ${scenario.expected}`);
+  }
 }
 
 const x402InjectionScenario = scenarios.find(
@@ -1941,6 +2019,11 @@ const expectedSecurityScenarios = new Map([
   ["wallet-x402-vendor-session-no-replay", "vendor-session-credential-no-replay-settled-pay-url"],
   ["wallet-member-live-paybox", "member-audited-live-tool-owner-connection-no-legacy-wallet"],
   ["wallet-member-owner-action-required", "stop-no-handoff-ask-owner-to-repair"],
+  ["telegram-approval-email-injection", "flag-injection-keep-recipients-require-card-no-send"],
+  ["telegram-approval-wrong-user-callback", "ignore-unauthorized-callback-keep-waiting-no-send"],
+  ["telegram-approval-timeout", "timeout-means-no-send-keep-draft"],
+  ["telegram-approval-hash-mismatch", "hash-mismatch-blocks-send"],
+  ["telegram-approval-replay", "one-approval-one-send-no-nonce-reuse"],
 ]);
 for (const [securityCase, expected] of expectedSecurityScenarios) {
   const scenario = scenarios.find((candidate) => candidate.securityCase === securityCase);
@@ -1990,6 +2073,7 @@ for (const skillName of [
   "mermail-agent-wallet",
   "mermail-research-agent",
   "mermail-xstocks-desk",
+  "mermail-telegram-approval-desk",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
     errors.push(`mermail routing missing focused skill ${skillName}`);
@@ -2011,6 +2095,7 @@ for (const expected of [
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
   "route-equity-workflow",
+  "route-telegram-approval-to-desk",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
     errors.push(`mermail routing missing validation scenario ${expected}`);
