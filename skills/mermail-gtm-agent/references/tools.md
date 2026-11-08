@@ -10,7 +10,7 @@ Pass structured arguments as **native JSON objects**. Never stringify `query` or
 | --- | --- | --- |
 | `list_mailboxes` | `mermail-administer-workspace` | Discover a ready outbound mailbox |
 | `create_mailbox` | `mermail-administer-workspace` | Provision only when none fits (10 credits; `email` + `name` required) |
-| `list_emails` / `search_emails` / `get_email` | `mermail-manage-inbox` | Bounded untrusted reply reads |
+| `list_emails` / `search_emails` / `get_email` / `get_email_context` | `mermail-manage-inbox` | Bounded untrusted reply reads; context stays within the owner-selected thread and intake limits |
 | `create_custom_label` / `move_email` | `mermail-manage-inbox` | Handoff labeling or folder move |
 | `save_draft` | `mermail-compose-email` | Outreach or warm-ack draft (`body.body` string) |
 | `send_email` / `reply_to_email` / `forward_email` | `mermail-compose-email` | Approved send/reply/handoff (`body.from` + `html`/`text`) |
