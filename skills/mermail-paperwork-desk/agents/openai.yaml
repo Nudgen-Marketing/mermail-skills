@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Paperwork Desk"
+  short_description: "Explain official letters, quote deadlines, flag impersonation, and schedule owner reminders"
+  default_prompt: "Use $mermail-paperwork-desk when the user wants an official letter explained in plain language, a deadline ledger, a letter filed, or an owner-only reminder before a deadline."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
