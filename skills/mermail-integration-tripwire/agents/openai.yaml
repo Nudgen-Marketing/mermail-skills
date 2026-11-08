@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Integration Tripwire"
+  short_description: "Evidence-backed dependency break alerts into Mermail"
+  default_prompt: "Use $mermail-integration-tripwire to watch public dependency sources and file evidence-backed exception digests into Mermail only on material changes — inbox-only, no auto-send, no wallet writes."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
