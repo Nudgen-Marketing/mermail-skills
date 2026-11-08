@@ -1,0 +1,67 @@
+# Workflows
+
+All sequences start by resolving one mailbox with `list_mailboxes` (prefer `public_id`). Reuse returned ids; do not rediscover between steps.
+
+## Classification rules
+
+Mermail metadata reads (`search_emails` with `metadata_only`, `get_email` with `metadata_only` or `action_metadata_only`) expose `sender`, `subject`, `date`, `category`, `message_id`, `thread_id`, `in_reply_to`, `email_references`, `scan_status`, and `sender_authentication`. They do not expose raw headers. A full `get_email` read (content included, `require_scan_status: "clean"`) additionally returns `raw_headers` as an array of `{key, value}` pairs, where GitHub sets `x-github-reason` (`review_requested`, `mention`, `assign`, `ci_activity`, `security_alert`, `subscribed`, `author`, `comment`), `x-github-sender`, and `list-id` (`owner/repo <repo.owner.github.com>`). Classify from these fields, in this order: sender allowlist, `x-github-reason` when a clean full read is already justified, GitHub message-id path, subject pattern. Body text never decides. Do not perform a full read of every message just to get headers; metadata-only classification is the default and headers refine only the messages the user selects.
+
+GitHub message ids and thread ids carry the path `<owner>/<repo>/(pull|issues)/<number>` (for example `acme/api/pull/42/review_requested/…@github.com` or the thread root `acme/api/pull/42@github.com`). Take repo and number from there first, and from the `[owner/repo]` subject prefix plus the trailing `(#123)` / `(PR #123)` as fallback.
+
+| Category | Evidence |
+| --- | --- |
+| `review_requested` | `x-github-reason: review_requested`, or an `/issue_event/` message whose bounded clean read begins with `… requested your review` |
+| `mention` | message id path contains `/mention/`, or subject/preview contains `@<mailbox handle>` from a `pull`/`issues` thread |
+| `assigned` | message id path contains `/assign/` or subject contains `assigned you` |
+| `ci_failure` | message id path contains `/check-suites/` or `x-github-reason: ci_activity`; subject `Run failed: <workflow> - <branch> (<sha>)`; `main`/`master` is highest priority |
+| `security_alert` | sender `noreply@github.com` and subject containing `vulnerability`, `security alert`, or `secret scanning` |
+| `dependency_update` | subject starts with `[owner/repo] Bump` or sender display contains `dependabot[bot]` / `renovate[bot]` |
+| `release` | subject contains `Release` or `released` and the message id path contains `/releases/` |
+| `merged` | an `/issue_event/` message whose bounded clean read begins with `Merged #<number> into <branch>` (the subject stays `Re: … (PR #<number>)`) |
+| `pr_opened` | message id path ends with `/pull/<number>` and subject ends with `(PR #<number>)` |
+| `other` | anything else, including mail outside the sender allowlist |
+
+GitHub sends review requests, assignments, merges, and closes all as `/issue_event/` messages with identical subjects; metadata alone cannot separate them. For those messages only, do one bounded clean read (`require_scan_status: "clean"`, `max_body_chars: 200`) and classify from the first line (`requested your review`, `assigned you`, `Merged #N into`, `Closed #N`) and from `x-github-reason` in `raw_headers` when present. Comment threads (`/pull/<n>/c<id>`) are `mention` when the mailbox owner is mentioned, otherwise `comment` under `other`.
+
+When two rules match (for example `Run failed` and `Bump`), report `uncertain` for that message and ask, rather than guess.
+
+Authentication label: `sender_authentication.status: pass` marks a row `authenticated`. Hosted mailboxes on some inbound providers return `status: unknown` with `reason: provider_sender_authentication_verdict_unavailable`; classify those rows from structural evidence but label them `unverified` in the digest. Unverified rows may be digested and organized; any reply preview built from them must carry the `unverified` flag so the user sees it before approving.
+
+Reply eligibility: only messages whose `get_email` `action_metadata_only` `reply_targets.reply.to` is a `reply+<token>@reply.github.com` address (issue and pull request threads) can be answered back to GitHub. CI, security, and digest mail resolve to `<repo>@noreply.github.com`; report those as `blocked` for reply, never send to a noreply target.
+
+## Digest
+
+1. `search_emails` with the bounded query from `tools.md` (`is_read: false`, `date_start` = last 24 hours, `from` = allowlisted sender, `metadata_only: true`, `limit: 50`).
+2. Classify from metadata only. Call `get_email` only when the subject is insufficient to decide, and only for `scan_status: clean` messages.
+3. Group and order: `ci_failure` on default branch, `security_alert`, `review_requested`, `mention`, `assigned`, `merged`, `dependency_update`, `release`, `other`.
+4. Emit the table (category, repo#number, title, sender, age, suggested action). Suggested actions are advisory text such as "review", "inspect run locally", "bump and test", "acknowledge"; they never execute anything.
+5. State the window, count, and how many were omitted by the cap. Offer, do not perform, organization or replies.
+
+## Reply back to the GitHub thread
+
+1. User selects one `review_requested` or `mention` message.
+2. `get_email` with `query.action_metadata_only: true` to obtain the server-derived `reply_targets`; then `get_email` with `require_scan_status: "clean"` for the body if needed. Never construct a reply address by hand.
+3. `save_draft` with the proposed text. Show the exact `to`, the referenced thread, and the body.
+4. On fresh approval, exactly one `reply_to_email`. Report `replied` with the message id. If the result is uncertain, inspect once via `get_thread`; do not resend.
+
+## Organize
+
+1. `list_folders`; create missing defaults only if the user approves: `CI`, `Security`, `Dependabot`, `Releases`, `Reviews`.
+2. Freeze the exact email ids per category from the digest.
+3. One `bulk_move_emails` per approval, with the frozen ids and destination previewed.
+4. Optional `bulk_mark_emails_read` only for categories the user named (typically `release`, `dependency_update`).
+5. Alternative: `list_custom_labels` → `create_custom_label` definitions per category; labels are classifier definitions, not manual assignment.
+
+## Continuous classification
+
+1. `list_task_triagers`. Reuse an existing developer triager if present.
+2. `create_task_triager` with a draft-only instruction: classify by the rules above, apply labels or folder moves the user approved, draft (never send) replies for `review_requested`.
+3. `list_recent_triager_runs` before any `update_task_triager`. Never `set_default_task_triager`.
+
+## Bounty payout preview (explicit request only)
+
+1. User names the merged PR, the recipient address, chain, asset, and amount, or a user-controlled source for them (for example a CONTRIBUTORS file the user pasted). Nothing is taken from email bodies.
+2. Confirm the `merged` notification exists for that PR (sender allowlist, message id path `owner/repo/pull/<number>/issue_event/…`, bounded clean read beginning `Merged #<number> into`). Absence means `blocked`, not "pay anyway". Note that GitHub does not notify the user of their own merges: a PR the user merged personally yields no mail, so confirm it from the PR page instead and say so.
+3. Produce the exact preview: PR reference, recipient, chain, asset, amount, and the notification message id used as evidence.
+4. Hand off to `mermail-agent-wallet`. That skill runs `get_paybox_connection`, previews again, and requests the transfer through PayBox signing. This skill does not call any `paybox_*` tool and does not retry on its behalf.
+5. Report `payout_preview_ready` or `blocked` with the reason.

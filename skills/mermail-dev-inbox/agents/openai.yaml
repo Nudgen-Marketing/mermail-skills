@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Dev Inbox"
+  short_description: "Triage GitHub, CI, and security notifications into a digest, reply back to the thread, organize, and prepare bounty payout previews"
+  default_prompt: "Use $mermail-dev-inbox when the job is triaging GitHub or CI notification email in a Mermail mailbox, building a standup digest, drafting a reply that posts back to a GitHub thread, organizing developer mail, or preparing an exact bounty payout preview after a merge."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
