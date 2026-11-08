@@ -1,0 +1,27 @@
+{
+  "name": "mermail-bounty-ops-ci-failure-mode-dry-run",
+  "kind": "ci-failure-mode-evidence",
+  "description": "Dry-run mutations that the validator must reject before the skill can pass CI.",
+  "cases": [
+    {
+      "id": "missing-golden-case",
+      "mutation": "remove the capital-blocker case from the golden reference set",
+      "expectedError": "reference set missing capital-blocker"
+    },
+    {
+      "id": "ranking-regression",
+      "mutation": "rank the unverified large prize ahead of the verified fixed contract",
+      "expectedError": "verified fixed contract must outrank unverified prize pool"
+    },
+    {
+      "id": "missing-harness-evidence",
+      "mutation": "remove the Codex harness entry",
+      "expectedError": "harness audit missing codex"
+    },
+    {
+      "id": "external-effect-regression",
+      "mutation": "add send_email to an ordinary read-only bounty scenario",
+      "expectedError": "must not execute an external effect"
+    }
+  ]
+}
