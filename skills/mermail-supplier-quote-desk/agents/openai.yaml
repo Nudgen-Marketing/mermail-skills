@@ -1,0 +1,11 @@
+interface:
+  display_name: "Supplier Quote Desk"
+  short_description: "Analyze supplier quotes and draft approved replies"
+  default_prompt: "Use $mermail-supplier-quote-desk when a supplier quotation arrives and the job is extracting commercial terms, flagging missing information and risks, and drafting a reply that is sent only after approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
