@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Inbox (x402)"
+  short_description: "Parse inbound invoices by paying per document with the Agent Wallet"
+  default_prompt: "Use $mermail-invoice-inbox-x402 when a document arrives in the agent mailbox and the task needs structured fields from it: freeze the extraction contract, resolve the per-document price from the live x402 challenge, pay once with the Agent Wallet, redeem on the same request, then reply on the original thread with the JSON and the payment receipt."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
