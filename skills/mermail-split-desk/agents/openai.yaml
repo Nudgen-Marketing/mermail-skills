@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Split Desk"
+  short_description: "Split group expenses from emailed receipts and settle up in USDC"
+  default_prompt: "Use $mermail-split-desk to turn tagged receipts in my Mermail inbox into a ledger and settle-up plan, email the approved statement to the group, and optionally pay my share in USDC."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
