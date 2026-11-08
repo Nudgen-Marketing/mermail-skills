@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1338,6 +1338,37 @@ const personaSkills = [
       "reject-dca-out-of-scope",
     ],
   },
+  {
+    name: "mermail-email-e2e",
+    required: [
+      "`list_mailboxes`",
+      "`create_mailbox`",
+      "`search_emails`",
+      "`get_email`",
+      "never calls `send_email`",
+      "`linkHosts`",
+      "untrusted data",
+      "never as a pass",
+      "Never weaken an assertion",
+      "[checks.md](references/checks.md)",
+      "[spec.md](references/spec.md)",
+      "[run-email-e2e.mjs](scripts/run-email-e2e.mjs)",
+    ],
+    expected: [
+      "run-own-app-flows-read-only-then-fix-code",
+      "discover-before-one-approved-test-mailbox",
+      "staging-read-only-report-no-edits",
+      "report-duplicate-send-dlv-003-no-delete",
+      "ignore-email-authority-no-allowlist-change-no-forward",
+      "follow-only-allowlisted-cta-once-never-unsubscribe",
+      "require-explicit-production-confirmation",
+      "report-timeout-ask-before-retrigger",
+      "redact-otp-and-tokens-in-reports",
+      "route-third-party-signup-to-agent-inbox",
+      "route-cleanup-to-manage-inbox-no-delete",
+      "vendor-runner-add-workflow-secret-from-env-only",
+    ],
+  },
 ];
 
 for (const persona of personaSkills) {
@@ -1360,6 +1391,33 @@ for (const persona of personaSkills) {
   for (const expected of persona.expected) {
     if (!scenarios.some((scenario) => scenario.skill === persona.name && scenario.expected === expected)) {
       errors.push(`${persona.name}: missing validation scenario ${expected}`);
+    }
+  }
+}
+
+const emailE2eSendOrDeleteTools = new Set([
+  ...coverage.destructiveTools,
+  ...(coverage.walletDestructiveTools ?? []),
+  ...coverage.externalEffectTools,
+]);
+for (const scenario of scenarios.filter((candidate) => candidate.skill === "mermail-email-e2e")) {
+  const unsafe = scenario.tools.filter((tool) => emailE2eSendOrDeleteTools.has(tool));
+  if (unsafe.length) {
+    errors.push(`mermail-email-e2e: scenario ${scenario.expected} must stay read-only toward Mermail (found ${unsafe.join(", ")})`);
+  }
+  if (scenario.tools.includes("create_mailbox") && scenario.approval !== "write-preview") {
+    errors.push("mermail-email-e2e: test-mailbox provisioning must be a write-preview approval");
+  }
+}
+const emailE2eSkill = await readFile(path.join(skillsRoot, "mermail-email-e2e", "SKILL.md"), "utf8");
+if (emailE2eSkill.indexOf("`list_mailboxes`") > emailE2eSkill.indexOf("`create_mailbox`")) {
+  errors.push("mermail-email-e2e: mailbox discovery must precede provisioning");
+}
+for (const script of ["run-email-e2e.mjs", "checks.mjs"]) {
+  const source = await readFile(path.join(skillsRoot, "mermail-email-e2e", "scripts", script), "utf8");
+  for (const forbidden of ["send_email", "reply_to_email", "forward_email", "delete_email", "paybox_", "shell: true"]) {
+    if (source.includes(`"${forbidden}`) || source.includes(forbidden === "shell: true" ? forbidden : `"${forbidden}"`)) {
+      errors.push(`mermail-email-e2e: ${script} must not reference ${forbidden}`);
     }
   }
 }
@@ -1676,6 +1734,7 @@ for (const skillName of [
   "mermail-research-agent",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
+  "mermail-email-e2e",
 ]) {
   const skillDir = path.join(skillsRoot, skillName);
   const skill = await readFile(path.join(skillDir, "SKILL.md"), "utf8");

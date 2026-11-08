@@ -1,0 +1,59 @@
+{
+  "$comment": "mermail-email-e2e spec. Strings support {address}, {mailbox}, {appBaseUrl}, {runId}, {link}, {otp} and {env:NAME}. Append |url to URL-encode, e.g. {address|url}. Patterns are literal substrings unless written as /regex/flags. capture: inbox (a separate test inbox receives the mail) or sent (the app sends through this mailbox; read the dispatched copy and its delivery receipt).",
+  "mailbox": "{env:MERMAIL_E2E_MAILBOX}",
+  "appBaseUrl": "http://localhost:4000",
+  "capture": "inbox",
+  "mode": "dev",
+  "linkHosts": ["localhost:4000"],
+  "defaults": { "timeoutSec": 120, "pollSec": 8, "maxLatencySec": 30, "checkDuplicates": true },
+  "flows": [
+    {
+      "id": "signup-verification",
+      "title": "Signup sends a working verification link",
+      "kind": "transactional",
+      "trigger": {
+        "http": { "method": "POST", "url": "{appBaseUrl}/api/signup", "json": { "name": "Ada Lovelace", "email": "{address}" } }
+      },
+      "expect": {
+        "subject": "Confirm your Acme Notes account",
+        "contains": ["Ada"],
+        "link": {
+          "pattern": "/verify?token=",
+          "requireParams": ["token"],
+          "follow": true,
+          "expectStatus": 200,
+          "expectBodyContains": "verified"
+        }
+      },
+      "then": [
+        {
+          "title": "Account is verified after the click",
+          "http": { "method": "GET", "url": "{appBaseUrl}/api/users/{address|url}" },
+          "expectStatus": 200,
+          "expectJson": { "verified": true }
+        }
+      ]
+    },
+    {
+      "id": "password-reset",
+      "title": "Password reset code works",
+      "kind": "transactional",
+      "trigger": {
+        "http": { "method": "POST", "url": "{appBaseUrl}/api/password-reset", "json": { "email": "{address}" } }
+      },
+      "expect": {
+        "subject": "Your Acme Notes reset code",
+        "contains": ["Ada"],
+        "otp": { "pattern": "/\\b\\d{6}\\b/" }
+      },
+      "then": [
+        {
+          "title": "The emailed code resets the password",
+          "http": { "method": "POST", "url": "{appBaseUrl}/api/password-reset/confirm", "json": { "email": "{address}", "code": "{otp}" } },
+          "expectStatus": 200,
+          "expectJson": { "ok": true }
+        }
+      ]
+    }
+  ]
+}
