@@ -5,6 +5,7 @@
   "infrastructureSkills": [
     "mermail",
     "mermail-agent-inbox",
+    "mermail-candidate-submission-guard",
     "mermail-cli",
     "mermail-gtm-agent",
     "mermail-mcp",
