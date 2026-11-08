@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Hospitality Reservation Desk"
+  short_description: "Handle restaurant reservations safely from email and calendar state"
+  default_prompt: "Use $mermail-hospitality-reservation-desk for restaurant or hospitality reservation requests, changes, cancellations, and consented waitlist recovery through Mermail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
