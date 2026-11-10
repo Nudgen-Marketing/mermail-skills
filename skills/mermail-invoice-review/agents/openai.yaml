@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Review"
+  short_description: "Find invoice repeats and changed payment details"
+  default_prompt: "Use $mermail-invoice-review to review this week's invoice emails for duplicate requests and changed payment details, with source evidence."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
