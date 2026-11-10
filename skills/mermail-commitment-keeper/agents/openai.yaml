@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Commitment Keeper"
+  short_description: "Track email promises in a local ledger, verify fulfillment, and draft polite follow-ups for your approval."
+  default_prompt: "Use $mermail-commitment-keeper to extract promises from this mailbox into a commitment ledger, check what is due, and draft follow-ups only after my approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
