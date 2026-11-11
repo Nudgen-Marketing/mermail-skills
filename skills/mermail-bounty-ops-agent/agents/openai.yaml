@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bounty Ops Agent"
+  short_description: "Manage bounty intake, deliverables, follow-ups, and payout evidence"
+  default_prompt: "Use $mermail-bounty-ops-agent to qualify paid opportunities, package deliverables, draft sponsor updates, and track bounty review or payout state safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
