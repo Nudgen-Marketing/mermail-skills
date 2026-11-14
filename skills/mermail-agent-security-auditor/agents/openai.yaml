@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Agent Security Auditor"
+  short_description: "Audit Solana programs and manage security engagements"
+  default_prompt: "Use $mermail-agent-security-auditor to intake Solana and Anchor smart contract audit requests, analyze security findings, verify x402 payment, and draft comprehensive audit reports."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
