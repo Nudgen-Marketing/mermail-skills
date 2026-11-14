@@ -21,6 +21,14 @@ Canonical payload split: send, reply, and forward use `body.html` and/or `body.t
 
 `mailboxId` accepts `public_id` (UUID), hosted alias id, or current email — prefer `public_id` from `list_mailboxes`.
 
+For From, use the mailbox's current email or a validated unblocked plus alias of
+its hosted address, not public_id. Aliases share parent permissions/limits and
+need not be saved to work; alias save/block/unblock/remove belongs to
+`mermail-administer-workspace`. Blocking prevents future incoming delivery and
+outgoing sends from that tag, including pending scheduled sends at execution.
+An alias-blocked error is not permission to silently switch From or replay the
+approved delivery through another alias. Re-review any changed sender/payload.
+
 ## Recipients (`to` / `cc` / `bcc`)
 
 | Surface | Accepted shapes |
