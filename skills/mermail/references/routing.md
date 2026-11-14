@@ -20,6 +20,7 @@ Do not route a healthy business task through `mermail-mcp`. Prefer direct MCP to
 | Read, search, move, organize, download, manage folders or custom-label definitions, or delete ordinary/historical mail outside an active third-party identity flow | `mermail-manage-inbox` |
 | Draft, regenerate, send, reply, forward, or schedule mail | `mermail-compose-email` |
 | Inspect API, email, or AI-credit usage, or manage workspaces, members, invitations, domains, mailboxes, webhook subscriptions/deliveries, admin-only `agentAutoResponse.mode` settings, or storage | `mermail-administer-workspace` |
+| Track a deadline-bearing obligation arriving as an attachment - document validity or invoice due date - maintain its register, escalate reminders, or settle a payable after payee reconciliation | `mermail-obligations-agent` |
 | Explicitly create, inspect, update, debug, or delete task triagers, inspect recent runs, or open a triager-linked conversation | `mermail-automate-triage` |
 | Explicitly create, list, inspect, continue, rename, or delete a mailbox-agent conversation, or delegate a mailbox task to the in-app Assistant | `mermail-mail-agent` |
 | Connect or use third-party apps such as GitHub, Slack, Apollo, Notion, or Google Calendar through the authenticated user's Mermail Composio connection | `mermail-composio` |
@@ -58,6 +59,7 @@ Resolve the workspace and mailbox once and reuse returned stable IDs. Use this d
 4. Internal reversible writes such as draft, read/star state, move, or approved configuration update.
 5. External effects such as send, schedule, Composio execution, or PayBox request, each under its own exact authorization.
 6. Destructive operations last, with the owning skill's confirmation contract.
+7. Route deadline tracking, renewal escalation, and attachment-derived payables to `mermail-obligations-agent`. Route storage cleanup, folder work, and custom-label-definition administration to `mermail-manage-inbox` even when the mail carries attachments. Wallet settlement stays gated on payee reconciliation and a fresh single-use confirmation token.
 
 Do not infer that approval for an earlier step authorizes a later step. If a focused skill is unavailable, report the missing skill rather than improvising a broad write workflow. If an earlier write returns an uncertain result, inspect authoritative state once and do not continue into a dependent effect until the ambiguity is resolved.
 
