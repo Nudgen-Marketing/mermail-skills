@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Incident Brief Agent"
+  short_description: "Build source-linked incident briefs from Mermail"
+  default_prompt: "Use $mermail-incident-brief-agent to turn the selected incident thread into a bounded, source-linked brief and an optional unsent status-update draft."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
