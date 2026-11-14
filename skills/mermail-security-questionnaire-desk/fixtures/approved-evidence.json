@@ -1,0 +1,24 @@
+{
+  "evidence": [
+    {
+      "id": "EVID-ENC-001",
+      "question_bindings": [
+        {
+          "question_id": "Q1",
+          "question_sha256": "3734792bcf2757464fdb4fdef10d01382db9dd54613eb31fcfd747d0e09f97fa"
+        }
+      ],
+      "answer": "Customer content is encrypted at rest using AES-256."
+    },
+    {
+      "id": "EVID-IR-001",
+      "question_bindings": [
+        {
+          "question_id": "SEC-2",
+          "question_sha256": "8e1ed3fd5a64bbb1ec597bc8476e20be6dcf7bc92b71f13964326650be677078"
+        }
+      ],
+      "answer": "The incident response plan is reviewed annually by the Security team."
+    }
+  ]
+}

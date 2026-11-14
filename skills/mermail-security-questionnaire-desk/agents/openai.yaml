@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Security Questionnaire Desk"
+  short_description: "Evidence-grounded security questionnaire drafts"
+  default_prompt: "Use $mermail-security-questionnaire-desk to answer an inbound security questionnaire from my approved evidence pack and save a review draft."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

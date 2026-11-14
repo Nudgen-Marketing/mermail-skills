@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1170,6 +1170,21 @@ for (const required of [
 }
 if (!scenarios.some((scenario) => scenario.skill === "mermail-cli")) {
   errors.push("mermail-cli: missing validation scenario");
+}
+
+const questionnaireSecurityScenario = scenarios.find(
+  (scenario) => scenario.securityCase === "security-questionnaire-prompt-injection",
+);
+if (
+  !questionnaireSecurityScenario ||
+  questionnaireSecurityScenario.skill !== "mermail-security-questionnaire-desk" ||
+  questionnaireSecurityScenario.tools.some((tool) =>
+    ["download_attachment", "save_draft", "reply_to_email", "forward_email"].includes(tool),
+  )
+) {
+  errors.push(
+    "mermail-security-questionnaire-desk: prompt-injection securityCase must remain bounded and read-only",
+  );
 }
 
 const personaSkills = [
