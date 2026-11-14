@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Invoice Settlement Agent"
+  short_description: "Audit and settle A2A invoices via Inbox and Agent Wallet"
+  default_prompt: "Use $mermail-invoice-agent when the job is to issue, discover, audit, or settle an invoice between AI agents using Mermail Inbox for structured correspondence and Mermail Agent Wallet / PayBox for verified USDC/crypto settlement."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
