@@ -1,0 +1,363 @@
+#!/usr/bin/env python3
+"""Offline, bounded evidence ledger; never calls Mermail or authorizes an effect.
+
+Adapted from gmDevi's expense-ledger contribution (PR #202), MIT.
+extract WORKSPACE_ID MAILBOX_ID emails.json ledger.csv
+reconcile WORKSPACE_ID MAILBOX_ID ledger.csv transactions.csv report.json
+drafts WORKSPACE_ID MAILBOX_ID report.json drafts.json
+Each output is an explicitly selected local artifact, not a sent/saved MCP draft.
+"""
+import csv
+import io
+import json
+import os
+import re
+import stat
+import sys
+import tempfile
+from datetime import date
+from decimal import Decimal, localcontext
+from pathlib import Path
+
+MAX_BYTES = 8 * 1024 * 1024
+MAX_ROWS = 300
+MAX_CANDIDATE_LINKS = MAX_ROWS * MAX_ROWS
+FIELDS = ['workspace_id', 'mailbox_id', 'email_id', 'document_id', 'date', 'merchant', 'currency',
+          'amount', 'direction', 'reference', 'auth_status', 'status']
+AMOUNT = re.compile(r'-?(?:0|[1-9]\d{0,127})(?:\.\d{1,18})?\Z')
+# Explicit ISO codes only. Symbols and ambiguous/grouped totals need human review.
+TOTAL = re.compile(r'(?im)^\s*(?:grand total|total|amount paid|amount due)\s*:\s*'
+                   r'([A-Z]{3,8})\s+(-?(?:0|[1-9]\d*)(?:\.\d{1,18})?)\s*$')
+
+
+def number(value):
+    if not isinstance(value, str) or not AMOUNT.fullmatch(value):
+        raise ValueError('Use bounded plain decimal strings, never floats or currency symbols')
+    return Decimal(value)
+
+
+def day(value):
+    if not isinstance(value, str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+        raise ValueError('Use explicit YYYY-MM-DD dates')
+    return date.fromisoformat(value)
+
+
+def text(value, limit=160):
+    if not isinstance(value, str) or len(value) > limit or any(ord(c) < 32 for c in value):
+        raise ValueError('Invalid bounded evidence field')
+    return value.strip()
+
+
+def rows(value):
+    if not isinstance(value, list) or len(value) > MAX_ROWS or any(not isinstance(x, dict) for x in value):
+        raise ValueError('Expected at most 300 object rows')
+    return value
+
+
+def identity(row):
+    key = tuple(text(row.get(k, '')) for k in ('workspace_id', 'mailbox_id', 'email_id', 'document_id'))
+    if not all(key):
+        raise ValueError('workspace_id, mailbox_id, email_id and document_id are required')
+    return key
+
+
+def normalize(row):
+    result = {k: text(row.get(k, '')) for k in FIELDS}
+    identity(result)
+    if result['currency'] and not re.fullmatch(r'[A-Z]{3,8}', result['currency']):
+        raise ValueError('Explicit currency code required')
+    valid = True
+    try:
+        day(result['date'])
+        amount = number(result['amount'])
+        valid = ((result['direction'] == 'charge' and amount >= 0)
+                 or (result['direction'] == 'refund' and amount < 0))
+    except ValueError:
+        valid = False
+    result['status'] = ('evidenced' if valid and result['merchant'] and result['currency']
+                        and result['auth_status'] == 'pass' and row.get('status') != 'needs_review'
+                        else 'needs_review')
+    return result
+
+
+def scope_key(scope):
+    if not isinstance(scope, (tuple, list)) or len(scope) != 2 or not all(text(x) for x in scope):
+        raise ValueError('Explicit selected workspace/mailbox scope required')
+    return tuple(text(x) for x in scope)
+
+
+def assert_scope(row, scope):
+    if identity(row)[:2] != scope_key(scope):
+        raise ValueError('Evidence is outside the explicitly selected workspace/mailbox')
+
+
+def extract(emails, scope):
+    output, skipped = [], []
+    for source in rows(emails):
+        key = identity(source)
+        assert_scope(source, scope)
+        if (source.get('scan_status') != 'clean' or source.get('content_omitted') is not False
+                or not isinstance(source.get('text'), str) or len(source['text']) > 10000):
+            skipped.append(list(key))
+            continue
+        # The clean flag must come from a verified tool envelope, not email JSON text.
+        candidates = sorted(set(TOTAL.findall(source['text'])))
+        row = {k: source.get(k, '') for k in FIELDS}
+        row['currency'] = row['amount'] = ''
+        row['status'] = 'needs_review'
+        if len(candidates) == 1:
+            row['currency'], row['amount'] = candidates[0]
+            row['status'] = 'evidenced'
+        # Never prefer the largest amount, guessed sender, forwarded date or a substring.
+        output.append(normalize(row))
+    return output, skipped
+
+
+def upsert(existing, incoming, scope):
+    scope_key(scope)
+    records = {}
+    for row in rows(existing):
+        assert_scope(row, scope)
+        key = identity(row)
+        if key in records:
+            raise ValueError('Existing ledger has duplicate evidence identity; review before writing')
+        records[key] = normalize(row)
+    additions = {}
+    for row in rows(incoming):
+        assert_scope(row, scope)
+        key = identity(row)
+        value = normalize(row)
+        if key in additions and additions[key] != value:
+            raise ValueError('Conflicting incoming rows for one evidence identity')
+        additions[key] = value
+    records.update(additions)
+    if len(records) > MAX_ROWS:
+        raise ValueError('Ledger exceeds bounded row budget; choose a narrower artifact')
+    return [records[k] for k in sorted(records)]
+
+
+def reconcile(ledger, transactions, scope):
+    selected_scope = scope_key(scope)
+    ledger = upsert(ledger, [], scope)
+    transactions = rows(transactions)
+    txs = []
+    refs = set()
+    for item in transactions:
+        tx = {k: text(item.get(k, '')) for k in ('date', 'merchant', 'currency', 'amount', 'direction', 'reference')}
+        # The user must normalize the export's debit/credit convention, not abs(amount).
+        normalized = normalize(dict(tx, workspace_id='baseline', mailbox_id='baseline', email_id='baseline', document_id=tx['reference'], auth_status='pass'))
+        if not tx['reference'] or tx['reference'] in refs or normalized['status'] != 'evidenced':
+            raise ValueError('Baseline references must be unique and rows complete under the selected sign convention')
+        refs.add(tx['reference'])
+        txs.append(tx)
+    result = {'matched': [], 'receipt_without_transaction': [], 'transaction_without_receipt': [],
+              'conflicts': [], 'needs_review': [], 'totals': {},
+              'transactions': txs,
+              'workspace_id': selected_scope[0], 'mailbox_id': selected_scope[1],
+              'scope': 'reviewed local artifacts only'}
+    used = set()
+    candidate_links = 0
+    claims = {}
+    for row in ledger:
+        if row['reference']:
+            claims.setdefault(row['reference'], []).append(row)
+    with localcontext() as context:
+        context.prec = 512
+        for row in ledger:
+            if row['status'] != 'evidenced':
+                result['needs_review'].append(row)
+                continue
+            candidates = [t for t in txs if row['reference'] and t['reference'] == row['reference']]
+            if len(claims.get(row['reference'], [])) > 1:
+                result['conflicts'].append({'kind': 'repeated_reference', 'evidence': row})
+            elif candidates:
+                tx = candidates[0]
+                equal = (row['merchant'].casefold() == tx['merchant'].casefold()
+                         and row['currency'] == tx['currency'] and row['direction'] == tx['direction']
+                         and number(row['amount']) == number(tx['amount']) and row['date'] == tx['date'])
+                if equal:
+                    result['matched'].append({'evidence': row, 'transaction': tx})
+                    used.add(tx['reference'])
+                    group = row['currency'] + ':' + row['direction']
+                    result['totals'][group] = format(Decimal(result['totals'].get(group, '0')) + number(row['amount']), 'f')
+                else:
+                    result['conflicts'].append({'kind': 'stable_reference_mismatch', 'evidence': row, 'transaction': tx})
+            else:
+                result['receipt_without_transaction'].append(row)
+                near = [i for i, t in enumerate(txs) if row['merchant'].casefold() == t['merchant'].casefold()
+                        and row['currency'] == t['currency'] and row['direction'] == t['direction']
+                        and abs((day(row['date']) - day(t['date'])).days) <= 3]
+                if near:
+                    candidate_links += len(near)
+                    if candidate_links > MAX_CANDIDATE_LINKS:
+                        raise ValueError('Candidate link budget exceeded; choose narrower artifacts')
+                    # Store each transaction once. Preserve every ambiguous link,
+                    # rather than copying up to 300 full rows into every conflict.
+                    result['conflicts'].append({'kind': 'possible_counterpart_not_confirmed', 'evidence': row,
+                                                'candidate_transaction_indices': near,
+                                                'candidate_count': len(near)})
+        result['transaction_without_receipt'] = [t for t in txs if t['reference'] not in used]
+    return result
+
+
+def candidate_registry(report, conflicts):
+    """Validate every new-schema conflict, including those beyond template caps."""
+    graph = [c for c in conflicts if 'candidate_transaction_indices' in c or 'candidate_count' in c]
+    if not graph:
+        return []  # Legacy inline-candidate reports need no registry.
+    references = [text(t.get('reference', '')) for t in rows(report.get('transactions', []))]
+    if not all(references) or len(set(references)) != len(references):
+        raise ValueError('Invalid candidate registry references: require nonempty unique references')
+    links = 0
+    for conflict in graph:
+        indices = conflict.get('candidate_transaction_indices')
+        count = conflict.get('candidate_count')
+        if (conflict.get('kind') != 'possible_counterpart_not_confirmed' or 'candidates' in conflict or
+                not isinstance(indices, list) or not 1 <= len(indices) <= MAX_ROWS or
+                any(type(i) is not int or not 0 <= i < len(references) for i in indices) or
+                len(set(indices)) != len(indices) or type(count) is not int or count != len(indices)):
+            raise ValueError('Invalid candidate transaction indices, count or conflict kind')
+        links += count
+        if links > MAX_CANDIDATE_LINKS:
+            raise ValueError('Candidate link budget exceeded; choose narrower artifacts')
+    return references
+
+
+def drafts(report, scope):
+    # Structured report, not regex parsing of untrusted Markdown. No inferred recipient.
+    if not isinstance(report, dict):
+        raise ValueError('Expected structured reconciliation report')
+    if (report.get('workspace_id'), report.get('mailbox_id')) != scope_key(scope):
+        raise ValueError('Report is outside the selected scope')
+    conflicts = rows(report.get('conflicts', []))
+    references = candidate_registry(report, conflicts)
+    output = []
+    for tx in rows(report.get('transaction_without_receipt', []))[:25]:
+        output.append({'kind': 'receipt_request', 'to': '', 'subject': 'Receipt request for review',
+                       'body': f"Hello, could you provide a receipt for the {text(tx.get('currency', ''))} "
+                               f"{text(tx.get('amount', ''))} entry dated {text(tx.get('date', ''))} "
+                               f"(statement reference {text(tx.get('reference', ''))})? Thank you.",
+                       'workspace_id': scope[0], 'mailbox_id': scope[1],
+                       'evidence': tx, 'state': 'local_unaddressed_template_not_saved_or_sent'})
+    for conflict in conflicts[:25]:
+        assert_scope(conflict.get('evidence', {}), scope)
+        evidence = conflict
+        if 'candidate_transaction_indices' in conflict:
+            indices = conflict['candidate_transaction_indices']
+            # Templates remain standalone: stable references, not dangling indices
+            # into a report that is no longer included in this output artifact.
+            evidence = {k: v for k, v in conflict.items() if k != 'candidate_transaction_indices'}
+            evidence['candidate_references'] = [references[i] for i in indices]
+        output.append({'kind': 'discrepancy', 'to': '', 'subject': 'Reconciliation question for review',
+                       'body': 'My reviewed records have a possible discrepancy. Please review the attached evidence before contacting a vendor.',
+                       'workspace_id': scope[0], 'mailbox_id': scope[1],
+                       'evidence': evidence, 'state': 'local_unaddressed_template_not_saved_or_sent'})
+    return output
+
+
+def read_bytes(path, missing=False):
+    path = Path(path)
+    if any(p.is_symlink() for p in (path, *path.absolute().parents)):
+        raise ValueError('Symlink artifact paths are not supported')
+    if missing and not path.exists():
+        return b''
+    with path.open('rb') as handle:
+        if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+            raise ValueError('Only regular local files are supported')
+        content = handle.read(MAX_BYTES + 1)
+    if len(content) > MAX_BYTES:
+        raise ValueError('Artifact exceeds 8 MiB')
+    return content
+
+
+def decode_csv(content, ledger=False):
+    result = rows(list(csv.DictReader(io.StringIO(content.decode('utf-8'))))) if content else []
+    if ledger:
+        # Our ledger format prefixes every nonempty value, including amounts, with
+        # one apostrophe. This is reversible and prevents spreadsheet formulas.
+        for row in result:
+            if set(row) != set(FIELDS) or any(v and not v.startswith("'") for v in row.values()):
+                raise ValueError('Expected helper-format ledger; review/import other CSV explicitly')
+            for key, value in row.items():
+                row[key] = value[1:] if value else ''
+    return result
+
+
+def csv_bytes(records):
+    buf = io.StringIO(newline='')
+    writer = csv.DictWriter(buf, fieldnames=FIELDS)
+    writer.writeheader()
+    writer.writerows({key: "'" + value if value else '' for key, value in row.items()} for row in records)
+    return buf.getvalue().encode('utf-8')
+
+
+def json_bytes(value):
+    """Bound encoded bytes while serializing, before creating/replacing any file."""
+    chunks, size = [], 0
+    for chunk in json.JSONEncoder(indent=2).iterencode(value):
+        encoded = chunk.encode('utf-8')
+        size += len(encoded)
+        if size > MAX_BYTES:
+            raise ValueError('Output exceeds 8 MiB; choose narrower artifacts')
+        chunks.append(encoded)
+    return b''.join(chunks)
+
+
+def write_atomic(path, content, expected):
+    if not isinstance(content, bytes) or len(content) > MAX_BYTES:
+        raise ValueError('Output exceeds 8 MiB or is not encoded bytes; no overwrite')
+    path = Path(path).absolute()
+    if any(p.is_symlink() for p in (path, *path.parents)):
+        raise ValueError('Symlink output paths are not supported')
+    lock = path.with_name(path.name + '.lock')
+    fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    temporary = None
+    try:
+        os.close(fd)
+        if read_bytes(path, missing=True) != expected:
+            raise ValueError('Artifact changed since read; no overwrite')
+        with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+        lock.unlink()
+
+
+def main(args):
+    if not args or args[0] not in ('extract', 'reconcile', 'drafts'):
+        raise ValueError(__doc__)
+    command, *remaining = args
+    if len(remaining) < 2:
+        raise ValueError(__doc__)
+    workspace, mailbox, *paths = remaining
+    scope = scope_key((workspace, mailbox))
+    expected_lengths = {'extract': 2, 'reconcile': 3, 'drafts': 2}
+    if len(paths) != expected_lengths[command]:
+        raise ValueError(__doc__)
+    output = paths[-1]
+    if Path(output).absolute() in [Path(p).absolute() for p in paths[:-1]]:
+        raise ValueError('Input and output paths must differ')
+    before = read_bytes(output, missing=True)
+    if command == 'extract':
+        incoming, skipped = extract(json.loads(read_bytes(paths[0])), scope)
+        data = csv_bytes(upsert(decode_csv(before, ledger=True), incoming, scope))
+        print(json.dumps({'skipped_evidence_ids': skipped, 'local_only': True}))
+    elif command == 'reconcile':
+        data = json_bytes(reconcile(decode_csv(read_bytes(paths[0]), ledger=True), decode_csv(read_bytes(paths[1])), scope))
+    else:
+        data = json_bytes(drafts(json.loads(read_bytes(paths[0])), scope))
+    write_atomic(output, data, before)
+
+
+if __name__ == '__main__':
+    try:
+        main(sys.argv[1:])
+    except (ValueError, OSError, TypeError, KeyError) as error:
+        print(str(error), file=sys.stderr)
+        sys.exit(1)
