@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Deadline Tracker"
+  short_description: "Track return, trial, warranty, and renewal deadlines with self reminders"
+  default_prompt: "Use $mermail-deadline-tracker when the job is tracking a dated commitment such as a return window, free-trial end, warranty, renewal, or application deadline and scheduling an approved reminder to my own mailbox."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
