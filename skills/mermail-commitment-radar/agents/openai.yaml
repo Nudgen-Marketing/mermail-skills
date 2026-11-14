@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Commitment Radar"
+  short_description: "Track promises made and owed over email, flag overdue threads, draft follow-ups"
+  default_prompt: "Use $mermail-commitment-radar to scan my Mermail inbox and show me what I owe, what I am owed, and which threads have gone silent."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
