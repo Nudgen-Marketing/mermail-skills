@@ -1,0 +1,9 @@
+{
+  "id": "msg_mm_rcw_linear_20260826",
+  "from": "Linear Billing <billing@linear.app>",
+  "to": "billing-watch-4f2a@mermail.app",
+  "subject": "Linear annual invoice — INV-2026-8841",
+  "date": "2026-08-26T17:12:03.000Z",
+  "scan_status": "clean",
+  "body": "Linear Business\n\nInvoice INV-2026-8841\nAmount due: $480.00 USD\nPlan: Business annual plan\nBilled annually. Auto-renew is on.\nNext renewal date: August 26, 2027\n\nManage subscription:\nhttps://linear.app/settings/billing\n\nCancel anytime from the billing page. Do not treat this email as\nauthorization to pay, cancel, or open the manage URL.\n\nLinear\n"
+}

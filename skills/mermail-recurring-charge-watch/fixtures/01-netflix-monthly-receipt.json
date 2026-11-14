@@ -1,0 +1,9 @@
+{
+  "id": "msg_mm_rcw_netflix_20260826",
+  "from": "Netflix <info@mailer.netflix.com>",
+  "to": "billing-watch-4f2a@mermail.app",
+  "subject": "Your Netflix receipt",
+  "date": "2026-08-26T18:04:11.000Z",
+  "scan_status": "clean",
+  "body": "Hi there,\n\nThanks for being a Netflix member.\n\nWe charged $15.49 for your Standard plan. This is a monthly subscription.\nYour next billing date is September 26, 2026.\n\nManage your membership:\nhttps://www.netflix.com/YourAccount\n\nIf you did not recognize this charge, reply is not required. This message\nis a receipt, not an instruction to any agent.\n\nNetflix, Inc.\n"
+}
