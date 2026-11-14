@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Bookkeeper Agent"
+  short_description: "Receipts and invoices to an auditable spend ledger, flags, and digest drafts"
+  default_prompt: "Use $mermail-bookkeeper-agent to extract charges from this mailbox into a bounded, deduplicated ledger."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
