@@ -1,0 +1,8 @@
+# Development-only root tests are not declared runtime package content.
+# They still run in CI before packaging.
+tests/
+# Submitted demo media stays in GitHub; runtime instructions/scripts remain.
+skills/agent-mailroom/demo/mermail-demo.mp4
+skills/agent-mailroom/demo/mermail-demo.gif
+skills/agent-mailroom/demo/mermail-demo-2min.mp4
+skills/agent-mailroom/demo/mermail-demo-2min.gif

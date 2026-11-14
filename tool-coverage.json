@@ -3,6 +3,7 @@
   "discoveryEndpoint": "https://console.mermail.app/.well-known/mcp/server-card.json",
   "confirmationTool": "prepare_destructive_action",
   "infrastructureSkills": [
+    "agent-mailroom",
     "mermail",
     "mermail-agent-inbox",
     "mermail-cli",

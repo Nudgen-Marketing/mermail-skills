@@ -1,0 +1,11 @@
+interface:
+  display_name: "Agent Mailroom"
+  short_description: "Shared-inbox coordination for multiple AI agents with local sender verification and claim-before-work handoff."
+  default_prompt: "Use $agent-mailroom to set up a shared mail room for my agent swarm on topic audit-2026-09, then poll and claim work as actor bob."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
