@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Application Tracker"
+  short_description: "Track job and internship applications from recruiter email, with deadline reminders and follow-ups"
+  default_prompt: "Use $mermail-application-tracker when the job is tracking job or internship applications, assessment or interview deadlines, or recruiter follow-ups through Mermail."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
