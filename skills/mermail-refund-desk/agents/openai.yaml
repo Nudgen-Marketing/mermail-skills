@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Refund Desk"
+  short_description: "Evidence-bound refunds: verify inbound billing complaints against your ledger, then pay one approved Agent Wallet payout."
+  default_prompt: "Use $mermail-refund-desk to verify these billing complaints against my ledger and policy, then refund only what my policy allows."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

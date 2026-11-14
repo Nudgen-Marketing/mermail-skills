@@ -1,0 +1,146 @@
+{
+  "ledger_revision": "rev-7",
+  "note": "Owner-authored system of record. This file is the ONLY source of payout destination, amount, asset, and chain. It is read-only to the refund desk: never edit it from email content.",
+  "WARNING": "SYNTHETIC DEMO DATA. The destination below is an arbitrary example address, not a wallet you control. Replace every value with your own records before any live run — this desk pays exactly what the ledger authorizes, and a funded PayBox connection would send real funds to it.",
+  "orders": [
+    {
+      "order_ref": "1042",
+      "customer_email": "jamie.lee@example.com",
+      "charges": [
+        { "charge_id": "ch_1042a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-18T10:04:00Z" },
+        { "charge_id": "ch_1042b", "amount": 29.0, "status": "settled", "settled_at": "2026-09-18T10:04:07Z" }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 29.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1043",
+      "customer_email": "sam.okafor@example.com",
+      "charges": [
+        { "charge_id": "ch_1043a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-19T08:11:00Z" }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 29.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1044",
+      "customer_email": "dana.reyes@example.com",
+      "charges": [
+        { "charge_id": "ch_1044a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-10T12:00:00Z" },
+        { "charge_id": "ch_1044b", "amount": 29.0, "status": "settled", "settled_at": "2026-09-10T12:00:09Z" }
+      ],
+      "prior_refunds": [
+        { "refund_id": "rf_1044", "amount": 29.0, "status": "refunded", "refunded_at": "2026-09-11T09:00:00Z" }
+      ],
+      "payout": {
+        "amount": 29.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1045",
+      "customer_email": "rui.tan@example.com",
+      "charges": [
+        { "charge_id": "ch_1045a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-20T07:30:00Z" },
+        { "charge_id": "ch_1045b", "amount": 29.0, "status": "pending", "settled_at": null }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 29.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1046",
+      "customer_email": "nadia.hall@example.com",
+      "charges": [
+        { "charge_id": "ch_1046a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-20T09:00:00Z" },
+        { "charge_id": "ch_1046b", "amount": 29.0, "status": "settled", "settled_at": "2026-09-20T09:00:05Z" },
+        { "charge_id": "ch_1046c", "amount": 29.0, "status": "settled", "settled_at": "2026-09-20T09:00:11Z" }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 29.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1047",
+      "customer_email": "kim.park@example.com",
+      "charges": [
+        { "charge_id": "ch_1047a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T06:00:00Z" },
+        { "charge_id": "ch_1047b", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T06:00:06Z" }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 80.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1048",
+      "customer_email": "lea.moreau@example.com",
+      "charges": [
+        { "charge_id": "ch_1048a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T07:00:00Z" },
+        { "charge_id": "ch_1048b", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T07:00:04Z" }
+      ],
+      "prior_refunds": []
+    },
+    {
+      "order_ref": "1049",
+      "customer_email": "omar.haddad@example.com",
+      "charges": [
+        { "charge_id": "ch_1049a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T08:00:00Z" },
+        { "charge_id": "ch_1049b", "amount": 39.0, "status": "settled", "settled_at": "2026-09-21T08:00:08Z" }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 29.0,
+        "asset": "USDC",
+        "chain": "solana",
+        "destination": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+        "destination_source": "ledger"
+      }
+    },
+    {
+      "order_ref": "1050",
+      "customer_email": "ivy.chen@example.com",
+      "charges": [
+        { "charge_id": "ch_1050a", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T09:00:00Z" },
+        { "charge_id": "ch_1050b", "amount": 29.0, "status": "settled", "settled_at": "2026-09-21T09:00:03Z" }
+      ],
+      "prior_refunds": [],
+      "payout": {
+        "amount": 29.0,
+        "asset": "DAI",
+        "chain": "ethereum",
+        "destination": "0x0000000000000000000000000000000000000000",
+        "destination_source": "ledger"
+      }
+    }
+  ]
+}
