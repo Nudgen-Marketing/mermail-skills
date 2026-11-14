@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Waitlist Profiler"
+  short_description: "Email-native waitlist: verify, enrich with x402, interview, rank, invite"
+  default_prompt: "Use $mermail-waitlist-profiler to process new applications to my waitlist inbox: score free signals from each email (sender authentication on a work domain, their pitch, signature, CC referrals), pay one capped x402 enrichment only for verified work-domain applicants with real intent, ask borderline applicants one same-thread question, rank everyone in Google Sheets against my ICP, and send approved invites and position updates in each applicant's thread."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
