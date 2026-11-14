@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Receipt Reconciliation"
+  short_description: "Match invoices and receipts with traceable evidence"
+  default_prompt: "Use $mermail-reconcile-receipts to reconcile invoices, receipts, refunds, and credit notes in my selected Mermail mailbox and report missing or conflicting evidence without sending mail or making payments."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
