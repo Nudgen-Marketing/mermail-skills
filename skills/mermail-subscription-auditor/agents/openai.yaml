@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Subscription Auditor"
+  short_description: "Audit subscriptions and renewals from mailbox receipts"
+  default_prompt: "Use $mermail-subscription-auditor when the job is a subscription ledger, renewal or trial-expiry warnings, price-increase detection, or a draft-only cancellation request grounded in Mermail receipt evidence."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
