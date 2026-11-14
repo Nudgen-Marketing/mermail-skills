@@ -1,0 +1,93 @@
+# Curated correction of the 2026-09-06 one-commit ECC snapshot.
+# These optional repository-development hints supplement current AUTHORING.md,
+# CONTRIBUTING.md and SECURITY.md; they are not client or user policy.
+# Preserve independently curated instincts alongside them.
+
+---
+id: mermail-skills-commit-conventional
+trigger: "when writing a commit message for this repository"
+confidence: 0.85
+domain: git
+source: repository-authoring-review
+source_repo: https://github.com/Nudgen-Marketing/mermail-skills
+---
+
+# Commit style
+
+Use a concise, descriptive subject matching the actual change. Conventional prefixes such as feat, fix, docs or test may follow adjacent history; do not infer a mandatory feat prefix from one sampled commit.
+
+Evidence: current contribution workflow requests meaningful changes and tests; the old snapshot analyzed only one commit and cannot establish a universal prefix rule.
+
+---
+id: mermail-skills-commit-length
+trigger: "when writing a commit message for this repository"
+confidence: 0.6
+domain: git
+source: repository-authoring-review
+source_repo: https://github.com/Nudgen-Marketing/mermail-skills
+---
+
+# Commit length
+
+Keep the first line clear and concise without an arbitrary 34-character requirement. A one-commit average is historical evidence, not a team policy.
+
+---
+id: mermail-skills-naming-files
+trigger: "when creating a file or skill identity in this repository"
+confidence: 0.8
+domain: code-style
+source: repository-authoring-review
+source_repo: https://github.com/Nudgen-Marketing/mermail-skills
+---
+
+# Repository naming
+
+Official skill identities are lowercase kebab-case and must match the skill directory and frontmatter name. Use kebab-case for ordinary new reference/helper filenames; preserve required names such as SKILL.md, README.md and agents/openai.yaml and existing filenames. Never apply a blanket camelCase filename rule.
+
+Evidence: AUTHORING.md layout/frontmatter requirements; skills/mermail-mcp/scripts/check-connection.mjs and scripts/clawhub-ci-publish.py. This repository packages Markdown instructions with JavaScript ESM/Python helpers, not a TypeScript components/hooks application.
+
+---
+id: mermail-skills-import-relative
+trigger: "when importing local JavaScript ESM modules"
+confidence: 0.75
+domain: code-style
+source: repository-authoring-review
+source_repo: https://github.com/Nudgen-Marketing/mermail-skills
+---
+
+# Local imports
+
+Follow adjacent helper style, including relative imports for local JavaScript ESM files. Do not impose JavaScript import syntax on Python or Markdown.
+
+Evidence: tests/validate.mjs imports validateResearchAgent from ./research-agent.mjs.
+
+---
+id: mermail-skills-export-style
+trigger: "when exporting from a JavaScript ESM helper"
+confidence: 0.7
+domain: code-style
+source: repository-authoring-review
+source_repo: https://github.com/Nudgen-Marketing/mermail-skills
+---
+
+# Helper exports
+
+Follow adjacent code's named exports where appropriate; this is not a requirement to rewrite other languages or add helpers for prose-only workflows.
+
+Evidence: tests/research-agent.mjs exports validateResearchAgent.
+
+---
+id: mermail-skills-test-separate
+trigger: "when adding a regression test in this repository"
+confidence: 0.8
+domain: testing
+source: repository-authoring-review
+source_repo: https://github.com/Nudgen-Marketing/mermail-skills
+---
+
+# Verification
+
+Place repository checks in tests/ and wire justified executable regressions into npm test. There is no required src/ mirror or __tests__/ structure. Preserve adversarial payloads, test actual helper behavior where executable code exists, and distinguish packaging fixtures from model/live integration proof.
+
+Evidence: package.json invokes tests/validate.mjs; tests/research-agent.mjs checks declarative scenarios; CONTRIBUTING.md requests local validation and security observations.
+
