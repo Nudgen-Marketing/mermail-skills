@@ -1040,7 +1040,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -2035,6 +2035,22 @@ if (!mermailDefaultTriagerScenario || mermailDefaultTriagerScenario.tools.length
 }
 
 const allTools = Object.values(coverage.domains).flat();
+// Declarative routing/effect contracts complement, not replace, the executable
+// source-manifest and delivery-state projections required by npm test.
+for (const [expected, tools, approval] of [
+  ["digest-read-only-executive-actions-counts", ["list_mailboxes", "search_emails", "get_email"], "none"],
+  ["digest-exact-approved-one-time-schedule-not-recurring", ["schedule_email_send"], "external-effect"],
+  ["digest-unknown-outcome-held-without-replay", [], "none"],
+  ["digest-versioned-manifest-no-label-dedup-claim", ["search_emails", "get_email"], "none"],
+  ["digest-recurring-scheduler-integration-required", [], "none"],
+  ["digest-merchant-integration-required-no-wallet", [], "none"],
+]) {
+  const scenario = scenarios.find(s => s.expected === expected && s.skill === "mermail-research-digest-agent");
+  if (!scenario || scenario.approval !== approval || scenario.tools.length !== tools.length ||
+      tools.some(tool => !scenario.tools.includes(tool))) {
+    errors.push(`mermail-research-digest-agent: missing or unsafe regression ${expected}`);
+  }
+}
 const updatedContracts = [
   ["mermail-agent-wallet/references/workflows.md", ["credential_id", "approval_mode: autonomous", "setup_required", "pending_execution", "pending_confirmation", "pending_settlement", "recovery_required", "show_paybox_signing", "list_bridge_routes", "prepare_bridge", "get_bridge_status", "quoteId", "idempotencyKey"]],
   ["mermail-administer-workspace/references/webhooks.md", ["list_webhooks", "create_webhook", "list_webhook_deliveries", "test_webhook", "retry_webhook_delivery", "rotate_webhook_secret", "prepare_destructive_action", "idempotencyKey", "write-only"]],

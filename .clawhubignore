@@ -1,0 +1,7 @@
+# Recorded demo evidence stays in GitHub, not the installed skill bundle.
+# Keep all skill instructions, references, scripts, tests and screenshots included.
+demo/*.mp4
+
+# Generated Python bytecode is not source or a runtime dependency.
+**/__pycache__/
+*.pyc
