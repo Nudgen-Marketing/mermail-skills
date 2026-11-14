@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Release Evidence Gate"
+  short_description: "Verify release claims against reproducible evidence"
+  default_prompt: "Use $mermail-release-evidence-gate to verify a release or deployment claim from Mermail and return a reproducible evidence decision."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
