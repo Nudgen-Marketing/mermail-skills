@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Dunning Recovery"
+  short_description: "Send exactly one idempotent recovery email per failed-payment event, never a duplicate."
+  default_prompt: "Use $mermail-dunning-recovery to check the billing mailbox for new failed-payment notifications and draft or send recovery emails without duplicating anything already sent."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
