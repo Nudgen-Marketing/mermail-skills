@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Thread Handoff"
+  short_description: "Source-linked decisions and next steps from one thread"
+  default_prompt: "Use $mermail-thread-handoff to prepare a read-only brief of this email conversation, citing decisions, changes, open questions, and next actions."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"

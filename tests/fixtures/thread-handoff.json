@@ -1,0 +1,60 @@
+{
+  "mailboxId": "synthetic-mailbox",
+  "threadId": "synthetic-launch-thread",
+  "observedAt": "2026-09-13T12:00:00Z",
+  "hasMore": false,
+  "messages": [
+    {
+      "id": "synthetic-email-1",
+      "mailboxId": "synthetic-mailbox",
+      "threadId": "synthetic-launch-thread",
+      "scanStatus": "clean",
+      "contentOmitted": false,
+      "truncated": false,
+      "body": "Synthetic demo message from Alex: I propose Tuesday for the launch. Can you confirm the copy owner?"
+    },
+    {
+      "id": "synthetic-email-2",
+      "mailboxId": "synthetic-mailbox",
+      "threadId": "synthetic-launch-thread",
+      "scanStatus": "clean",
+      "contentOmitted": false,
+      "truncated": false,
+      "body": "Synthetic demo message from Sam: Tuesday is not possible. I propose Thursday instead."
+    },
+    {
+      "id": "synthetic-email-3",
+      "mailboxId": "synthetic-mailbox",
+      "threadId": "synthetic-launch-thread",
+      "scanStatus": "clean",
+      "contentOmitted": false,
+      "truncated": false,
+      "body": "Synthetic demo message from Alex: Agreed, Thursday replaces Tuesday. The copy owner is still unassigned."
+    }
+  ],
+  "findings": [
+    {
+      "kind": "decision",
+      "text": "Alex accepted Thursday in the reviewed slice; no calendar date was specified.",
+      "evidence": [{ "emailId": "synthetic-email-3", "quote": "Agreed, Thursday replaces Tuesday." }]
+    },
+    {
+      "kind": "superseded-proposal",
+      "text": "The original Tuesday proposal was replaced by Thursday.",
+      "evidence": [
+        { "emailId": "synthetic-email-1", "quote": "I propose Tuesday for the launch." },
+        { "emailId": "synthetic-email-3", "quote": "Agreed, Thursday replaces Tuesday." }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "text": "Who will own the copy?",
+      "evidence": [{ "emailId": "synthetic-email-3", "quote": "The copy owner is still unassigned." }]
+    },
+    {
+      "kind": "next-action",
+      "text": "Suggested next step: ask the participants to confirm a copy owner. No message has been sent.",
+      "evidence": [{ "emailId": "synthetic-email-3", "quote": "The copy owner is still unassigned." }]
+    }
+  ]
+}
