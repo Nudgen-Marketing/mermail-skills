@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail App Review Recovery"
+  short_description: "Turn mobile-store review email into a grounded recovery dossier"
+  default_prompt: "Use $mermail-app-review-recovery to extract App Store or Google Play review evidence, build a remediation dossier, and prepare a draft-only response without clicking store links or performing account actions."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
