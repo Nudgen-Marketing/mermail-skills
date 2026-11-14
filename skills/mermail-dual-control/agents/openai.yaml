@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Dual Control"
+  short_description: "Maker-checker payment review with evidence-linked payment orders for PayBox approval"
+  default_prompt: "Use $mermail-dual-control when the job is verifying a payment request with independent maker and checker derivations, cross-checking an invoice against its order thread, or preparing a cross-checked payment order for Agent Wallet approval."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
