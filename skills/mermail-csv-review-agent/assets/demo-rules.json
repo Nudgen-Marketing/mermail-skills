@@ -1,0 +1,7 @@
+{
+  "columns": ["asset_id", "name", "region", "status"],
+  "required": ["asset_id", "name"],
+  "trim": ["asset_id", "name", "region", "status"],
+  "unique_key": ["asset_id"],
+  "allowed_values": {"status": ["active", "paused"]}
+}
