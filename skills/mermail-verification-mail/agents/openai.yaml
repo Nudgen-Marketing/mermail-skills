@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Verification Mail"
+  short_description: "Provision a service-scoped mailbox, then find and safely extract one expected verification, sign-in, or onboarding message."
+  default_prompt: "Use $mermail-verification-mail to provision or reuse a service-scoped mailbox and extract the expected verification message safely."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
