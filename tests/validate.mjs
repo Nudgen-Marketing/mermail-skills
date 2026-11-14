@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import process from "node:process";
 import path from "node:path";
 import { validateResearchAgent } from "./research-agent.mjs";
+import { validateTravelAgency } from "./travel-agency.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -1040,7 +1041,7 @@ for (const required of [
   "at least the 63-tool full-catalog baseline",
   "exact 12-tool agent-inbox profile",
   "MCP is missing required tools",
-  "currentFullCatalogBaseline = 72",
+  `currentFullCatalogBaseline = ${Object.values(coverage.domains).flat().length + (coverage.confirmationTool ? 1 : 0)}`,
   "compatibleFullCatalogFloor = 63",
   "Unsupported Mermail MCP profile",
   "duplicate tool names",
@@ -1674,6 +1675,7 @@ for (const skillName of [
   "mermail-gtm-agent",
   "mermail-support-agent",
   "mermail-research-agent",
+  "mermail-travel-agency",
   "mermail-x402-agent",
   "mermail-xstocks-desk",
 ]) {
@@ -1989,6 +1991,7 @@ for (const skillName of [
   "mermail-composio",
   "mermail-agent-wallet",
   "mermail-research-agent",
+  "mermail-travel-agency",
   "mermail-xstocks-desk",
 ]) {
   if (!routing.includes(`\`${skillName}\``)) {
@@ -2010,6 +2013,7 @@ for (const expected of [
   "route-manage-compose-composio-with-independent-authorization",
   "route-read-only-inbox-and-reject-wallet-switch",
   "route-research-business-to-mermail-research-agent",
+  "route-travel-consultation-to-mermail-travel-agency",
   "route-equity-workflow",
 ]) {
   if (!scenarios.some((scenario) => scenario.skill === "mermail" && scenario.expected === expected)) {
@@ -2120,6 +2124,7 @@ for (const content of trackedText) {
 }
 
 errors.push(...await validateResearchAgent(root, scenarios, coverage));
+errors.push(...await validateTravelAgency(root, scenarios, coverage));
 
 if (process.argv.includes("--remote")) await validateRemote();
 
