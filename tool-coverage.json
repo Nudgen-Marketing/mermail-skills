@@ -12,7 +12,8 @@
     "mermail-scheduling-agent",
     "mermail-support-agent",
     "mermail-x402-agent",
-    "mermail-xstocks-desk"
+    "mermail-xstocks-desk",
+    "mermail-webhook-reactor"
   ],
   "domains": {
     "mermail-administer-workspace": [
@@ -172,6 +173,8 @@
     "schedule_email_send",
     "chat_with_mailbox_agent",
     "execute_composio_tool",
-    "connect_composio_toolkit"
+    "connect_composio_toolkit",
+    "test_webhook",
+    "retry_webhook_delivery"
   ]
 }
