@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail OTP Deliverability Sentinel"
+  short_description: "Probe OTP delivery with private, checkpoint-bound records"
+  default_prompt: "Use $mermail-deliverability-sentinel to run a user-triggered OTP delivery round, report code presence without fragments or hashes, and compare exact checkpoint-bound records without claiming mailbox-only authenticated history."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
