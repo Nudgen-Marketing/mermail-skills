@@ -1,0 +1,22 @@
+interface:
+  name: "mermail-deadman-switch"
+  description: "Autonomous Digital Contingency, Inheritance, and Protocol Switch Agent. Periodically monitors Proof of Life heartbeats from the principal via email and irrevocably executes contingency protocols, releasing encrypted vault directives and rescue funds via PayBox."
+  display_name: "mermail-deadman-switch"
+  short_description: "Mermail Digital Inheritance Switch Agent Skill"
+  default_prompt: "Use $mermail-deadman-switch to autonomous Digital Contingency, Inheritance, and Protocol Switch Agent."
+dependencies:
+  tools:
+    - type: "mcp"
+      name: "mermail"
+      url: "https://console.mermail.app/mcp"
+      value: "mermail"
+      transport: "streamable_http"
+      description: "Mermail workspace and mailbox MCP server"
+policy:
+  authentication:
+    env: "MERMAIL_API_KEY"
+  permissions:
+    - "read_emails"
+    - "send_emails"
+    - "search_emails"
+    - "paybox_transfers"
