@@ -1,0 +1,11 @@
+interface:
+  display_name: "Mermail Heartbeat"
+  short_description: "Wake catch-up digest, owner briefing, and overdue-wake deadman alert for scheduled agents"
+  default_prompt: "Use $mermail-heartbeat to run my agent's wake cycle: digest mail since the last wake, send the owner briefing, and re-arm the overdue-wake alert."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mermail"
+      description: "Mermail workspace and mailbox MCP server"
+      transport: "streamable_http"
+      url: "https://console.mermail.app/mcp"
